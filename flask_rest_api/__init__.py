@@ -7,21 +7,69 @@ from webargs.flaskparser import abort  # noqa
 
 from .error_handlers import _handle_http_exception
 from .etag import is_etag_enabled, conditional  # noqa
-from .spec import docs
-from .blueprint import Blueprint  # noqa
+from .spec import ApiSpec
+from .blueprint import Blueprint
 
 
-def init_app(app):
-    """Initialize api"""
+class Api(object):
 
-    docs.init_app(app)
+    def __init__(self, app=None):
 
-    # CORS is setup the most permissive way, to avoid cross-origin
-    # issues when serving the spec or trying it using swagger-ui.
-    CORS(app)
+        self._apispec = ApiSpec()
 
-    # Can't register a handler for HTTPException, so let's register
-    # default handler for each code explicitly.
-    # https://github.com/pallets/flask/issues/941#issuecomment-118975275
-    for code in default_exceptions:
-        app.register_error_handler(code, _handle_http_exception)
+        if app is not None:
+            self.init_app(app)
+
+    def init_app(self, app):
+        """Initialize api"""
+
+        self._app = app
+
+        # Register flask-rest-api in app extensions
+        app.extensions = getattr(app, 'extensions', {})
+        ext = app.extensions.setdefault('flask-rest-api', {})
+        ext['ext_obj'] = self
+        ext['spec'] = self._apispec
+
+        # Initialize spec
+        self._apispec.init_app(app)
+
+        # CORS is setup the most permissive way, to avoid cross-origin
+        # issues when serving the spec or trying it using swagger-ui.
+        CORS(app)
+
+        # Can't register a handler for HTTPException, so let's register
+        # default handler for each code explicitly.
+        # https://github.com/pallets/flask/issues/941#issuecomment-118975275
+        for code in default_exceptions:
+            app.register_error_handler(code, _handle_http_exception)
+
+    # XXX: Ideally, Blueprint wouldn't need a spec attribute
+    # and we wouldn't need this wrapper
+    def blueprint(self, *args, **kwargs):
+        return Blueprint(self._apispec.spec, *args, **kwargs)
+
+    def register_blueprint(self, bp):
+        """Register a blueprint in the application
+
+        Also registers documentation for the blueprint/resource
+        """
+
+        self._app.register_blueprint(bp)
+
+        # Register views in API documentation for this resource
+        bp.register_views_in_doc(self._app, self._apispec.spec)
+
+        # Add tag relative to this resource to the global tag list
+        self._apispec.spec.add_tag({
+            'name': bp.name,
+            'description': bp.description,
+            }
+        )
+
+    def definition(self, name):
+        """Decorator to register a schema in the doc"""
+        def wrapper(cls):
+            self._apispec.spec.definition(name, schema=cls)
+            return cls
+        return wrapper

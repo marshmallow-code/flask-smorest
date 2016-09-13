@@ -7,14 +7,13 @@ from .utils import deepupdate
 import webargs.flaskparser as wfp
 from apispec.ext.marshmallow.swagger import schema2parameters
 
-from .spec import docs
 from .marshal import marshal_with
 
 
 class Blueprint(FlaskBlueprint):
     """Blueprint that registers info in API documentation"""
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, spec, *args, **kwargs):
 
         self.description = kwargs.pop('description', '')
 
@@ -28,8 +27,7 @@ class Blueprint(FlaskBlueprint):
         #     }
         # }
         self.__docs__ = {}
-        self._spec = docs.spec
-        self.tag()
+        self._spec = spec
 
     def _store_endpoint_docs(self, endpoint, obj, **kwargs):
         """Store view or function doc info"""
@@ -60,7 +58,7 @@ class Blueprint(FlaskBlueprint):
             for method in methods:
                 store_method_docs(method, obj)
 
-    def register_views_in_doc(self, app):
+    def register_views_in_doc(self, app, spec):
         """Register views information in documentation
 
         Call this when initiating application
@@ -70,7 +68,7 @@ class Blueprint(FlaskBlueprint):
 
             endpoint = '.'.join((self.name, endpoint))
 
-            self._spec.add_path(
+            spec.add_path(
                 app=app,
                 endpoint=endpoint,
                 operations=doc
@@ -99,21 +97,6 @@ class Blueprint(FlaskBlueprint):
                 self.add_url_rule(url, endpoint, wrapped, **kwargs)
                 self._store_endpoint_docs(_endpoint, wrapped, **kwargs)
 
-        return wrapper
-
-    def tag(self):
-        """Add tag relative to this resource to the global tag list"""
-        self._spec.add_tag({
-            'name': self.name,
-            'description': self.description,
-            }
-        )
-
-    def definition(self, name):
-        """Decorator to register a schema in the doc"""
-        def wrapper(cls):
-            self._spec.definition(name, schema=cls)
-            return cls
         return wrapper
 
     def doc(self, **kwargs):
@@ -147,6 +130,7 @@ class Blueprint(FlaskBlueprint):
                 location = 'body'
 
             # Add schema as parameter in the API doc
+            # XXX: schema resolution should be done later
             doc = {'parameters': schema2parameters(
                 schema,
                 spec=self._spec,

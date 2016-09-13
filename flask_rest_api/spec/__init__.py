@@ -39,6 +39,3 @@ class ApiSpec(object):
     def openapi_json(self):
         """Serve json spec file"""
         return flask.jsonify(self.spec.to_dict())
-
-
-docs = ApiSpec()
