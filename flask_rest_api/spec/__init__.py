@@ -32,12 +32,20 @@ class ApiSpec(object):
 
     def init_app(self, app):
 
-        # TODO: set API info from app (title, description, version, etc...)
+        # API info from app
+        self.set_title(app.name)
+        self.set_version(app.config.get('API_VERSION', 'v1.0.0'))
 
         # Add route to json spec file
         json_url = app.config.get('OPENAPI_URL', None)
         if json_url:
             app.add_url_rule(json_url, view_func=self.openapi_json)
+
+    def set_title(self, title):
+        self.spec.info['title'] = title
+
+    def set_version(self, version):
+        self.spec.info['version'] = version
 
     def openapi_json(self):
         """Serve json spec file"""
