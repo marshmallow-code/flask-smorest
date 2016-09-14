@@ -4,6 +4,9 @@
 import flask
 from apispec import APISpec
 
+from .plugin import CONVERTER_MAPPING
+from apispec.ext.marshmallow.swagger import FIELD_MAPPING
+
 
 def make_apispec():
     return APISpec(
@@ -22,10 +25,10 @@ class ApiSpec(object):
 
     def __init__(self, app=None):
 
+        self.spec = make_apispec()
+
         if app is not None:
             self.init_app(app)
-
-        self.spec = make_apispec()
 
     def init_app(self, app):
 
@@ -39,3 +42,9 @@ class ApiSpec(object):
     def openapi_json(self):
         """Serve json spec file"""
         return flask.jsonify(self.spec.to_dict())
+
+    def register_converter(self, converter, conv_type, conv_format):
+        CONVERTER_MAPPING[converter] = (conv_type, conv_format)
+
+    def register_field(self, field, field_type, field_format):
+        FIELD_MAPPING[field] = (field_type, field_format)

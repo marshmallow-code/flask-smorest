@@ -29,7 +29,7 @@ class Api(object):
         app.extensions = getattr(app, 'extensions', {})
         ext = app.extensions.setdefault('flask-rest-api', {})
         ext['ext_obj'] = self
-        ext['spec'] = self._apispec
+        ext['spec'] = self._apispec.spec
 
         # Initialize spec
         self._apispec.init_app(app)
@@ -73,3 +73,11 @@ class Api(object):
             self._apispec.spec.definition(name, schema=cls)
             return cls
         return wrapper
+
+    def register_converter(self, converter, conv_type, conv_format):
+        """Register URL parameter converter in docs"""
+        self._apispec.register_converter(converter, conv_type, conv_format)
+
+    def register_field(self, field, field_type, field_format):
+        """Register Marshmallow field in docs"""
+        self._apispec.register_field(field, field_type, field_format)
