@@ -1,4 +1,33 @@
 # -*- coding: utf-8 -*-
+"""API Blueprint
+
+This is a subclass of Flask's Blueprint
+
+It provides added features:
+
+- Decorators to specify Marshmallow schema for view functions I/O
+
+- API documentation registration
+
+Documentation process works in several steps:
+
+- At import time
+
+  - When a MethodView or a function is decorated, relevant information
+    is added to the object's `__apispec__` attribute.
+
+  - The `route` decorator registers the endpoint in the Blueprint and gathers
+    all information about the endpoint in `Blueprint.__docs__[endpoint]`
+
+- At initialization time
+
+  - Schema instances are replaced either by their reference in the `definition`
+    section of the spec if applicable, otherwise by their json representation.
+
+  - Endpoints documentation is registered in the APISpec object
+"""
+
+from copy import deepcopy
 
 from flask import Blueprint as FlaskBlueprint
 from flask.views import MethodViewType
@@ -13,26 +42,25 @@ from .marshal import marshal_with
 class Blueprint(FlaskBlueprint):
     """Blueprint that registers info in API documentation"""
 
-    def __init__(self, spec, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
 
         self.description = kwargs.pop('description', '')
 
         super().__init__(*args, **kwargs)
 
-        # __views __is a dict storing endpoints documentation
+        # __docs__ is a dict storing endpoints documentation
         # {endpoint: {
-        #     get: documentation,
-        #     post: documentation,
+        #     'get': documentation,
+        #     'post': documentation,
         #     ...
         #     }
         # }
         self.__docs__ = {}
-        self._spec = spec
 
     def _store_endpoint_docs(self, endpoint, obj, **kwargs):
         """Store view or function doc info"""
 
-        self.__docs__[endpoint] = self.__docs__.get(endpoint, {})
+        endpoint_doc = self.__docs__.setdefault(endpoint, {})
 
         def store_method_docs(method, function):
             doc = getattr(function, '__apidoc__', {})
@@ -40,12 +68,12 @@ class Blueprint(FlaskBlueprint):
             doc.update({"tags": [self.name]})
             # Add function doc to table for later registration
             method_l = method.lower()
-            if method_l in self.__docs__[endpoint]:
+            if method_l in endpoint_doc:
                 # TODO: create custom exceptions
                 raise Exception(
                     'Method {} already registered for endpoint {}'.format(
                         method_l, endpoint))
-            self.__docs__[endpoint][method_l] = doc
+            endpoint_doc[method_l] = doc
 
         # MethodView (class)
         if isinstance(obj, MethodViewType):
@@ -61,12 +89,38 @@ class Blueprint(FlaskBlueprint):
     def register_views_in_doc(self, app, spec):
         """Register views information in documentation
 
-        Call this when initiating application
+        If a schema in a parameter (or a response) appears in the spec
+        `definitions` section, it is replace by a reference to its definition
+        in the parameter (or response) documentation:
+
+        "schema":{"$ref": "#/definitions/MySchema"}
         """
 
         for endpoint, doc in self.__docs__.items():
 
             endpoint = '.'.join((self.name, endpoint))
+
+            # Modifying doc in place causes troubles if this method is
+            # called twice. Typically, during tests, because modules are
+            # imported once but initialized once before each test.
+            doc = deepcopy(doc)
+
+            # doc is a dict of documentation per method for the endpoint
+            # {'get': documentation, 'post': documentation,...}
+
+            # Process parameters: resolve schema reference
+            # or convert schema in json description
+            for apidoc in doc.values():
+                params = apidoc.get('parameters', None)
+                if params:
+                    # use_args only register schema as parameters
+                    # so there's no need to check
+                    params = schema2parameters(
+                        params['schema'],
+                        spec=spec,
+                        required=params['required'],
+                        default_in=params['location'])
+                    apidoc['parameters'] = params
 
             spec.add_path(
                 app=app,
@@ -78,6 +132,8 @@ class Blueprint(FlaskBlueprint):
         """Decorator to register url rule in application
 
         Also stores doc info for later registration
+
+        Use this to decorate a MethodView or a resource function
         """
 
         def wrapper(wrapped):
@@ -129,14 +185,13 @@ class Blueprint(FlaskBlueprint):
             if location == 'json':
                 location = 'body'
 
-            # Add schema as parameter in the API doc
-            # XXX: schema resolution should be done later
-            doc = {'parameters': schema2parameters(
-                schema,
-                spec=self._spec,
-                required=required,
-                default_in=location)
-            }
+            # At this stage, dump schema and parameters in doc dictionary
+            # schema instance will be later replaced by ref or json
+            doc = {'parameters': {
+                'location': location,
+                'required': required,
+                'schema': schema,
+            }}
             func.__apidoc__ = deepupdate(getattr(func, '__apidoc__', {}), doc)
 
             return func

@@ -8,7 +8,7 @@ from webargs.flaskparser import abort  # noqa
 from .error_handlers import _handle_http_exception
 from .etag import is_etag_enabled, conditional  # noqa
 from .spec import ApiSpec
-from .blueprint import Blueprint
+from .blueprint import Blueprint  # noqa
 
 
 class Api(object):
@@ -44,11 +44,6 @@ class Api(object):
         for code in default_exceptions:
             app.register_error_handler(code, _handle_http_exception)
 
-    # XXX: Ideally, Blueprint wouldn't need a spec attribute
-    # and we wouldn't need this wrapper
-    def blueprint(self, *args, **kwargs):
-        return Blueprint(self._apispec.spec, *args, **kwargs)
-
     def register_blueprint(self, bp):
         """Register a blueprint in the application
 
@@ -68,7 +63,11 @@ class Api(object):
         )
 
     def definition(self, name):
-        """Decorator to register a schema in the doc"""
+        """Decorator to register a schema in the doc
+
+        This allows a schema to be defined once in the `definitions`
+        section of the spec and be referenced throughtout the spec.
+        """
         def wrapper(cls):
             self._apispec.spec.definition(name, schema=cls)
             return cls
