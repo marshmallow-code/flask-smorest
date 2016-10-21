@@ -24,7 +24,7 @@ def is_etag_enabled(app):
 
 def generate_etag(data=None):
     """Generates an etag based on data."""
-    etag_data = json.dumps(data)
+    etag_data = json.dumps(data, sort_keys=True)
     etag = hashlib.sha1(bytes(etag_data, 'utf-8')).hexdigest()
 
     return etag
