@@ -68,8 +68,8 @@ class Api(object):
         This allows a schema to be defined once in the `definitions`
         section of the spec and be referenced throughtout the spec.
         """
-        def wrapper(cls):
-            self._apispec.spec.definition(name, schema=cls)
+        def wrapper(cls, **kwargs):
+            self._apispec.spec.definition(name, schema=cls, **kwargs)
             return cls
         return wrapper
 
