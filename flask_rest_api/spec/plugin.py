@@ -9,10 +9,10 @@ from urllib.parse import urljoin
 import werkzeug.routing
 
 from apispec import Path
-from apispec.exceptions import APISpecError
 from apispec.ext.flask import flaskpath2swagger
 from apispec.ext.marshmallow import resolve_schema_dict
 
+from ..exceptions import EndpointRuleMissing
 
 # From flask-apispec
 CONVERTER_MAPPING = {
@@ -54,8 +54,8 @@ def flask_path_helper(spec, app, endpoint, operations={}, **kwargs):
         # WARNING: Assume 1 rule per view function for now
         rule = app.url_map._rules_by_endpoint[endpoint][0]
     except KeyError:
-        raise APISpecError(
-            "Could not find rule for endpoint '{0}'".format(endpoint))
+        raise EndpointRuleMissing(
+            "Could not find rule for endpoint '{}'".format(endpoint))
     path = flaskpath2swagger(rule.rule)
     app_root = app.config['APPLICATION_ROOT'] or '/'
     path = urljoin(app_root.rstrip('/') + '/', path.lstrip('/'))

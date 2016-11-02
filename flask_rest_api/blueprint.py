@@ -37,6 +37,7 @@ import webargs.flaskparser as wfp
 from apispec.ext.marshmallow.swagger import schema2parameters
 
 from .marshal import marshal_with
+from .exceptions import EndpointMethodDocAlreadyRegisted
 
 
 class Blueprint(FlaskBlueprint):
@@ -69,8 +70,7 @@ class Blueprint(FlaskBlueprint):
             # Add function doc to table for later registration
             method_l = method.lower()
             if method_l in endpoint_doc:
-                # TODO: create custom exceptions
-                raise Exception(
+                raise EndpointMethodDocAlreadyRegisted(
                     'Method {} already registered for endpoint {}'.format(
                         method_l, endpoint))
             endpoint_doc[method_l] = doc

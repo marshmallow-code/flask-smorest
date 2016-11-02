@@ -13,9 +13,9 @@ import json
 
 from flask import g, request, current_app
 from werkzeug import ETagResponseMixin
-from werkzeug.exceptions import (
-    HTTPException, PreconditionRequired as werkzeug_PreconditionRequired)
 from webargs.flaskparser import abort
+
+from .exceptions import PreconditionRequired, NotModified
 
 
 def is_etag_enabled(app):
@@ -59,16 +59,3 @@ def _new_set_etag(self, etag, weak=False):
     _old_set_etag(self, etag, weak)
 
 ETagResponseMixin.set_etag = _new_set_etag
-
-
-# exception created to compensate for a lack in Werkzeug (and Flask)
-class NotModified(HTTPException):
-    code = 304
-    description = 'Resource not modified since last request.'
-
-
-# exception overridden to change Werkzeug description
-class PreconditionRequired(werkzeug_PreconditionRequired):
-    description = (
-        'This request is required to be conditional;'
-        ' try using "If-Match".')
