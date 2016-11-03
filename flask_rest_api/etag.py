@@ -9,9 +9,8 @@ Inspired by flask snippet: http://flask.pocoo.org/snippets/95/
 
 from functools import wraps
 import hashlib
-import json
 
-from flask import g, request, current_app
+from flask import g, request, current_app, json
 from werkzeug import ETagResponseMixin
 from webargs.flaskparser import abort
 
@@ -24,6 +23,8 @@ def is_etag_enabled(app):
 
 def generate_etag(data=None):
     """Generates an etag based on data."""
+    # flask's json.dumps is needed here
+    # as vanilla json.dumps chokes on lazy_strings
     etag_data = json.dumps(data, sort_keys=True)
     etag = hashlib.sha1(bytes(etag_data, 'utf-8')).hexdigest()
 
