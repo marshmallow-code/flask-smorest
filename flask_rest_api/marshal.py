@@ -6,7 +6,7 @@ from flask import jsonify, request, Response, current_app
 from marshmallow import Schema, fields, validate
 from webargs.flaskparser import parser, abort
 
-from .etag import generate_etag
+from .etag import generate_etag, is_etag_enabled
 
 
 class PaginationParameters(Schema):
@@ -46,7 +46,7 @@ def marshal_with(schema=None, code=200, payload='data', paginate_with=None):
         def wrapper(*args, **kwargs):
 
             # Check @conditional PUT, DELETE and PATCH requests
-            if (not current_app.config.get('ETAG_DISABLED', False)
+            if (not is_etag_enabled(app)
                     and request.method in ['PUT', 'DELETE', 'PATCH']):
                 func_getter = getattr(args[0], '_getter', None)
                 if func_getter is not None:
@@ -85,8 +85,7 @@ def marshal_with(schema=None, code=200, payload='data', paginate_with=None):
             if request.method == 'DELETE':
                 response = None
             resp = jsonify(response)
-            if (not current_app.config.get('ETAG_DISABLED', False)
-                    and request.method != 'DELETE'):
+            if not is_etag_enabled(app) and request.method != 'DELETE':
                 resp.set_etag(generate_etag(data))
 
             # Add status code
