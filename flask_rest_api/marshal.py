@@ -46,7 +46,7 @@ def marshal_with(schema=None, code=200, payload='data', paginate_with=None):
         def wrapper(*args, **kwargs):
 
             # Check @conditional PUT, DELETE and PATCH requests
-            if (not is_etag_enabled(current_app)
+            if (is_etag_enabled(current_app)
                     and request.method in ['PUT', 'DELETE', 'PATCH']):
                 func_getter = getattr(args[0], '_getter', None)
                 if func_getter is not None:
@@ -85,7 +85,7 @@ def marshal_with(schema=None, code=200, payload='data', paginate_with=None):
             if request.method == 'DELETE':
                 response = None
             resp = jsonify(response)
-            if not is_etag_enabled(current_app) and request.method != 'DELETE':
+            if is_etag_enabled(current_app) and request.method != 'DELETE':
                 resp.set_etag(generate_etag(data))
 
             # Add status code
