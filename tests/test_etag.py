@@ -7,17 +7,17 @@ class TestEtag():
 
     def test_etag_is_deterministic(self):
         """Check etag computation is deterministic
-        
+
            generate_etag should return the same value everytime the same
            dictionary is passed. This is not obvious since dictionaries
-           are unordered by design. We check this by feeding it different 
+           are unordered by design. We check this by feeding it different
            OrderedDict instances that are equivalent to the same dictionary.
         """
 
-        data = OrderedDict(
-            [('a', 1),
-             ('b', 2),
-             ('c', OrderedDict([('a', 1), ('b', 2)]))
+        data = OrderedDict([
+            ('a', 1),
+            ('b', 2),
+            ('c', OrderedDict([('a', 1), ('b', 2)]))
             ])
         etag = generate_etag(data)
 
