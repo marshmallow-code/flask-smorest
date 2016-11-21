@@ -46,28 +46,45 @@ def rule_to_params(rule):
     return params
 
 
-# Greatly inspired by apispec
-def flask_path_helper(spec, app, endpoint, operations={}, **kwargs):
+def rules_for_endpoint(app, endpoint):
+    """Return rules for given endpoint
+
+       raises EndpointRuleMissing if none found
+    """
 
     # Resolve Flask path
-    try:
-        # WARNING: Assume 1 rule per view function for now
-        rule = app.url_map._rules_by_endpoint[endpoint][0]
-    except KeyError:
+    rules = app.url_map._rules_by_endpoint[endpoint]
+    if not len(rules):
         raise EndpointRuleMissing(
             "Could not find rule for endpoint '{}'".format(endpoint))
+    return rules
+
+
+# Greatly inspired by apispec
+def flask_path_helper(spec, app, rule, operations={}, **kwargs):
+
     path = flaskpath2swagger(rule.rule)
     app_root = app.config['APPLICATION_ROOT'] or '/'
     path = urljoin(app_root.rstrip('/') + '/', path.lstrip('/'))
 
     if operations:
-        operations = operations.copy()
         # Get path parameters
         path_parameters = rule_to_params(rule)
         if path_parameters:
             for operation in operations.values():
-                operation['parameters'] = operation.get('parameters', list())
-                operation['parameters'].extend(path_parameters)
+                parameters = operation.setdefault('parameters', list())
+                # Add path parameters to documentation
+                # If a parameter is already in the doc (because it appears in
+                # the parameters schema), merge properties rather than
+                # duplicate or replace
+                for path_p in path_parameters:
+                    op_p = next((x for x in parameters
+                                 if x['name'] == path_p['name']),
+                                None)
+                    if op_p is not None:
+                        op_p.update(path_p)
+                    else:
+                        parameters.append(path_p)
         # Translate Marshmallow Schema
         for operation in operations.values():
             for response in operation.get('responses', {}).values():

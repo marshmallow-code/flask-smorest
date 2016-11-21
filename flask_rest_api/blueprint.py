@@ -38,6 +38,7 @@ from apispec.ext.marshmallow.swagger import schema2parameters
 
 from .marshal import marshal_with
 from .exceptions import EndpointMethodDocAlreadyRegisted
+from .spec.plugin import rules_for_endpoint
 
 
 class Blueprint(FlaskBlueprint):
@@ -69,10 +70,14 @@ class Blueprint(FlaskBlueprint):
             doc.update({"tags": [self.name]})
             # Add function doc to table for later registration
             method_l = method.lower()
-            if method_l in endpoint_doc:
+            # Check another doc was not already registed for endpoint/method
+            if method_l in endpoint_doc and endpoint_doc[method_l] is not doc:
+                # If multiple routes point to the same endpoint, the doc may
+                # be already registered.
+                # Only trigger exception if a different doc is passed.
                 raise EndpointMethodDocAlreadyRegisted(
-                    'Method {} already registered for endpoint {}'.format(
-                        method_l, endpoint))
+                    "Another doc is already registered for endpoint '{}' "
+                    "method {}".format(endpoint, method_l.upper()))
             endpoint_doc[method_l] = doc
 
         # MethodView (class)
@@ -122,11 +127,15 @@ class Blueprint(FlaskBlueprint):
                         default_in=params['location'])
                     apidoc['parameters'] = params
 
-            spec.add_path(
-                app=app,
-                endpoint=endpoint,
-                operations=doc
-            )
+            for rule in rules_for_endpoint(app, endpoint):
+                # We need to deepcopy operations here as well
+                # because it is modified in add_path, which causes
+                # issues if there are multiple rules for the same endpoint
+                spec.add_path(
+                    app=app,
+                    rule=rule,
+                    operations=deepcopy(doc)
+                )
 
     def route(self, url, endpoint=None, **kwargs):
         """Decorator to register url rule in application
@@ -143,15 +152,23 @@ class Blueprint(FlaskBlueprint):
 
             # MethodView (class)
             if isinstance(wrapped, MethodViewType):
-                self.add_url_rule(
-                    url,
-                    view_func=wrapped.as_view(_endpoint))
-                self._store_endpoint_docs(_endpoint, wrapped)
+                # This decorator may be called multiple times on the same
+                # MethodView, but Flask will complain if different views are
+                # mapped to the same endpoint, so we should call 'as_view' only
+                # once and keep the result in MethodView.__view_func__
+                if not getattr(wrapped, '__view_func__', None):
+                    wrapped.__view_func__ = wrapped.as_view(_endpoint)
+                view_func = wrapped.__view_func__
 
             # Function
             else:
-                self.add_url_rule(url, endpoint, wrapped, **kwargs)
-                self._store_endpoint_docs(_endpoint, wrapped, **kwargs)
+                view_func = wrapped
+
+            # Add URL rule in Flask and store endpoint documentation
+            self.add_url_rule(url, view_func=view_func, **kwargs)
+            self._store_endpoint_docs(_endpoint, wrapped, **kwargs)
+
+            return wrapped
 
         return wrapper
 
