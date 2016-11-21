@@ -215,8 +215,9 @@ class Blueprint(FlaskBlueprint):
 
         return decorator
 
-    def marshal_with(
-            self, schema=None, code=200, paginate_with=None, description=''):
+    def marshal_with(self, schema=None, code=200,
+                     paginate_with=None, paginate=False,
+                     description=''):
         """Decorator specifying the schema to use for serialization.
 
         :param schema: :class:`Schema <marshmallow.Schema>` class or instance,
@@ -240,7 +241,7 @@ class Blueprint(FlaskBlueprint):
             # Add schema as response in the API doc
             doc = {'responses': {code: {'description': description}}}
             if schema:
-                if paginate_with is not None:
+                if paginate_with is not None or paginate:
                     # Pagination -> we're returning a list
                     doc['responses'][code]['schema'] = {
                         'type': 'array',
@@ -251,5 +252,6 @@ class Blueprint(FlaskBlueprint):
             func.__apidoc__ = deepupdate(getattr(func, '__apidoc__', {}), doc)
 
             return marshal_with(
-                schema=schema, code=code, paginate_with=paginate_with)(func)
+                schema=schema, code=code,
+                paginate_with=paginate_with, paginate=paginate)(func)
         return wrapper

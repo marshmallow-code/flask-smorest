@@ -16,6 +16,10 @@ class EndpointRuleMissing(FlaskRestApiError):
     """No rule defined for endpoint"""
 
 
+class MultiplePaginationModes(FlaskRestApiError):
+    """More than one pagination mode was specified"""
+
+
 class NotModified(wexc.HTTPException, FlaskRestApiError):
     """Resource was not modified (Etag is unchanged)
     
