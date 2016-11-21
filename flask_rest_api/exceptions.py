@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Custom exceptions"""
 
 import werkzeug.exceptions as wexc

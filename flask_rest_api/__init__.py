@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Api extension initialization"""
 
 from werkzeug.exceptions import default_exceptions

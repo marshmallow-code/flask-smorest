@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+"""Utils"""
 
 
 # http://stackoverflow.com/a/8310229/4653485

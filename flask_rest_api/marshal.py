@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from functools import wraps
 
 from flask import jsonify, request, Response, current_app

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """API specification using Open API"""
 
 import flask

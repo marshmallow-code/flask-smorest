@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Conditional request execution using the If-Match and If-None-Match headers
  with a monkeypatched Werkzeug method (set_etag from ETagResponseMixin),

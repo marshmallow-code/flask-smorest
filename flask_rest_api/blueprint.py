@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """API Blueprint
 
 This is a subclass of Flask's Blueprint

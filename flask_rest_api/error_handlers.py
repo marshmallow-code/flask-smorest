@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*
-
 from flask import jsonify, current_app
 from werkzeug import Headers
 

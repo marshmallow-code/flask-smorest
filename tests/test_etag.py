@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from collections import OrderedDict
 
 from flask_rest_api.etag import generate_etag

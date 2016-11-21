@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Flask plugin
 
 Heavily copied from apispec
