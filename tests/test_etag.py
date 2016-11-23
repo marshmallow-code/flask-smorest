@@ -18,7 +18,7 @@ class TestEtag():
             ('a', 1),
             ('b', 2),
             ('c', OrderedDict([('a', 1), ('b', 2)]))
-            ])
+        ])
         etag = generate_etag(data)
 
         data_copies = [
@@ -26,22 +26,22 @@ class TestEtag():
                 ('b', 2),
                 ('a', 1),
                 ('c', OrderedDict([('a', 1), ('b', 2)])),
-                ]),
+            ]),
             OrderedDict([
                 ('a', 1),
                 ('b', 2),
                 ('c', OrderedDict([('b', 2), ('a', 1)])),
-                ]),
+            ]),
             OrderedDict([
                 ('a', 1),
                 ('c', OrderedDict([('a', 1), ('b', 2)])),
                 ('b', 2),
-                ]),
+            ]),
             OrderedDict([
                 ('c', OrderedDict([('a', 1), ('b', 2)])),
                 ('b', 2),
                 ('a', 1),
-                ]),
+            ]),
         ]
 
         data_copies_etag = [generate_etag(d) for d in data_copies]

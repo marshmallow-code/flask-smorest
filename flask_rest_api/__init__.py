@@ -58,8 +58,7 @@ class Api(object):
         self._apispec.spec.add_tag({
             'name': bp.name,
             'description': bp.description,
-            }
-        )
+        })
 
     def definition(self, name):
         """Decorator to register a schema in the doc

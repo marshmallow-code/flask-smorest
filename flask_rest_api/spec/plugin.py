@@ -93,7 +93,7 @@ def flask_path_helper(spec, app, rule, operations={}, **kwargs):
                     if isinstance(response['schema'], list):
                         response['schema'] = [
                             resolve_schema_dict(spec, response['schema'][0])
-                            ]
+                        ]
                     else:
                         response['schema'] = resolve_schema_dict(
                             spec, response['schema'])

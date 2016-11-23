@@ -21,7 +21,7 @@ class MultiplePaginationModes(FlaskRestApiError):
 
 class NotModified(wexc.HTTPException, FlaskRestApiError):
     """Resource was not modified (Etag is unchanged)
-    
+
     Exception created to compensate for a lack in Werkzeug (and Flask)
     """
     code = 304
@@ -30,7 +30,7 @@ class NotModified(wexc.HTTPException, FlaskRestApiError):
 
 class PreconditionRequired(wexc.PreconditionRequired, FlaskRestApiError):
     """Etag required but missing
-    
+
     Exception overridden to modify Werkzeug description
     """
     description = (
