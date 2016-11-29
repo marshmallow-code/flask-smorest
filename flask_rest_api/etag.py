@@ -11,9 +11,9 @@ import hashlib
 
 from flask import g, request, current_app, json
 from werkzeug import ETagResponseMixin
-from webargs.flaskparser import abort
 
 from .exceptions import PreconditionRequired, NotModified
+from .args_parser import abort
 
 
 def is_etag_enabled(app):

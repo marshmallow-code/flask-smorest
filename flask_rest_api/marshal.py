@@ -2,10 +2,10 @@ from functools import wraps
 
 from flask import jsonify, request, Response, current_app
 from marshmallow import Schema, fields, validate
-from webargs.flaskparser import parser, abort
 
 from .etag import generate_etag, is_etag_enabled
 from .exceptions import MultiplePaginationModes
+from .args_parser import parser, abort
 
 
 class PaginationParameters(Schema):

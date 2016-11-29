@@ -32,9 +32,9 @@ from flask import Blueprint as FlaskBlueprint
 from flask.views import MethodViewType
 
 from .utils import deepupdate
-import webargs.flaskparser as wfp
 from apispec.ext.marshmallow.swagger import schema2parameters
 
+from .args_parser import parser
 from .marshal import marshal_with
 from .exceptions import EndpointMethodDocAlreadyRegisted
 from .spec.plugin import rules_for_endpoint
@@ -194,8 +194,9 @@ class Blueprint(FlaskBlueprint):
             location = kwargs.pop('location', 'json')
             required = kwargs.pop('required', False)
 
-            # Call webargs' use_args
-            func = wfp.use_args(schema(), locations=[location], **kwargs)(func)
+            # Call our overrided webargs' use_args
+            func = parser.use_args(
+                schema(), locations=[location], **kwargs)(func)
 
             # XXX: this sucks
             if location == 'json':

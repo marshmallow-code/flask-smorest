@@ -2,12 +2,12 @@
 
 from werkzeug.exceptions import default_exceptions
 from flask_cors import CORS
-from webargs.flaskparser import abort  # noqa
 
 from .error_handlers import _handle_http_exception
 from .etag import is_etag_enabled, conditional  # noqa
 from .spec import ApiSpec
 from .blueprint import Blueprint  # noqa
+from .args_parser import abort  # noqa
 
 
 class Api(object):
