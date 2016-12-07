@@ -93,9 +93,9 @@ class Blueprint(FlaskBlueprint):
     def register_views_in_doc(self, app, spec):
         """Register views information in documentation
 
-        If a schema in a parameter (or a response) appears in the spec
-        `definitions` section, it is replace by a reference to its definition
-        in the parameter (or response) documentation:
+        If a schema in a parameter or a response appears in the spec
+        `definitions` section, it is replaced by a reference to its definition
+        in the parameter or response documentation:
 
         "schema":{"$ref": "#/definitions/MySchema"}
         """
@@ -113,7 +113,7 @@ class Blueprint(FlaskBlueprint):
             # {'get': documentation, 'post': documentation,...}
 
             # Process parameters: resolve schema reference
-            # or convert schema in json description
+            # or convert schema to json description
             for apidoc in doc.values():
                 params = apidoc.get('parameters', None)
                 if params:
