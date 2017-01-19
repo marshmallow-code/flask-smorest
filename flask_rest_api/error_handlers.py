@@ -1,11 +1,18 @@
 from flask import jsonify, current_app
 from werkzeug import Headers
+from werkzeug.exceptions import HTTPException, InternalServerError
 
 
 def _handle_http_exception(error):
     """Return error description and details in response body"""
 
     # TODO: use an error Schema
+
+    # If error is not a HTTPException, it is an unhandled exception
+    # Flask redirects unhandled exceptions to error 500 handler
+    # Return a 500 (InternalServerError)
+    if not isinstance(error, HTTPException):
+        error = InternalServerError()
 
     data_error = {'error': {
         'status_code': error.code,
