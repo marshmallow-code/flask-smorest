@@ -5,7 +5,7 @@ from marshmallow import Schema, fields, validate
 
 from .etag import generate_etag, is_etag_enabled
 from .exceptions import MultiplePaginationModes
-from .args_parser import parser, abort
+from .args_parser import parser
 
 
 class PaginationParameters(Schema):
@@ -84,17 +84,18 @@ def marshal_with(schema=None, code=200, payload='data',
             # Check @conditional PUT, DELETE and PATCH requests
             if (is_etag_enabled(current_app)
                     and request.method in ['PUT', 'DELETE', 'PATCH']):
-                func_getter = getattr(args[0], '_getter', None)
-                if func_getter is not None:
-                    item = func_getter(**kwargs)
-                    # Dump with schema if specified
-                    data_item = _dump_data(schema, item)
-                    resp = Response(status=202)
-                    resp.set_etag(generate_etag(data_item))
-                else:
-                    # TODO: translate error message
-                    msg = 'No _getter in [{}] MethodView !'.format(args[0])
-                    abort(501, messages=msg)
+                try:
+                    func_getter = getattr(args[0], '_getter')
+                except AttributeError:
+                    raise AttributeError(
+                        'Missing _getter in {} MethodView'
+                        .format(type(args[0]).__name__))
+
+                item = func_getter(**kwargs)
+                # Dump with schema if specified
+                data_item = _dump_data(schema, item)
+                resp = Response(status=202)
+                resp.set_etag(generate_etag(data_item))
 
             # Create Paginator if needed
             if paginate:
