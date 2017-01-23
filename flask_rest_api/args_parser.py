@@ -6,7 +6,7 @@ https://webargs.readthedocs.io/en/latest/advanced.html#custom-parsers
 import re
 
 from webargs import core
-from webargs.flaskparser import FlaskParser, parser, abort # noqa
+from webargs.flaskparser import FlaskParser, abort  # noqa
 
 
 class NestedQueryFlaskParser(FlaskParser):

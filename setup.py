@@ -70,8 +70,8 @@ setup(
         'flask',
         'marshmallow',
         'python-dateutil',
-        'webargs',
-        'apispec',
+        'webargs>=1.5.2',
+        'apispec>=0.17.3',
         'flask-cors',
     ],
 

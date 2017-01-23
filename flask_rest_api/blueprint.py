@@ -187,7 +187,13 @@ class Blueprint(FlaskBlueprint):
         return decorator
 
     def use_args(self, schema, **kwargs):
-        """Decorator specifying the schema used as parameter"""
+        """Decorator specifying the schema used as parameter
+
+        :param type|Schema schema: A marshmallow Schema class or instance.
+        """
+
+        if isinstance(schema, type):
+            schema = schema()
 
         def decorator(func):
 
@@ -196,7 +202,7 @@ class Blueprint(FlaskBlueprint):
 
             # Call our overrided webargs' use_args
             func = parser.use_args(
-                schema(), locations=[location], **kwargs)(func)
+                schema, locations=[location], **kwargs)(func)
 
             # XXX: this sucks
             if location == 'json':
