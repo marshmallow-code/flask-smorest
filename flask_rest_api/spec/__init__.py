@@ -35,10 +35,25 @@ class ApiSpec(object):
         self.set_title(app.name)
         self.set_version(app.config.get('API_VERSION', 'v1.0.0'))
 
-        # Add route to json spec file
-        json_url = app.config.get('OPENAPI_URL', None)
-        if json_url:
-            app.add_url_rule(json_url, view_func=self.openapi_json)
+        # Add routes to json spec file and spec UI (ReDoc)
+        api_url = app.config.get('OPENAPI_URL_PREFIX', None)
+        if api_url:
+            blueprint = flask.Blueprint(
+                'api-docs',
+                __name__,
+                url_prefix=api_url,
+                template_folder='./templates',
+            )
+            # Serve json spec at 'url_prefix/api-docs.json' by default
+            json_url = app.config.get('OPENAPI_JSON_PATH', 'api-docs.json')
+            blueprint.add_url_rule(
+                json_url, view_func=self.openapi_json)
+            # Serve ReDoc only if path specified
+            redoc_url = app.config.get('OPENAPI_REDOC_PATH', None)
+            if redoc_url:
+                blueprint.add_url_rule(
+                    redoc_url, view_func=self.openapi_redoc)
+            app.register_blueprint(blueprint)
 
     def set_title(self, title):
         self.spec.info['title'] = title
@@ -49,6 +64,11 @@ class ApiSpec(object):
     def openapi_json(self):
         """Serve json spec file"""
         return flask.jsonify(self.spec.to_dict())
+
+    def openapi_redoc(self):
+        """Serve spec with ReDoc"""
+        # TODO: allow local redoc script (currently using CDN)
+        return flask.render_template('redoc.html')
 
     def register_converter(self, converter, conv_type, conv_format):
         CONVERTER_MAPPING[converter] = (conv_type, conv_format)
