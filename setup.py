@@ -83,6 +83,7 @@ setup(
             'coverage',
             'pytest',
             'pytest-cov',
+            'tox'
         ],
     },
 )
