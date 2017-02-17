@@ -59,20 +59,19 @@ setup(
     # packages=find_packages(exclude=['contrib', 'docs', 'tests']),
     packages=['flask_rest_api', ],
 
-    # List run-time dependencies here.  These will be installed by pip when
+    # List run-time dependencies here. These will be installed by pip when
     # your project is installed. For an analysis of "install_requires" vs pip's
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
     # https://caremad.io/2013/07/setup-vs-requirement/
-    # TODO: add minimum versions
     install_requires=[
-        'werkzeug',
-        'flask',
-        'marshmallow',
-        'python-dateutil',
+        'werkzeug>=0.11',
+        'flask>=0.11',
+        'marshmallow>=2.6.0',
+        'python-dateutil>=2.5.0',
         'webargs>=1.5.2',
         'apispec>=0.17.3',
-        'flask-cors',
+        'flask-cors>=3.0.0',
     ],
 
     # List additional groups of dependencies here (e.g. development
