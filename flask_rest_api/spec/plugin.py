@@ -60,7 +60,7 @@ def rules_for_endpoint(app, endpoint):
 
 
 # Greatly inspired by apispec
-def flask_path_helper(spec, app, rule, operations={}, **kwargs):
+def flask_path_helper(spec, app, rule, operations=None, **kwargs):
 
     path = flaskpath2swagger(rule.rule)
     app_root = app.config['APPLICATION_ROOT'] or '/'
