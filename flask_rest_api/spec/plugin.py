@@ -108,16 +108,12 @@ def flask_path_helper(spec, app, rule, operations=None, **kwargs):
     return path
 
 
-def schema_definition_x_property(spec, name, schema, **kwargs):
-    """Pass provided extensions properties as is to the spec
-
-       Extensions properties begin with 'x-'
-       http://swagger.io/specification/#vendorExtensions
-    """
-    return {k: v for k, v in kwargs.items() if k.startswith('x-')}
+def schema_definition_extra_fields(spec, name, schema, extra_fields=None):
+    """Add extra fields to the definition"""
+    return extra_fields or {}
 
 
 def setup(spec):
     """Setup for the plugin."""
     spec.register_path_helper(flask_path_helper)
-    spec.register_definition_helper(schema_definition_x_property)
+    spec.register_definition_helper(schema_definition_extra_fields)
