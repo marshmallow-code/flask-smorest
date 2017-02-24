@@ -1,0 +1,1 @@
+recursive-include flask_rest_api/spec/templates *

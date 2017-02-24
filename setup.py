@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from setuptools import setup
+from setuptools import setup, find_packages
 from codecs import open
 from os import path
 
@@ -53,7 +53,9 @@ setup(
     # You can just specify the packages manually here if your project is
     # simple. Or you can use find_packages().
     # packages=find_packages(exclude=['contrib', 'docs', 'tests']),
-    packages=['flask_rest_api', ],
+    packages=find_packages(),
+    package_dir={'flask_rest_api': 'flask_rest_api'},
+    include_package_data=True,
 
     # List run-time dependencies here. These will be installed by pip when
     # your project is installed. For an analysis of "install_requires" vs pip's
