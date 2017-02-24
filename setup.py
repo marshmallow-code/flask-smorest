@@ -76,10 +76,9 @@ setup(
     # $ pip install -e .[dev,test]
     extras_require={
         'test': [
-            'coverage',
-            'pytest',
-            'pytest-cov',
-            'tox'
+            'pytest>=2.8',
+            'pytest-cov>=2.4.0',
+            'tox>=2.0',
         ],
     },
 )
