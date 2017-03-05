@@ -37,7 +37,6 @@ from apispec.ext.marshmallow.swagger import schema2parameters
 from .args_parser import parser
 from .marshal import marshal_with
 from .exceptions import EndpointMethodDocAlreadyRegisted
-from .spec.plugin import rules_for_endpoint
 
 
 class Blueprint(FlaskBlueprint):
@@ -127,7 +126,7 @@ class Blueprint(FlaskBlueprint):
                         default_in=params['location'])
                     apidoc['parameters'] = params
 
-            for rule in rules_for_endpoint(app, endpoint):
+            for rule in app.url_map.iter_rules(endpoint):
                 # We need to deepcopy operations here as well
                 # because it is modified in add_path, which causes
                 # issues if there are multiple rules for the same endpoint

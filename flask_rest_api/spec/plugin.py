@@ -11,8 +11,6 @@ from apispec import Path
 from apispec.ext.flask import flaskpath2swagger
 from apispec.ext.marshmallow import resolve_schema_dict
 
-from ..exceptions import EndpointRuleMissing
-
 # From flask-apispec
 CONVERTER_MAPPING = {
     werkzeug.routing.UnicodeConverter: ('string', None),
@@ -43,20 +41,6 @@ def rule_to_params(rule):
             param['default'] = rule.defaults[argument]
         params.append(param)
     return params
-
-
-def rules_for_endpoint(app, endpoint):
-    """Return rules for given endpoint
-
-       raises EndpointRuleMissing if none found
-    """
-
-    # Resolve Flask path
-    rules = list(app.url_map.iter_rules(endpoint))
-    if not len(rules):
-        raise EndpointRuleMissing(
-            "Could not find rule for endpoint '{}'".format(endpoint))
-    return rules
 
 
 # Greatly inspired by apispec

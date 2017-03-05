@@ -11,10 +11,6 @@ class EndpointMethodDocAlreadyRegisted(FlaskRestApiError):
     """Documentation already registered for this endpoint/method couple"""
 
 
-class EndpointRuleMissing(FlaskRestApiError):
-    """No rule defined for endpoint"""
-
-
 class MultiplePaginationModes(FlaskRestApiError):
     """More than one pagination mode was specified"""
 
