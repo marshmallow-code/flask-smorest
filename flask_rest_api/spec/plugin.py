@@ -52,7 +52,7 @@ def rules_for_endpoint(app, endpoint):
     """
 
     # Resolve Flask path
-    rules = app.url_map._rules_by_endpoint[endpoint]
+    rules = list(app.url_map.iter_rules(endpoint))
     if not len(rules):
         raise EndpointRuleMissing(
             "Could not find rule for endpoint '{}'".format(endpoint))
