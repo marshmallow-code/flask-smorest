@@ -117,11 +117,12 @@ class Blueprint(FlaskBlueprint):
             for apidoc in doc.values():
                 params = apidoc.get('parameters', None)
                 if params:
-                    # use_args only register schema as parameters
-                    # so there's no need to check
+                    # use_args only registers Schemas
+                    # so there's no need to check if schema is in params
                     params = schema2parameters(
                         params['schema'],
                         spec=spec,
+                        dump=False,
                         required=params['required'],
                         default_in=params['location'])
                     apidoc['parameters'] = params
