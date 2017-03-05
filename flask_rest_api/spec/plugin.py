@@ -103,17 +103,9 @@ def flask_path_helper(spec, app, rule, operations=None, **kwargs):
                     parameter['schema'] = resolve_schema_dict(
                         spec, parameter['schema'])
 
-    path = Path(path=path, operations=operations)
-
-    return path
-
-
-def schema_definition_extra_fields(spec, name, schema, extra_fields=None):
-    """Add extra fields to the definition"""
-    return extra_fields or {}
+    return Path(path=path, operations=operations)
 
 
 def setup(spec):
     """Setup for the plugin."""
     spec.register_path_helper(flask_path_helper)
-    spec.register_definition_helper(schema_definition_extra_fields)

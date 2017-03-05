@@ -64,7 +64,7 @@ setup(
         'marshmallow>=2.6.0',
         'python-dateutil>=2.5.0',
         'webargs>=1.5.2',
-        'apispec>=0.18.0',
+        'apispec>=0.19.0',
         'flask-cors>=3.0.0',
     ],
 
