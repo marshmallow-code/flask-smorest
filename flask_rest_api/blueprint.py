@@ -220,7 +220,7 @@ class Blueprint(FlaskBlueprint):
 
         return decorator
 
-    def marshal_with(self, schema=None, code=200,
+    def marshal_with(self, schema=None, code=200, payload_key='data',
                      paginate_with=None, paginate=False,
                      description=''):
         """Decorator specifying the schema to use for serialization.
@@ -228,7 +228,7 @@ class Blueprint(FlaskBlueprint):
         :param schema: :class:`Schema <marshmallow.Schema>` class or instance,
             or `None`
         :param int code: HTTP status code (default 200)
-        :param str payload: Key name of data returned
+        :param str payload_key: Key name of data returned (default 'data')
         :param Page paginate_with: Page class to paginate results with
 
         Page can be a Page object as defined in 'paginate' library. But it
@@ -257,6 +257,6 @@ class Blueprint(FlaskBlueprint):
             func.__apidoc__ = deepupdate(getattr(func, '__apidoc__', {}), doc)
 
             return marshal_with(
-                schema=schema, code=code,
+                schema=schema, code=code, payload_key=payload_key,
                 paginate_with=paginate_with, paginate=paginate)(func)
         return wrapper

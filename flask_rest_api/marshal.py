@@ -59,7 +59,7 @@ class Paginator():
                 ).format(self)
 
 
-def marshal_with(schema=None, code=200, payload='data',
+def marshal_with(schema=None, code=200, payload_key='data',
                  paginate_with=None, paginate=False):
     """Decorator that marshals response with schema."""
 
@@ -119,7 +119,7 @@ def marshal_with(schema=None, code=200, payload='data',
             data = _dump_data(schema, result)
 
             response = {
-                (payload or 'data'): data
+                (payload_key or 'data'): data
             }
 
             # Get page meta data
