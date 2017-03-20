@@ -230,6 +230,7 @@ class Blueprint(FlaskBlueprint):
         :param int code: HTTP status code (default 200)
         :param str payload_key: Key name of data returned (default 'data')
         :param Page paginate_with: Page class to paginate results with
+        :param bool paginate: Assume resource function returns paginated result
 
         Page can be a Page object as defined in 'paginate' library. But it
         does not have to, as long as it provides the following subset of
@@ -239,8 +240,12 @@ class Blueprint(FlaskBlueprint):
           - items_per_page: number of items per page
           - page_count: number of pages
           - item_count: total number of items
-        """
 
+        When using paginate, the resource function should return a
+        "paginate.Page"-ish object
+
+        paginate and paginate_with are mutually exclusive.
+        """
         def wrapper(func):
 
             # Add schema as response in the API doc

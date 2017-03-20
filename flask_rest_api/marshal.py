@@ -148,7 +148,10 @@ def _dump_data(schema=None, data=None):
 
 
 def _get_pagination_meta(page):
-    """Get pagination metadata from "flask-mongoengine"-ish Paginator"""
+    """Get pagination metadata from "paginate"-ish Paginator
+
+    page should behave like paginate's Page object
+    """
 
     meta = {
         'page': page.page,
