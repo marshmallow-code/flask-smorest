@@ -121,7 +121,6 @@ class Blueprint(FlaskBlueprint):
                     params = schema2parameters(
                         params['schema'],
                         spec=spec,
-                        dump=False,
                         required=params['required'],
                         default_in=params['location'])
                     apidoc['parameters'] = params
