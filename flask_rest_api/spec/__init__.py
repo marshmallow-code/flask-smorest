@@ -25,11 +25,14 @@ class ApiSpec(object):
     def __init__(self, app=None):
 
         self.spec = make_apispec()
+        self.app = app
 
         if app is not None:
             self.init_app(app)
 
     def init_app(self, app):
+
+        self.app = app
 
         # API info from app
         self.set_title(app.name)
@@ -68,7 +71,8 @@ class ApiSpec(object):
     def openapi_redoc(self):
         """Serve spec with ReDoc"""
         # TODO: allow local redoc script (currently using CDN)
-        return flask.render_template('redoc.html')
+        redoc_version = self.app.config.get('OPENAPI_REDOC_VERSION', 'latest')
+        return flask.render_template('redoc.html', redoc_version=redoc_version)
 
     def register_converter(self, converter, conv_type, conv_format):
         CONVERTER_MAPPING[converter] = (conv_type, conv_format)
