@@ -78,3 +78,7 @@ class Api(object):
     def register_field(self, field, field_type, field_format):
         """Register Marshmallow field in docs"""
         self._apispec.register_field(field, field_type, field_format)
+
+    def register_spec_plugin(self, plugin):
+        """Register apispec plugin"""
+        self._apispec.register_spec_plugin(plugin)

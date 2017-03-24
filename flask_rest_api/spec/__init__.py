@@ -79,3 +79,6 @@ class ApiSpec(object):
 
     def register_field(self, field, field_type, field_format):
         FIELD_MAPPING[field] = (field_type, field_format)
+
+    def register_spec_plugin(self, plugin):
+        self.spec.setup_plugin(plugin)
