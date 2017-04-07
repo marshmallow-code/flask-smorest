@@ -6,7 +6,6 @@ from flask import Flask, abort
 from flask.views import MethodView
 
 from flask_rest_api import Api, Blueprint
-from flask_rest_api.etag import conditional
 
 # TODO: create a Page mock to remove this dependency?
 from paginate import Page
@@ -69,7 +68,7 @@ class AppConfig():
     """
 
 
-def create_app_mock(config_cls=None):
+def create_app_mock(config_cls=None, as_method_view=True):
     """Return a basic API sample
 
     Generates a simple interface to a mocked database.
@@ -80,50 +79,92 @@ def create_app_mock(config_cls=None):
     blp = Blueprint('test', __name__, url_prefix='/test')
 
     class DocSchema(Schema):
+        class Meta:
+            strict = True
         item_id = fields.Int(dump_only=True)
         field = fields.Int()
 
+    class DocEtagSchema(Schema):
         class Meta:
             strict = True
+        field = fields.Int()
 
-    @blp.route('/')
-    class Resource(MethodView):
+    if as_method_view:
+        @blp.route('/')
+        class Resource(MethodView):
 
-        @conditional
+            @blp.use_args(DocSchema, location='query')
+            @blp.marshal_with(
+                DocSchema, paginate_with=Page, etag_schema=DocEtagSchema)
+            def get(self, args):
+                return collection.items
+
+            @blp.use_args(DocSchema)
+            @blp.marshal_with(DocSchema, code=201, etag_schema=DocEtagSchema)
+            def post(self, new_item):
+                return collection.post(new_item)
+
+        @blp.route('/<int:item_id>')
+        class ResourceById(MethodView):
+
+            def _get_item(self, item_id):
+                try:
+                    return collection.get_by_id(item_id)
+                except ItemNotFound:
+                    abort(404)
+
+            @blp.marshal_with(DocSchema, etag_schema=DocEtagSchema)
+            def get(self, item_id):
+                return self._get_item(item_id)
+
+            @blp.use_args(DocSchema)
+            @blp.marshal_with(DocSchema, etag_schema=DocEtagSchema)
+            def put(self, new_item, item_id):
+                return collection.put(item_id, new_item)
+
+            @blp.marshal_with(code=204, etag_schema=DocEtagSchema)
+            def delete(self, item_id):
+                item = self._get_item(item_id)
+                del collection.items[collection.items.index(item)]
+
+    else:
+        @blp.route('/')
         @blp.use_args(DocSchema, location='query')
-        @blp.marshal_with(DocSchema, paginate_with=Page)
-        def get(self, args):
+        @blp.marshal_with(
+            DocSchema, paginate_with=Page, etag_schema=DocEtagSchema)
+        def get_resources(args):
             return collection.items
 
+        @blp.route('/', methods=('POST',))
         @blp.use_args(DocSchema)
-        @blp.marshal_with(DocSchema, code=201)
-        def post(self, new_item):
+        @blp.marshal_with(DocSchema, code=201, etag_schema=DocEtagSchema)
+        def post_resource(new_item):
             return collection.post(new_item)
 
-    @blp.route('/<int:item_id>')
-    class ResourceById(MethodView):
-
-        def _getter(self, item_id):
+        def _get_item(item_id):
             try:
                 return collection.get_by_id(item_id)
             except ItemNotFound:
                 abort(404)
 
-        @conditional
-        @blp.marshal_with(DocSchema)
-        def get(self, item_id):
-            return self._getter(item_id)
+        @blp.route('/<int:item_id>')
+        @blp.marshal_with(
+            DocSchema, etag_schema=DocEtagSchema, etag_item_func=_get_item)
+        def get_resource(item_id):
+            return _get_item(item_id)
 
-        @conditional
+        @blp.route('/<int:item_id>', methods=('PUT',))
         @blp.use_args(DocSchema)
-        @blp.marshal_with(DocSchema)
-        def put(self, new_item, item_id):
+        @blp.marshal_with(
+            DocSchema, etag_schema=DocEtagSchema, etag_item_func=_get_item)
+        def put_resource(new_item, item_id):
             return collection.put(item_id, new_item)
 
-        @conditional
-        @blp.marshal_with(DocSchema, code=204)
-        def delete(self, item_id):
-            item = self._getter(item_id)
+        @blp.route('/<int:item_id>', methods=('DELETE',))
+        @blp.marshal_with(
+            code=204, etag_schema=DocEtagSchema, etag_item_func=_get_item)
+        def delete_resource(item_id):
+            item = _get_item(item_id)
             del collection.items[collection.items.index(item)]
 
     app = Flask('API Test')

@@ -12,9 +12,9 @@ from flask_rest_api.etag import generate_etag, is_etag_enabled
 from .mocks import AppConfig
 
 
-class AppConfigEtagDisabled(AppConfig):
-    """Basic config with ETag feature disabled"""
-    ETAG_DISABLED = True
+class AppConfigEtagEnabled(AppConfig):
+    """Basic config with ETag feature enabled"""
+    ETAG_ENABLED = True
 
 
 class TestEtag():
@@ -61,6 +61,11 @@ class TestEtag():
         data_copies_etag = [generate_etag(d) for d in data_copies]
         assert all(e == etag for e in data_copies_etag)
 
+    @pytest.mark.parametrize(
+        'app_mock', [
+            {'app_config': AppConfigEtagEnabled, 'app_as_method_view': True},
+            {'app_config': AppConfigEtagEnabled, 'app_as_method_view': False},
+        ], indirect=True)
     def test_etag_operations_etag_enabled(self, app_mock):
 
         app, _ = app_mock
@@ -164,7 +169,10 @@ class TestEtag():
         assert response.status_code == 204
 
     @pytest.mark.parametrize(
-        'app_mock', [AppConfigEtagDisabled, ], indirect=True)
+        'app_mock', [
+            {'app_config': AppConfig, 'app_as_method_view': True},
+            {'app_config': AppConfig, 'app_as_method_view': False},
+        ], indirect=True)
     def test_etag_operations_etag_disabled(self, app_mock):
 
         app, _ = app_mock
