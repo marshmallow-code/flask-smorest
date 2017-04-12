@@ -31,9 +31,9 @@ from copy import deepcopy
 from flask import Blueprint as FlaskBlueprint
 from flask.views import MethodViewType
 
-from .utils import deepupdate
 from apispec.ext.marshmallow.swagger import schema2parameters
 
+from .utils import deepupdate
 from .args_parser import parser
 from .marshal import marshal_with
 from .exceptions import EndpointMethodDocAlreadyRegisted
@@ -48,7 +48,7 @@ class Blueprint(FlaskBlueprint):
 
         super().__init__(*args, **kwargs)
 
-        # __docs__ is a dict storing endpoints documentation
+        # __docs__ is a dict storing endpoints documentation:
         # {endpoint: {
         #     'get': documentation,
         #     'post': documentation,
@@ -64,8 +64,6 @@ class Blueprint(FlaskBlueprint):
 
         def store_method_docs(method, function):
             doc = getattr(function, '__apidoc__', {})
-            # Tag the function with the resource name
-            doc.update({"tags": [self.name]})
             # Add function doc to table for later registration
             method_l = method.lower()
             # Check another doc was not already registed for endpoint/method
@@ -110,6 +108,10 @@ class Blueprint(FlaskBlueprint):
 
             # doc is a dict of documentation per method for the endpoint
             # {'get': documentation, 'post': documentation,...}
+
+            # Tag the function with the resource name
+            for method_l in doc.keys():
+                doc[method_l].update({'tags': [self.name]})
 
             # Process parameters: resolve schema reference
             # or convert schema to json description
