@@ -63,9 +63,10 @@ class TestEtag():
 
     def test_etag_operations_etag_enabled(self, app_mock):
 
-        client = app_mock.test_client()
+        app, _ = app_mock
+        client = app.test_client()
 
-        assert is_etag_enabled(app_mock)
+        assert is_etag_enabled(app)
 
         # GET without ETag: OK
         response = client.get('/test/')
@@ -166,9 +167,10 @@ class TestEtag():
         'app_mock', [AppConfigEtagDisabled, ], indirect=True)
     def test_etag_operations_etag_disabled(self, app_mock):
 
-        client = app_mock.test_client()
+        app, _ = app_mock
+        client = app.test_client()
 
-        assert not is_etag_enabled(app_mock)
+        assert not is_etag_enabled(app)
 
         # GET without ETag: OK
         response = client.get('/test/')

@@ -64,14 +64,14 @@ class DatabaseMock():
 
 class AppConfig():
     """Base application configuration class
-    
+
     Overload this to add config parameters
     """
 
 
 def create_app_mock(config_cls=None):
     """Return a basic API sample
-    
+
     Generates a simple interface to a mocked database.
     """
 
@@ -133,4 +133,4 @@ def create_app_mock(config_cls=None):
     api = Api(app)
     api.register_blueprint(blp)
 
-    return app
+    return app, api

@@ -205,9 +205,28 @@ class Blueprint(FlaskBlueprint):
             func = parser.use_args(
                 schema, locations=[location], **kwargs)(func)
 
-            # XXX: this sucks
-            if location == 'json':
-                location = 'body'
+            # XXX: all this location management sucks, but at least it works...
+            # webargs locations and specific flaskparser locations:
+            # query/querystring, json, form, headers, cookies, files, view_args
+            # apispec locations:
+            # query, header, path, formData, body
+
+            # map webargs locations to apispec locations
+            default_apispec_location = 'body'
+            location_map = {
+                'querystring': 'query',
+                'query': 'query',
+                'json': 'body',
+                'form': 'formData',
+                'headers': 'header',
+                'cookies': None,  # ???
+                'files': 'formData',
+                'view_args': None,  # ???
+            }
+            try:
+                location = location_map[location] or default_apispec_location
+            except KeyError:
+                location = default_apispec_location
 
             # At this stage, dump schema and parameters in doc dictionary
             # schema instance will be later replaced by ref or json
