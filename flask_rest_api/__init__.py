@@ -35,7 +35,10 @@ class Api(object):
 
         # CORS is setup the most permissive way, to avoid cross-origin
         # issues when serving the spec or trying it using swagger-ui.
-        CORS(app)
+        expose_headers = []
+        if is_etag_enabled(app):
+            expose_headers.append('Etag')
+        CORS(app, expose_headers=expose_headers)
 
         # Can't register a handler for HTTPException, so let's register
         # default handler for each code explicitly.
