@@ -36,7 +36,7 @@ from apispec.ext.marshmallow.swagger import schema2parameters
 from .utils import deepupdate
 from .args_parser import parser
 from .marshal import marshal_with
-from .exceptions import EndpointMethodDocAlreadyRegisted
+from .exceptions import EndpointMethodDocAlreadyRegisted, InvalidLocation
 
 
 class Blueprint(FlaskBlueprint):
@@ -201,35 +201,33 @@ class Blueprint(FlaskBlueprint):
             location = kwargs.pop('location', 'json')
             required = kwargs.pop('required', False)
 
-            # Call our overrided webargs' use_args
+            # Call use_args (from webargs) to inject params in function
             func = parser.use_args(
                 schema, locations=[location], **kwargs)(func)
 
-            # XXX: all this location management sucks, but at least it works...
-            # webargs locations and specific flaskparser locations:
-            # query/querystring, json, form, headers, cookies, files, view_args
-            # apispec locations:
-            # query, header, path, formData, body
+            # Add parameters info to documentation
 
-            # map webargs locations to apispec locations
-            default_apispec_location = 'body'
+            # Map webargs locations to OpenAPI locations
             location_map = {
                 'querystring': 'query',
                 'query': 'query',
                 'json': 'body',
                 'form': 'formData',
                 'headers': 'header',
-                'cookies': None,  # ???
                 'files': 'formData',
-                'view_args': None,  # ???
+                # Unsupported in OpenAPI v2, uncomment for OpenAPI v3 support
+                # 'cookies': cookie,
+                # Unsupported: path params are managed in flask_path_helper
+                # 'view_args': 'path',
             }
             try:
-                location = location_map[location] or default_apispec_location
+                location = location_map[location]
             except KeyError:
-                location = default_apispec_location
+                raise InvalidLocation(
+                    "{} is not a valid location".format(location))
 
-            # At this stage, dump schema and parameters in doc dictionary
-            # schema instance will be later replaced by ref or json
+            # At this stage, only dump schema and parameters in doc dictionary
+            # schema instance will be replaced later on by $ref or json
             doc = {'parameters': {
                 'location': location,
                 'required': required,

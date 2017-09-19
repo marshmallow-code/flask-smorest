@@ -11,6 +11,10 @@ class EndpointMethodDocAlreadyRegisted(FlaskRestApiError):
     """Documentation already registered for this endpoint/method couple"""
 
 
+class InvalidLocation(FlaskRestApiError):
+    """Parameter location is not a valid location"""
+
+
 class MultiplePaginationModes(FlaskRestApiError):
     """More than one pagination mode was specified"""
 
