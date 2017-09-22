@@ -187,7 +187,7 @@ class Blueprint(FlaskBlueprint):
 
         return decorator
 
-    # TODO: rename to 'parameters'
+    # TODO: rename to 'parameters'?
     def use_args(self, schema, **kwargs):
         """Decorator specifying the schema used as parameter
 
@@ -209,7 +209,7 @@ class Blueprint(FlaskBlueprint):
             # XXX: all this location management sucks, but at least it works...
             # webargs locations and specific flaskparser locations:
             # query/querystring, json, form, headers, cookies, files, view_args
-            # apispec locations:
+            # apispec locations:
             # query, header, path, formData, body
 
             # map webargs locations to apispec locations
@@ -242,45 +242,28 @@ class Blueprint(FlaskBlueprint):
 
         return decorator
 
-    # TODO: rename to 'response'
-    def marshal_with(self, schema=None, code=200, payload_key='data',
-                     paginate_with=None, paginate=False, description='',
-                     etag_schema=None, etag_validate=True, etag_item_func=None):
+    # TODO: rename to 'response'?
+    def marshal_with(self, schema=None, code=200,
+                     paginate=False, description='',
+                     etag_schema=None, disable_etag=False):
         """Decorator generating an endpoint response, specifying the schema
         to use for serialization and others parameters.
 
         :param schema: :class:`Schema <marshmallow.Schema>` class or instance,
             or `None`
         :param int code: HTTP status code (default 200)
-        :param str payload_key: Key name of data returned (default 'data')
-        :param Page paginate_with: Page class to paginate results with
         :param bool paginate: Assume resource function returns paginated result
         :param etag_schema: :class:`Schema <marshmallow.Schema>` class
             or instance, or `None`
-        :param bool etag_validate: If True, etag feature is operated
-        :param str etag_item_func: Callback function to retrieve etag data
-            from endpoint, generally when endpoint is not part of a MethodView
-
-        Page can be a Page object as defined in 'paginate' library. But it
-        does not have to, as long as it provides the following subset of
-        attributes from Page:
-          - items: items in page (list/generator)
-          - page: current page number (starting at 1)
-          - items_per_page: number of items per page
-          - page_count: number of pages
-          - item_count: total number of items
-
-        When using paginate, the resource function should return a
-        "paginate.Page"-ish object
-
-        paginate and paginate_with are mutually exclusive.
+        :param bool disable_etag: Disable ETag feature locally even if enabled
+            globally
         """
         def wrapper(func):
 
             # Add schema as response in the API doc
             doc = {'responses': {code: {'description': description}}}
             if schema:
-                if paginate_with is not None or paginate:
+                if paginate:
                     # Pagination -> we're returning a list
                     doc['responses'][code]['schema'] = {
                         'type': 'array',
@@ -291,9 +274,8 @@ class Blueprint(FlaskBlueprint):
             func.__apidoc__ = deepupdate(getattr(func, '__apidoc__', {}), doc)
 
             return marshal_with(
-                schema=schema, code=code, payload_key=payload_key,
-                paginate_with=paginate_with, paginate=paginate,
-                etag_schema=etag_schema, etag_validate=etag_validate,
-                etag_item_func=etag_item_func)(func)
+                schema=schema, code=code, paginate=paginate,
+                etag_schema=etag_schema, disable_etag=disable_etag
+            )(func)
 
         return wrapper

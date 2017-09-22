@@ -3,158 +3,81 @@
 from functools import wraps
 
 from flask import jsonify, request
-import marshmallow as ma
 
-from .etag import validate_etag, process_etag
-from .exceptions import MultiplePaginationModes
+from .pagination import (
+    PaginationParametersSchema, PaginationDataSchema,
+    set_pagination_parameters, get_pagination_data)
+from .etag import (
+    disable_etag_for_request, check_precondition,
+    set_etag_in_response, set_etag_schema)
 from .args_parser import parser
 
 
-class PaginationParameters(ma.Schema):
-    # pylint: disable=too-few-public-methods
-    """Handle pagination parameters: page number and page size."""
-
-    class Meta:
-        """Pagination parameters schema Meta properties"""
-        strict = True
-
-    page = ma.fields.Integer(
-        missing=1,
-        validate=ma.validate.Range(min=1)
-    )
-    page_size = ma.fields.Integer(
-        attribute='items_per_page',
-        missing=10,
-        validate=ma.validate.Range(min=1, max=100)
-    )
-
-
-
-class Paginator():
-    """Paginator class"""
-
-    def __init__(self, page, items_per_page):
-        self.page = page
-        self.items_per_page = items_per_page
-        self.item_count = 0
-        self.items = []
-
-    @property
-    def first(self):
-        """Return first page number"""
-        return (self.page - 1) * self.items_per_page
-
-    @property
-    def last(self):    # More like last + 1, actually
-        """Return last page number"""
-        return self.first + self.items_per_page
-
-    @property
-    def page_count(self):
-        """Return total page count"""
-        if self.item_count > 0:
-            return (self.item_count - 1) // self.items_per_page + 1
-        else:
-            return 0
-
-    def __repr__(self):
-        return ("Paginator:\n"
-                "Current page:           {0.page}\n"
-                "Items per page:         {0.items_per_page}\n"
-                "Total number of items:  {0.item_count}\n"
-                "Number of pages:        {0.page_count}"
-               ).format(self)
-
-
-def marshal_with(schema=None, code=200, payload_key='data',
-                 paginate_with=None, paginate=False,
-                 etag_schema=None, etag_validate=True, etag_item_func=None):
+def marshal_with(schema=None, code=200, paginate=False,
+                 etag_schema=None, disable_etag=False):
     """Decorator that marshals response with schema."""
 
-    if paginate and paginate_with:
-        raise MultiplePaginationModes(
-            "paginate_with and paginate are mutually exclusive.")
-
-    # TODO: provide Page class registration rather than letting
-    # the user specify a Page class for each call to marshall_with?
-
     # If given Schema class, create instance
-    # TODO: test/check if given Schema instance with many=True / False
-    if isinstance(schema, ma.Schema.__class__):
-        schema = schema(many=(paginate_with is not None or paginate))
-
-    if isinstance(etag_schema, ma.Schema.__class__):
-        etag_schema = etag_schema(many=(paginate_with is not None or paginate))
-    else:
-        # when not defined, default etag_schema must be schema
-        etag_schema = schema
+    # If paginate, set "many" automatically
+    # To return a list without pagination, provide a schema instance
+    if isinstance(schema, type):
+        schema = schema(many=paginate)
+    if isinstance(etag_schema, type):
+        etag_schema = etag_schema(many=paginate)
 
     def decorator(func):
 
-        # XXX: why @wraps?
         @wraps(func)
         def wrapper(*args, **kwargs):
 
-            # Check etag conditions
-            if etag_validate:
-                # try to take in account both MethodView or functions endpoints
-                endpoint = args[0] if len(args) > 0 else func
-                validate_etag(
-                    endpoint=endpoint, schema=etag_schema,
-                    get_item_func=etag_item_func, **kwargs)
+            if disable_etag:
+                disable_etag_for_request()
 
-            # Create Paginator if needed
+            # Check etag precondition
+            check_precondition()
+
+            # Store etag_schema in AppContext
+            set_etag_schema(etag_schema)
+
+            # Pagination parameters:
+            # - Inject parameter first/last in resource function
+            # - Store page/page_size in AppContext
             if paginate:
-                page_args = parser.parse(PaginationParameters, request)
-                kwargs['paginator'] = Paginator(**page_args)
+                paginator = parser.parse(PaginationParametersSchema, request)
+                kwargs.update({
+                    'first_item': paginator.first_item,
+                    'last_item': paginator.last_item,
+                })
+                set_pagination_parameters(paginator.page, paginator.page_size)
 
             # Execute decorated function
-            result = func(*args, **kwargs)
-
-            # Post pagination
-            if paginate_with is not None:
-                page_args = parser.parse(PaginationParameters, request)
-                page = paginate_with(result, **page_args)
-                result = list(page.items)
-            # Pagination inside resource function
-            elif paginate:
-                page = result
-                result = list(page.items)
+            result_raw = func(*args, **kwargs)
 
             # Dump with schema if specified
-            data = schema.dump(result)[0] if schema is not None else None
-
-            response_content = {
-                (payload_key or 'data'): data
-            }
-
-            # Get page meta data
-            if paginate_with is not None or paginate:
-                response_content['meta'] = _get_pagination_meta(page)
+            result_dump = (schema.dump(result_raw)[0] if schema is not None
+                           else result_raw)
 
             # Build response
-            if request.method == 'DELETE':
-                response_content = None
-            resp = jsonify(response_content)
-            # add etag value to response
-            process_etag(resp, etag_schema, result, validate=etag_validate)
+            response = jsonify(result_dump)
+
+            # Add pagination headers to response
+            # TODO: other headers? Total page count, first, last, prev, next?
+            extra_data = None
+            if paginate:
+                pagination_data = get_pagination_data()
+                if pagination_data:
+                    pagination_data_dump = PaginationDataSchema().dump(
+                        pagination_data)[0]
+                    response.headers['X-Pagination'] = pagination_data_dump
+                    extra_data = pagination_data_dump
+
+            # Add etag value to response
+            set_etag_in_response(response, result_raw, etag_schema or schema,
+                                 extra_data=extra_data)
 
             # Add status code
-            return resp, code
+            return response, code
 
         return wrapper
 
     return decorator
-
-
-def _get_pagination_meta(page):
-    """Get pagination metadata from "paginate"-ish Paginator
-
-    `page` should behave like paginate's Page object
-    """
-    return {
-        'page': page.page,
-        'page_size': page.items_per_page,
-        'page_count': page.page_count,
-        'item_count': page.item_count,
-    }

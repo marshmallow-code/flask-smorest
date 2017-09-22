@@ -11,10 +11,6 @@ class EndpointMethodDocAlreadyRegisted(FlaskRestApiError):
     """Documentation already registered for this endpoint/method couple"""
 
 
-class MultiplePaginationModes(FlaskRestApiError):
-    """More than one pagination mode was specified"""
-
-
 class NotModified(wexc.HTTPException, FlaskRestApiError):
     """Resource was not modified (Etag is unchanged)
 
@@ -25,10 +21,11 @@ class NotModified(wexc.HTTPException, FlaskRestApiError):
 
 
 class PreconditionRequired(wexc.PreconditionRequired, FlaskRestApiError):
-    """Etag required but missing
-
-    Exception overridden to modify Werkzeug description
-    """
+    """Etag required but missing"""
+    # Overriding description as we don't provide If-Unmodified-Since
     description = (
-        'This request is required to be conditional;'
-        ' try using "If-Match".')
+        'This request is required to be conditional; try using "If-Match".')
+
+
+class PreconditionFailed(wexc.PreconditionFailed, FlaskRestApiError):
+    """Etag required and wrong ETag provided"""
