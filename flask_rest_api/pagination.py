@@ -1,4 +1,18 @@
-"""Pagination feature"""
+"""Pagination feature
+
+Two pagination modes are supported.
+
+Pagination inside the resource: the resource function is responsible for
+paginating the data and setting total number of items.
+
+Post-pagination: the resource returns an iterator (typically a DB cursor) and
+a pager is provided to pagiante the data and get the total number of items.
+
+The pager should conform to the API of paginate's Page object, although it
+does not have to be a subclass of Page. Page can paginate simple types like
+lists, but a real-life application would use a pager dedicated to it data
+source (i.e. DB cursor).
+"""
 
 import marshmallow as ma
 
@@ -53,7 +67,7 @@ class PaginationData:
         self.total_count = total_count
 
 
-# TODO: add other pagination data: first, last, prev, next
+# TODO: add other pagination data: first, last, prev, next
 class PaginationDataSchema(ma.Schema):
 
     class Meta:

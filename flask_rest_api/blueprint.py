@@ -242,7 +242,7 @@ class Blueprint(FlaskBlueprint):
 
     # TODO: rename to 'response'?
     def marshal_with(self, schema=None, code=200,
-                     paginate=False, description='',
+                     paginate=False, paginate_with=None, description='',
                      etag_schema=None, disable_etag=False):
         """Decorator generating an endpoint response, specifying the schema
         to use for serialization and others parameters.
@@ -272,7 +272,8 @@ class Blueprint(FlaskBlueprint):
             func.__apidoc__ = deepupdate(getattr(func, '__apidoc__', {}), doc)
 
             return marshal_with(
-                schema=schema, code=code, paginate=paginate,
+                schema=schema, code=code,
+                paginate=paginate, paginate_with=paginate_with,
                 etag_schema=etag_schema, disable_etag=disable_etag
             )(func)
 

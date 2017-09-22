@@ -4,9 +4,11 @@ import pytest
 
 import marshmallow as ma
 
+from paginate import Page
+
 from flask_rest_api import Api
 from flask_rest_api.blueprint import Blueprint
-from flask_rest_api.exceptions import InvalidLocation
+from flask_rest_api.exceptions import InvalidLocation, MultiplePaginationModes
 
 
 class TestBlueprint():
@@ -52,3 +54,12 @@ class TestBlueprint():
         with pytest.raises(InvalidLocation):
             res = bp.use_args(
                 SampleQueryArgsSchema, location='bad')(sample_func)
+
+    def test_blueprint_multiple_paginate_modes(self):
+
+        blp = Blueprint('test', __name__, url_prefix='/test')
+
+        with pytest.raises(MultiplePaginationModes):
+            @blp.marshal_with(paginate=True, paginate_with=Page)
+            def get(self):
+                pass

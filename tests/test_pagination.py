@@ -4,29 +4,28 @@ import ast
 
 import pytest
 
+from paginate import Page
+
 from flask.views import MethodView
 
 from flask_rest_api import Api, Blueprint
 from flask_rest_api .pagination import set_item_count
 
 
-@pytest.fixture(params=[True, False])
-def app_with_pagination(request, collection, schemas, app):
+def pagination_blueprint(collection, schemas, as_method_view):
     """Return a basic API sample with pagination"""
 
-    as_method_view = request.param
     DocSchema = schemas.DocSchema
+
     blp = Blueprint('test', __name__, url_prefix='/test')
 
     if as_method_view:
         @blp.route('/')
         class Resource(MethodView):
-
             @blp.marshal_with(DocSchema, paginate=True)
             def get(self, first_item, last_item):
                 set_item_count(len(collection.items))
                 return collection.items[first_item: last_item + 1]
-
     else:
         @blp.route('/')
         @blp.marshal_with(DocSchema, paginate=True)
@@ -34,18 +33,52 @@ def app_with_pagination(request, collection, schemas, app):
             set_item_count(len(collection.items))
             return collection.items[first_item: last_item + 1]
 
-    api = Api(app)
-    api.register_blueprint(blp)
+    return blp
 
-    return app
+
+@pytest.mark.parametrize('as_method_view', [True, False])
+def post_pagination_blueprint(collection, schemas, as_method_view):
+    """Return a basic API sample with pagination"""
+
+    DocSchema = schemas.DocSchema
+
+    blp = Blueprint('test', __name__, url_prefix='/test')
+
+    if as_method_view:
+        @blp.route('/')
+        class Resource(MethodView):
+            @blp.marshal_with(DocSchema, paginate_with=Page)
+            def get(self):
+                return collection.items
+    else:
+        @blp.route('/')
+        @blp.marshal_with(DocSchema, paginate_with=Page)
+        def get_resources():
+            return collection.items
+
+    return blp
+
+
+@pytest.fixture(params=[
+    (pagination_blueprint, True),
+    (pagination_blueprint, False),
+    (post_pagination_blueprint, True),
+    (post_pagination_blueprint, False),
+])
+def blueprint(request, collection, schemas):
+    blp_factory, as_method_view = request.param
+    return blp_factory(collection, schemas, as_method_view)
 
 
 class TestPagination():
 
     @pytest.mark.parametrize('collection', [1000, ], indirect=True)
-    def test_pagination(self, app_with_pagination):
+    def test_pagination(self, app, blueprint):
 
-        client = app_with_pagination.test_client()
+        api = Api(app)
+        api.register_blueprint(blueprint)
+
+        client = app.test_client()
 
         # Default: page = 1, page_size = 10
         response = client.get('/test/')
