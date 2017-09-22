@@ -1,9 +1,12 @@
 """Test Blueprint extra features"""
 
+import pytest
+
 import marshmallow as ma
 
 from flask_rest_api import Api
 from flask_rest_api.blueprint import Blueprint
+from flask_rest_api.exceptions import InvalidLocation
 
 
 class TestBlueprint():
@@ -27,7 +30,10 @@ class TestBlueprint():
             """Sample method to define in documentation"""
             return "It's Supercalifragilisticexpialidocious!"
 
-        # check __apidoc__ (location mapping...)
+        # Check OpenAPI location mapping
+        res = bp.use_args(
+            SampleQueryArgsSchema, location='querystring')(sample_func)
+        assert res.__apidoc__['parameters']['location'] == 'query'
         res = bp.use_args(
             SampleQueryArgsSchema, location='query')(sample_func)
         assert res.__apidoc__['parameters']['location'] == 'query'
@@ -38,12 +44,11 @@ class TestBlueprint():
             SampleQueryArgsSchema, location='form')(sample_func)
         assert res.__apidoc__['parameters']['location'] == 'formData'
         res = bp.use_args(
-            SampleQueryArgsSchema, location='files')(sample_func)
-        assert res.__apidoc__['parameters']['location'] == 'formData'
-        res = bp.use_args(
             SampleQueryArgsSchema, location='headers')(sample_func)
         assert res.__apidoc__['parameters']['location'] == 'header'
-
-        # default apispec location
-        res = bp.use_args(SampleQueryArgsSchema, location='bad')(sample_func)
-        assert res.__apidoc__['parameters']['location'] == 'body'
+        res = bp.use_args(
+            SampleQueryArgsSchema, location='files')(sample_func)
+        assert res.__apidoc__['parameters']['location'] == 'formData'
+        with pytest.raises(InvalidLocation):
+            res = bp.use_args(
+                SampleQueryArgsSchema, location='bad')(sample_func)
