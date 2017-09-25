@@ -2,8 +2,8 @@ import pytest
 
 import json
 from werkzeug.exceptions import default_exceptions
-from flask import Flask, abort
-from flask_rest_api import Api
+from flask import Flask
+from flask_rest_api import Api, abort
 
 
 class TestErrorHandlers():

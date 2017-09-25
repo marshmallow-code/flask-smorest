@@ -6,10 +6,10 @@ import hashlib
 
 import pytest
 
-from flask import current_app, Response, abort
+from flask import current_app, Response
 from flask.views import MethodView
 
-from flask_rest_api import Api, Blueprint
+from flask_rest_api import Api, Blueprint, abort
 from flask_rest_api.etag import (
     _generate_etag, is_etag_enabled,
     disable_etag_for_request, is_etag_enabled_for_request, _get_etag_ctx,

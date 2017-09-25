@@ -5,10 +5,9 @@ import json
 
 import pytest
 
-from flask import abort
 from flask.views import MethodView
 
-from flask_rest_api import Api, Blueprint
+from flask_rest_api import Api, Blueprint, abort
 from flask_rest_api.etag import check_etag, set_etag
 from flask_rest_api.pagination import Page, set_item_count
 
