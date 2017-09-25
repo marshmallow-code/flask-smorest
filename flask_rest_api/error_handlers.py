@@ -33,7 +33,10 @@ def _handle_http_exception(error):
             for k, v in data['headers'].items():
                 headers.add(k, v)
 
-    # TODO: set level according to error type?
-    current_app.logger.error(data_error)
+    # Log an error only in case of server error, other errors are info level
+    if error.code // 100 == 5:
+        current_app.logger.error(data_error)
+    else:
+        current_app.logger.info(data_error)
 
     return jsonify(data_error), error.code, headers

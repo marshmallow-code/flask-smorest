@@ -6,10 +6,26 @@ from flask import Flask
 from flask_rest_api import Api, abort
 
 
-class TestErrorHandlers():
+class NoLoggingContext:
+    """Context manager to disable logging temporarily
 
-    @pytest.mark.parametrize(
-        'code', default_exceptions)
+    Those tests purposely trigger errors. We don't want to log them.
+    """
+
+    def __init__(self, app):
+        self.app = app
+
+    def __enter__(self):
+        self.logger_was_disabled = self.app.logger.disabled
+        self.app.logger.disabled = True
+
+    def __exit__(self, et, ev, tb):
+        self.app.logger.disabled = self.logger_was_disabled
+
+
+class TestErrorHandlers:
+
+    @pytest.mark.parametrize('code', default_exceptions)
     def test_error_handlers_registration(self, code):
         """Check custom error handler is registered for all codes"""
 
@@ -22,7 +38,8 @@ class TestErrorHandlers():
 
         Api(app)
 
-        response = client.get("/{}".format(code))
+        with NoLoggingContext(app):
+            response = client.get("/{}".format(code))
         assert response.status_code == code
 
         data = json.loads(response.get_data(as_text=True))
@@ -39,7 +56,8 @@ class TestErrorHandlers():
 
         Api(app)
 
-        response = client.get("/")
+        with NoLoggingContext(app):
+            response = client.get("/")
         assert response.status_code == 500
 
         data = json.loads(response.get_data(as_text=True))
