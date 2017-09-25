@@ -79,7 +79,6 @@ setup(
             'pytest>=2.8',
             'pytest-cov>=2.4.0',
             'tox>=2.0',
-            'paginate>=0.5.5',
         ],
     },
 )

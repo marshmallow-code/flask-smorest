@@ -19,6 +19,10 @@ class MultiplePaginationModes(FlaskRestApiError):
     """More than one pagination mode were specified"""
 
 
+class PageOutOfRangeError(FlaskRestApiError):
+    """Requested page number out of page range"""
+
+
 class NotModified(wexc.HTTPException, FlaskRestApiError):
     """Resource was not modified (Etag is unchanged)
 

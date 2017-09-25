@@ -2,15 +2,14 @@
 
 from functools import wraps
 
-from flask import jsonify, request
+from flask import jsonify
 
 from .pagination import (
-    PaginationData, PaginationParametersSchema, PaginationDataSchema,
-    set_pagination_parameters, get_pagination_data)
+    get_pagination_parameters_from_request, set_item_count,
+    get_pagination_metadata, set_pagination_metadata_in_response)
 from .etag import (
-    disable_etag_for_request, check_precondition,
-    set_etag_in_response, set_etag_schema)
-from .args_parser import parser
+    disable_etag_for_request, check_precondition, set_etag_schema,
+    set_etag_in_response)
 from .exceptions import MultiplePaginationModes
 
 
@@ -46,51 +45,43 @@ def marshal_with(schema=None, code=200, paginate=False, paginate_with=None,
             set_etag_schema(etag_schema)
 
             # Pagination parameters:
-            # - Inject parameter first/last in resource function
             # - Store page/page_size in AppContext
-            if paginate:
-                paginator = parser.parse(PaginationParametersSchema, request)
-                kwargs.update({
-                    'first_item': paginator.first_item,
-                    'last_item': paginator.last_item,
-                })
-                set_pagination_parameters(paginator.page, paginator.page_size)
+            # - If paginating in resource code, inject first/last as kwargs
+            if paginate or (paginate_with is not None):
+                page_params = get_pagination_parameters_from_request()
+                if paginate:
+                    kwargs.update({
+                        'first_item': page_params.first_item,
+                        'last_item': page_params.last_item,
+                    })
 
             # Execute decorated function
-            result_raw = func(*args, **kwargs)
+            result = func(*args, **kwargs)
 
             # Post pagination
             if paginate_with is not None:
-                paginator = parser.parse(PaginationParametersSchema, request)
-                page = paginate_with(result_raw, page=paginator.page,
-                                     items_per_page=paginator.page_size)
-                result_raw = page.items
+                page = paginate_with(result, page_params=page_params)
+                result = page.items
+                set_item_count(page.item_count)
 
-            # Dump with schema if specified
-            result_dump = (schema.dump(result_raw)[0] if schema is not None
-                           else result_raw)
+            # Dump result with schema if specified
+            result_dump = (schema.dump(result)[0] if schema is not None
+                           else result)
 
             # Build response
             response = jsonify(result_dump)
 
-            # Add pagination headers to response
-            # TODO: other headers? Total page count, first, last, prev, next?
-            extra_data = None
-            pagination_data = None
-            if paginate:
-                pagination_data = get_pagination_data()
-            elif paginate_with is not None:
-                pagination_data = PaginationData(
-                    page.page, page.items_per_page, page.item_count)
-            if pagination_data:
-                pagination_data_dump = PaginationDataSchema().dump(
-                    pagination_data)[0]
-                response.headers['X-Pagination'] = pagination_data_dump
-                extra_data = pagination_data_dump
+            # Add pagination metadata to response
+            if paginate or (paginate_with is not None):
+                pagination_metadata = get_pagination_metadata()
+                set_pagination_metadata_in_response(
+                    response, pagination_metadata)
+            else:
+                pagination_metadata = None
 
             # Add etag value to response
-            set_etag_in_response(response, result_raw, etag_schema or schema,
-                                 extra_data=extra_data)
+            set_etag_in_response(response, result, etag_schema or schema,
+                                 extra_data=pagination_metadata)
 
             # Add status code
             return response, code

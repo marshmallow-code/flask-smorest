@@ -1,26 +1,25 @@
 """Pagination feature
 
-Two pagination modes are supported.
+Two pagination modes are supported:
 
-Pagination inside the resource: the resource function is responsible for
-paginating the data and setting total number of items.
+- Pagination inside the resource: the resource function is responsible for
+  selecting requested range of items and setting total number of items.
 
-Post-pagination: the resource returns an iterator (typically a DB cursor) and
-a pager is provided to pagiante the data and get the total number of items.
-
-The pager should conform to the API of paginate's Page object, although it
-does not have to be a subclass of Page. Page can paginate simple types like
-lists, but a real-life application would use a pager dedicated to it data
-source (i.e. DB cursor).
+- Post-pagination: the resource returns an iterator (typically a DB cursor) and
+  a pager is provided to paginate the data and get the total number of items.
 """
+
+from flask import request
 
 import marshmallow as ma
 
+from .args_parser import abort, parser
 from .utils import get_appcontext
+from .exceptions import PageOutOfRangeError
 
 
 class PaginationParameters:
-    """Pagination utilities"""
+    """Holds pagination arguments"""
 
     def __init__(self, page, page_size):
         self.page = page
@@ -38,8 +37,7 @@ class PaginationParameters:
 
 
 class PaginationParametersSchema(ma.Schema):
-    # pylint: disable=too-few-public-methods
-    """Deserialize pagination parameters: page number and page size"""
+    """Deserializes pagination parameters into a PaginationParameters object"""
 
     class Meta:
         strict = True
@@ -59,23 +57,84 @@ class PaginationParametersSchema(ma.Schema):
         return PaginationParameters(**data)
 
 
-class PaginationData:
+class PaginationMetadata:
 
-    def __init__(self, page, page_size, total_count):
+    def __init__(self, page, page_size, item_count):
         self.page = page
         self.page_size = page_size
-        self.total_count = total_count
+        self.item_count = item_count
+
+        if self.item_count == 0:
+            self.page_count = 0
+        else:
+            # First / last page, page count
+            self.first_page = 1
+            self.page_count = ((self.item_count - 1) // self.page_size) + 1
+            self.last_page = self.first_page + self.page_count - 1
+            # Check if requested page number is out of range
+            if (self.page < self.first_page) or (self.page > self.last_page):
+                raise PageOutOfRangeError(
+                    "Page {} not in {}-{} range".format(
+                        self.page, self.first_page, self.last_page)
+                )
+            # Previous / next page
+            if self.page > self.first_page:
+                self.previous_page = self.page-1
+            if self.page < self.last_page:
+                self.next_page = self.page+1
 
 
-# TODO: add other pagination data: first, last, prev, next
-class PaginationDataSchema(ma.Schema):
-
-    class Meta:
-        strict = True
+class PaginationMetadataSchema(ma.Schema):
+    """Serializes pagination metadata"""
 
     total = ma.fields.Integer(
-        attribute='total_count'
+        attribute='item_count'
     )
+    total_pages = ma.fields.Integer(
+        attribute='page_count'
+    )
+    first_page = ma.fields.Integer()
+    last_page = ma.fields.Integer()
+    previous_page = ma.fields.Integer()
+    next_page = ma.fields.Integer()
+
+
+# Inspired from Pylons/paginate: https://github.com/Pylons/paginate
+class Page:
+    """Pager for simple types such as lists.
+
+    Can be subclassed to provide a pager for a specific data object.
+
+    Example pager for Pymongo cursor:
+
+    class PymongoCursorWrapper():
+        def __init__(self, obj):
+            self.obj = obj
+        def __getitem__(self, range):
+            return self.obj[range]
+        def __len__(self):
+            return self.obj.count()
+
+    class PymongoCursorPage(Page):
+        _wrapper_class = PymongoCursorWrapper
+    """
+
+    _wrapper_class = None
+
+    def __init__(self, collection, page_params):
+        """Create a Page instance
+
+        :param sequence collection: Collection of items to page through
+        :page PaginationParameters page_params: Pagination parameters
+        """
+        if self._wrapper_class is not None:
+            # Custom wrapper class used to access collection elements
+            collection = self._wrapper_class(collection)
+
+        self.items = list(
+            collection[page_params.first_item: page_params.last_item + 1])
+
+        self.item_count = len(collection)
 
 
 def _get_pagination_ctx():
@@ -83,24 +142,49 @@ def _get_pagination_ctx():
     return get_appcontext().setdefault('pagination', {})
 
 
-def set_pagination_parameters(page, page_size):
-    """Store pagination parameters in AppContext
+def get_pagination_parameters_from_request():
+    """Parse pagination parameters in request object
+
+    Store pagination data in AppContext and return it
 
     Called automatically
     """
-    _get_pagination_ctx()['parameters'] = (page, page_size)
+    page_params = parser.parse(PaginationParametersSchema, request)
+    _get_pagination_ctx()['parameters'] = page_params
+    return page_params
 
 
 def set_item_count(item_count):
     """Set total number of items when paginating
 
-    Should be called from resource code to provide pagination metadata
+    When paginating in resource, this should be called from resource code
     """
-    page, page_size = _get_pagination_ctx()['parameters']
-    pagination_data = PaginationData(page, page_size, item_count)
-    _get_pagination_ctx()['data'] = pagination_data
+    _get_pagination_ctx()['item_count'] = item_count
 
 
-def get_pagination_data():
-    """Get pagination metadata from AppContext"""
-    return _get_pagination_ctx().get('data')
+def get_pagination_metadata():
+    """Get pagination metadata from AppContext
+
+    Called automatically
+
+    Abort with 404 status if requested page number is out of range
+    """
+    pagination_ctx = _get_pagination_ctx()
+    item_count = pagination_ctx['item_count']
+    if item_count is None:
+        return None
+    page_params = pagination_ctx['parameters']
+    try:
+        pagination_metadata = PaginationMetadata(
+            page_params.page, page_params.page_size, item_count)
+    except PageOutOfRangeError:
+        abort(404)
+    return PaginationMetadataSchema().dump(pagination_metadata)[0]
+
+
+def set_pagination_metadata_in_response(response, pagination_metadata):
+    """Set pagination metadata in response object
+
+    Called automatically
+    """
+    response.headers['X-Pagination'] = pagination_metadata

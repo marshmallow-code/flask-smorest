@@ -4,12 +4,10 @@ import ast
 
 import pytest
 
-from paginate import Page
-
 from flask.views import MethodView
 
 from flask_rest_api import Api, Blueprint
-from flask_rest_api .pagination import set_item_count
+from flask_rest_api .pagination import Page, set_item_count
 
 
 def pagination_blueprint(collection, schemas, as_method_view):
@@ -36,9 +34,8 @@ def pagination_blueprint(collection, schemas, as_method_view):
     return blp
 
 
-@pytest.mark.parametrize('as_method_view', [True, False])
 def post_pagination_blueprint(collection, schemas, as_method_view):
-    """Return a basic API sample with pagination"""
+    """Return a basic API sample with post-pagination"""
 
     DocSchema = schemas.DocSchema
 
@@ -88,7 +85,11 @@ class TestPagination():
         assert len(data) == 10
         assert data[0] == {'field': 0, 'item_id': 1}
         assert data[9] == {'field': 9, 'item_id': 10}
-        assert ast.literal_eval(headers['X-Pagination']) == {'total': 1000}
+        assert ast.literal_eval(headers['X-Pagination']) == {
+            'total': 1000, 'total_pages': 100,
+            'first_page': 1, 'last_page': 100,
+            'next_page': 2,
+        }
 
         # page = 2, page_size = 5
         response = client.get(
@@ -99,16 +100,16 @@ class TestPagination():
         assert len(data) == 5
         assert data[0] == {'field': 5, 'item_id': 6}
         assert data[4] == {'field': 9, 'item_id': 10}
-        assert ast.literal_eval(headers['X-Pagination']) == {'total': 1000}
+        assert ast.literal_eval(headers['X-Pagination']) == {
+            'total': 1000, 'total_pages': 200,
+            'first_page': 1, 'last_page': 200,
+            'previous_page': 1, 'next_page': 3,
+        }
 
-        # page = 120, page_size = 10
+        # page = 120, page_size = 10: page out of range -> 404
         response = client.get(
             '/test/', query_string={'page': 120, 'page_size': 10})
-        assert response.status_code == 200
-        data = response.json
-        headers = response.headers
-        assert len(data) == 0
-        assert ast.literal_eval(headers['X-Pagination']) == {'total': 1000}
+        assert response.status_code == 404
 
         # page = 334, page_size = 3
         response = client.get(
@@ -117,7 +118,11 @@ class TestPagination():
         data = response.json
         headers = response.headers
         assert len(data) == 1
-        assert ast.literal_eval(headers['X-Pagination']) == {'total': 1000}
+        assert ast.literal_eval(headers['X-Pagination']) == {
+            'total': 1000, 'total_pages': 334,
+            'first_page': 1, 'last_page': 334,
+            'previous_page': 333,
+        }
 
         # page < 1 => 422
         response = client.get('/test/', query_string={'page': 0})

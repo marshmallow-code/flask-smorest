@@ -4,11 +4,10 @@ import pytest
 
 import marshmallow as ma
 
-from paginate import Page
-
 from flask_rest_api import Api
 from flask_rest_api.blueprint import Blueprint
 from flask_rest_api.exceptions import InvalidLocation, MultiplePaginationModes
+from flask_rest_api.pagination import Page
 
 
 class TestBlueprint():

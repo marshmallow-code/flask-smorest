@@ -7,11 +7,10 @@ import pytest
 
 from flask import abort
 from flask.views import MethodView
-from paginate import Page
 
 from flask_rest_api import Api, Blueprint
 from flask_rest_api.etag import check_etag, set_etag
-from flask_rest_api .pagination import set_item_count
+from flask_rest_api.pagination import Page, set_item_count
 
 from .conftest import AppConfig
 from .mocks import ItemNotFound
@@ -227,8 +226,8 @@ class TestFullExample():
         assert response.status_code == 200
         list_etag = response.headers['ETag']
         assert len(response.json) == 0
-        assert ast.literal_eval(
-            response.headers['X-Pagination']) == {'total': 0}
+        assert ast.literal_eval(response.headers['X-Pagination']) == {
+            'total': 0, 'total_pages': 0}
 
         # GET collection with correct ETag: Not modified
         response = client.get(
@@ -256,8 +255,8 @@ class TestFullExample():
         list_etag = response.headers['ETag']
         assert len(response.json) == 1
         assert response.json[0] == {'field': 0, 'item_id': 1}
-        assert ast.literal_eval(
-            response.headers['X-Pagination']) == {'total': 1}
+        assert ast.literal_eval(response.headers['X-Pagination']) == {
+            'total': 1, 'total_pages': 1, 'first_page': 1, 'last_page': 1}
 
         # GET by ID without ETag: OK
         response = client.get('/test/{}'.format(item_1_id))
@@ -317,8 +316,8 @@ class TestFullExample():
         list_etag = response.headers['ETag']
         assert len(response.json) == 1
         assert response.json[0] == {'field': 1, 'item_id': 1}
-        assert ast.literal_eval(
-            response.headers['X-Pagination']) == {'total': 1}
+        assert ast.literal_eval(response.headers['X-Pagination']) == {
+            'total': 1, 'total_pages': 1, 'first_page': 1, 'last_page': 1}
 
         # POST item_2
         item_2_data = {'field': 1}
@@ -341,8 +340,9 @@ class TestFullExample():
         list_etag = response.headers['ETag']
         assert len(response.json) == 1
         assert response.json[0] == {'field': 1, 'item_id': 1}
-        assert ast.literal_eval(
-            response.headers['X-Pagination']) == {'total': 2}
+        assert ast.literal_eval(response.headers['X-Pagination']) == {
+            'total': 2, 'total_pages': 2, 'first_page': 1, 'last_page': 2,
+            'next_page': 2}
 
         # DELETE without ETag: Precondition required error
         response = client.delete('/test/{}'.format(item_1_id))
