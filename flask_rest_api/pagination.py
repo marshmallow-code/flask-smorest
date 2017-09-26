@@ -74,7 +74,7 @@ class PaginationMetadata:
             # Check if requested page number is out of range
             if (self.page < self.first_page) or (self.page > self.last_page):
                 raise PageOutOfRangeError(
-                    "Page {} not in {}-{} range".format(
+                    "Page {} out of [{}-{}] range.".format(
                         self.page, self.first_page, self.last_page)
                 )
             # Previous / next page
@@ -177,8 +177,8 @@ def get_pagination_metadata():
     try:
         pagination_metadata = PaginationMetadata(
             page_params.page, page_params.page_size, item_count)
-    except PageOutOfRangeError:
-        abort(404)
+    except PageOutOfRangeError as exc:
+        abort(404, messages=str(exc), exc=exc)
     return PaginationMetadataSchema().dump(pagination_metadata)[0]
 
 

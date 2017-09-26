@@ -110,6 +110,7 @@ class TestPagination():
         response = client.get(
             '/test/', query_string={'page': 120, 'page_size': 10})
         assert response.status_code == 404
+        assert 'details' in response.json['error']
 
         # page = 334, page_size = 3
         response = client.get(
