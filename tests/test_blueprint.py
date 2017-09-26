@@ -34,22 +34,22 @@ class TestBlueprint():
         # Check OpenAPI location mapping
         res = bp.use_args(
             SampleQueryArgsSchema, location='querystring')(sample_func)
-        assert res.__apidoc__['parameters']['location'] == 'query'
+        assert res._apidoc['parameters']['location'] == 'query'
         res = bp.use_args(
             SampleQueryArgsSchema, location='query')(sample_func)
-        assert res.__apidoc__['parameters']['location'] == 'query'
+        assert res._apidoc['parameters']['location'] == 'query'
         res = bp.use_args(
             SampleQueryArgsSchema, location='json')(sample_func)
-        assert res.__apidoc__['parameters']['location'] == 'body'
+        assert res._apidoc['parameters']['location'] == 'body'
         res = bp.use_args(
             SampleQueryArgsSchema, location='form')(sample_func)
-        assert res.__apidoc__['parameters']['location'] == 'formData'
+        assert res._apidoc['parameters']['location'] == 'formData'
         res = bp.use_args(
             SampleQueryArgsSchema, location='headers')(sample_func)
-        assert res.__apidoc__['parameters']['location'] == 'header'
+        assert res._apidoc['parameters']['location'] == 'header'
         res = bp.use_args(
             SampleQueryArgsSchema, location='files')(sample_func)
-        assert res.__apidoc__['parameters']['location'] == 'formData'
+        assert res._apidoc['parameters']['location'] == 'formData'
         with pytest.raises(InvalidLocation):
             res = bp.use_args(
                 SampleQueryArgsSchema, location='bad')(sample_func)

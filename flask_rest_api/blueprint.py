@@ -13,10 +13,10 @@ Documentation process works in several steps:
 - At import time
 
   - When a MethodView or a function is decorated, relevant information
-    is added to the object's `__apispec__` attribute.
+    is added to the object's `_apispec` attribute.
 
   - The `route` decorator registers the endpoint in the Blueprint and gathers
-    all information about the endpoint in `Blueprint.__docs__[endpoint]`
+    all information about the endpoint in `Blueprint._docs[endpoint]`
 
 - At initialization time
 
@@ -48,22 +48,22 @@ class Blueprint(FlaskBlueprint):
 
         super().__init__(*args, **kwargs)
 
-        # __docs__ is a dict storing endpoints documentation:
+        # _docs is a dict storing endpoints documentation:
         # {endpoint: {
         #     'get': documentation,
         #     'post': documentation,
         #     ...
         #     }
         # }
-        self.__docs__ = {}
+        self._docs = {}
 
     def _store_endpoint_docs(self, endpoint, obj, **kwargs):
         """Store view or function doc info"""
 
-        endpoint_doc = self.__docs__.setdefault(endpoint, {})
+        endpoint_doc = self._docs.setdefault(endpoint, {})
 
         def store_method_docs(method, function):
-            doc = getattr(function, '__apidoc__', {})
+            doc = getattr(function, '_apidoc', {})
             # Add function doc to table for later registration
             method_l = method.lower()
             # Check another doc was not already registed for endpoint/method
@@ -97,7 +97,7 @@ class Blueprint(FlaskBlueprint):
         "schema":{"$ref": "#/definitions/MySchema"}
         """
 
-        for endpoint, doc in self.__docs__.items():
+        for endpoint, doc in self._docs.items():
 
             endpoint = '.'.join((self.name, endpoint))
 
@@ -155,10 +155,10 @@ class Blueprint(FlaskBlueprint):
                 # This decorator may be called multiple times on the same
                 # MethodView, but Flask will complain if different views are
                 # mapped to the same endpoint, so we should call 'as_view' only
-                # once and keep the result in MethodView.__view_func__
-                if not getattr(wrapped, '__view_func__', None):
-                    wrapped.__view_func__ = wrapped.as_view(_endpoint)
-                view_func = wrapped.__view_func__
+                # once and keep the result in MethodView._view_func
+                if not getattr(wrapped, '_view_func', None):
+                    wrapped._view_func = wrapped.as_view(_endpoint)
+                view_func = wrapped._view_func
 
             # Function
             else:
@@ -179,10 +179,7 @@ class Blueprint(FlaskBlueprint):
         """
 
         def decorator(func):
-
-            func.__apidoc__ = deepupdate(
-                getattr(func, '__apidoc__', {}), kwargs)
-
+            func._apidoc = deepupdate(getattr(func, '_apidoc', {}), kwargs)
             return func
 
         return decorator
@@ -234,7 +231,7 @@ class Blueprint(FlaskBlueprint):
                 'required': required,
                 'schema': schema,
             }}
-            func.__apidoc__ = deepupdate(getattr(func, '__apidoc__', {}), doc)
+            func._apidoc = deepupdate(getattr(func, '_apidoc', {}), doc)
 
             return func
 
@@ -269,7 +266,7 @@ class Blueprint(FlaskBlueprint):
                     }
                 else:
                     doc['responses'][code]['schema'] = schema
-            func.__apidoc__ = deepupdate(getattr(func, '__apidoc__', {}), doc)
+            func._apidoc = deepupdate(getattr(func, '_apidoc', {}), doc)
 
             return marshal_with(
                 schema=schema, code=code,
