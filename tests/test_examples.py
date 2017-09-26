@@ -34,9 +34,8 @@ def implicit_data_and_schema_etag_blueprint(collection, schemas):
     @blp.route('/')
     class Resource(MethodView):
 
-        @blp.arguments(DocSchema, location='query')
         @blp.response(DocSchema(many=True), paginate_with=Page)
-        def get(self, args):
+        def get(self):
             return collection.items
 
         @blp.arguments(DocSchema)
@@ -89,16 +88,15 @@ def implicit_data_explicit_schema_etag_blueprint(collection, schemas):
     @blp.route('/')
     class Resource(MethodView):
 
-        @blp.arguments(DocSchema, location='query')
         @blp.response(DocSchema(many=True), paginate=True,
-                          etag_schema=DocEtagSchema)
-        def get(self, args, first_item, last_item):
+                      etag_schema=DocEtagSchema)
+        def get(self, first_item, last_item):
             set_item_count(len(collection.items))
             return collection.items[first_item: last_item + 1]
 
         @blp.arguments(DocSchema)
         @blp.response(DocSchema, code=201,
-                          etag_schema=DocEtagSchema)
+                      etag_schema=DocEtagSchema)
         def post(self, new_item):
             return collection.post(new_item)
 
@@ -150,9 +148,8 @@ def explicit_data_no_schema_etag_blueprint(collection, schemas):
     @blp.route('/')
     class Resource(MethodView):
 
-        @blp.arguments(DocSchema, location='query')
         @blp.response(DocSchema(many=True), paginate=True)
-        def get(self, args, first_item, last_item):
+        def get(self, first_item, last_item):
             set_item_count(len(collection.items))
             return collection.items[first_item: last_item + 1]
 

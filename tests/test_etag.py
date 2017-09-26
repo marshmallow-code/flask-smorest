@@ -39,10 +39,9 @@ def app_with_etag(request, collection, schemas, app):
         @blp.route('/')
         class Resource(MethodView):
 
-            @blp.arguments(DocSchema, location='query')
             @blp.response(
                 DocSchema(many=True), etag_schema=DocEtagSchema(many=True))
-            def get(self, args):
+            def get(self):
                 return collection.items
 
             @blp.arguments(DocSchema)
@@ -78,10 +77,9 @@ def app_with_etag(request, collection, schemas, app):
 
     else:
         @blp.route('/')
-        @blp.arguments(DocSchema, location='query')
         @blp.response(
             DocSchema(many=True), etag_schema=DocEtagSchema(many=True))
-        def get_resources(args):
+        def get_resources():
             return collection.items
 
         @blp.route('/', methods=('POST',))
