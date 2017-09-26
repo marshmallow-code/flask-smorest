@@ -31,7 +31,6 @@ def app_with_etag(request, collection, schemas, app):
     """Return a basic API sample with ETag"""
 
     as_method_view = request.param
-    as_method_view = True
     DocSchema = schemas.DocSchema
     DocEtagSchema = schemas.DocEtagSchema
     blp = Blueprint('test', __name__, url_prefix='/test')
