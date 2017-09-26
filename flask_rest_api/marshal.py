@@ -13,8 +13,8 @@ from .etag import (
 from .exceptions import MultiplePaginationModes
 
 
-def marshal_with(schema=None, code=200, paginate=False, paginate_with=None,
-                 etag_schema=None, disable_etag=False):
+def response(schema=None, code=200, paginate=False, paginate_with=None,
+             etag_schema=None, disable_etag=False):
     """Decorator that marshals response with schema."""
 
     if paginate and paginate_with is not None:
@@ -24,7 +24,7 @@ def marshal_with(schema=None, code=200, paginate=False, paginate_with=None,
     # If given Schema class, create instance
     # If resource is paginated, set "many" automatically
     # For a list without pagination, provide a schema instance with many=True:
-    #     marshal_with(schema=MySchema(any=True),...)
+    #     response(schema=MySchema(any=True),...)
     if isinstance(schema, type):
         schema = schema(many=(paginate or paginate_with is not None))
     if isinstance(etag_schema, type):

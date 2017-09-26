@@ -13,8 +13,8 @@ from flask_rest_api.pagination import Page
 class TestBlueprint():
     """Test Blueprint class"""
 
-    def test_blueprint_use_args(self, app):
-        """Test use_args function"""
+    def test_blueprint_arguments(self, app):
+        """Test arguments function"""
 
         api = Api(app)
         bp = Blueprint('test', __name__, url_prefix='/test')
@@ -32,26 +32,26 @@ class TestBlueprint():
             return "It's Supercalifragilisticexpialidocious!"
 
         # Check OpenAPI location mapping
-        res = bp.use_args(
+        res = bp.arguments(
             SampleQueryArgsSchema, location='querystring')(sample_func)
         assert res._apidoc['parameters']['location'] == 'query'
-        res = bp.use_args(
+        res = bp.arguments(
             SampleQueryArgsSchema, location='query')(sample_func)
         assert res._apidoc['parameters']['location'] == 'query'
-        res = bp.use_args(
+        res = bp.arguments(
             SampleQueryArgsSchema, location='json')(sample_func)
         assert res._apidoc['parameters']['location'] == 'body'
-        res = bp.use_args(
+        res = bp.arguments(
             SampleQueryArgsSchema, location='form')(sample_func)
         assert res._apidoc['parameters']['location'] == 'formData'
-        res = bp.use_args(
+        res = bp.arguments(
             SampleQueryArgsSchema, location='headers')(sample_func)
         assert res._apidoc['parameters']['location'] == 'header'
-        res = bp.use_args(
+        res = bp.arguments(
             SampleQueryArgsSchema, location='files')(sample_func)
         assert res._apidoc['parameters']['location'] == 'formData'
         with pytest.raises(InvalidLocation):
-            res = bp.use_args(
+            res = bp.arguments(
                 SampleQueryArgsSchema, location='bad')(sample_func)
 
     def test_blueprint_multiple_paginate_modes(self):
@@ -59,6 +59,6 @@ class TestBlueprint():
         blp = Blueprint('test', __name__, url_prefix='/test')
 
         with pytest.raises(MultiplePaginationModes):
-            @blp.marshal_with(paginate=True, paginate_with=Page)
+            @blp.response(paginate=True, paginate_with=Page)
             def get(self):
                 pass

@@ -20,13 +20,13 @@ def pagination_blueprint(collection, schemas, as_method_view):
     if as_method_view:
         @blp.route('/')
         class Resource(MethodView):
-            @blp.marshal_with(DocSchema, paginate=True)
+            @blp.response(DocSchema, paginate=True)
             def get(self, first_item, last_item):
                 set_item_count(len(collection.items))
                 return collection.items[first_item: last_item + 1]
     else:
         @blp.route('/')
-        @blp.marshal_with(DocSchema, paginate=True)
+        @blp.response(DocSchema, paginate=True)
         def get_resources(first_item, last_item):
             set_item_count(len(collection.items))
             return collection.items[first_item: last_item + 1]
@@ -44,12 +44,12 @@ def post_pagination_blueprint(collection, schemas, as_method_view):
     if as_method_view:
         @blp.route('/')
         class Resource(MethodView):
-            @blp.marshal_with(DocSchema, paginate_with=Page)
+            @blp.response(DocSchema, paginate_with=Page)
             def get(self):
                 return collection.items
     else:
         @blp.route('/')
-        @blp.marshal_with(DocSchema, paginate_with=Page)
+        @blp.response(DocSchema, paginate_with=Page)
         def get_resources():
             return collection.items
 

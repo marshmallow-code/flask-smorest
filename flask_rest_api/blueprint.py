@@ -35,7 +35,7 @@ from apispec.ext.marshmallow.swagger import schema2parameters
 
 from .utils import deepupdate
 from .args_parser import parser
-from .marshal import marshal_with
+from .marshal import response
 from .exceptions import EndpointMethodDocAlreadyRegisted, InvalidLocation
 
 
@@ -118,7 +118,7 @@ class Blueprint(FlaskBlueprint):
             for apidoc in doc.values():
                 params = apidoc.get('parameters', None)
                 if params:
-                    # use_args only registers Schemas
+                    # self.arguments can only register a Schema
                     # so there's no need to check if schema is in params
                     params = schema2parameters(
                         params['schema'],
@@ -184,11 +184,12 @@ class Blueprint(FlaskBlueprint):
 
         return decorator
 
-    # TODO: rename to 'parameters'?
-    def use_args(self, schema, **kwargs):
-        """Decorator specifying the schema used as parameter
+    def arguments(self, schema, **kwargs):
+        """Decorator specifying the schema used to deserialize parameters
 
         :param type|Schema schema: A marshmallow Schema class or instance.
+
+        Can only be called once on a resource function.
         """
 
         if isinstance(schema, type):
@@ -237,10 +238,9 @@ class Blueprint(FlaskBlueprint):
 
         return decorator
 
-    # TODO: rename to 'response'?
-    def marshal_with(self, schema=None, code=200,
-                     paginate=False, paginate_with=None, description='',
-                     etag_schema=None, disable_etag=False):
+    def response(self, schema=None, code=200, description='',
+                 paginate=False, paginate_with=None,
+                 etag_schema=None, disable_etag=False):
         """Decorator generating an endpoint response, specifying the schema
         to use for serialization and others parameters.
 
@@ -268,7 +268,7 @@ class Blueprint(FlaskBlueprint):
                     doc['responses'][code]['schema'] = schema
             func._apidoc = deepupdate(getattr(func, '_apidoc', {}), doc)
 
-            return marshal_with(
+            return response(
                 schema=schema, code=code,
                 paginate=paginate, paginate_with=paginate_with,
                 etag_schema=etag_schema, disable_etag=disable_etag
