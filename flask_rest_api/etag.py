@@ -43,7 +43,7 @@ def _get_etag_schema():
 
 def _generate_etag(data, etag_schema=None, *, extra_data=None):
     """Generate an etag from data
-    
+
     etag_schema: Schema to dump data with before hashing
     extra_data: Extra data to add before hashing
 
