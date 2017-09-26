@@ -192,7 +192,7 @@ class TestEtag():
             bytes(json.dumps(data_dump, sort_keys=True), 'utf-8')
             ).hexdigest()
 
-        # extra_data is a keywork-only argument
+        # extra_data is a keyword-only argument
         with pytest.raises(TypeError):
             # pylint: disable=too-many-function-args
             _generate_etag(item, etag_schema(), extra_data)

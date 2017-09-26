@@ -13,7 +13,7 @@ from .etag import (
 from .exceptions import MultiplePaginationModes
 
 
-def response(schema=None, code=200, paginate=False, paginate_with=None,
+def response(schema=None, *, code=200, paginate=False, paginate_with=None,
              etag_schema=None, disable_etag=False):
     """Decorator that marshals response with schema."""
 

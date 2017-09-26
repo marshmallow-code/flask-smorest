@@ -62,3 +62,12 @@ class TestBlueprint():
             @blp.response(paginate=True, paginate_with=Page)
             def get(self):
                 pass
+
+    def test_blueprint_keywork_only_args(self):
+
+        blp = Blueprint('test', __name__, url_prefix='/test')
+
+        # All arguments but schema are keyword-only arguments
+        with pytest.raises(TypeError):
+            # pylint: disable=too-many-function-args
+            blp.response(None, 200)

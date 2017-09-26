@@ -238,7 +238,7 @@ class Blueprint(FlaskBlueprint):
 
         return decorator
 
-    def response(self, schema=None, code=200, description='',
+    def response(self, schema=None, *, code=200, description='',
                  paginate=False, paginate_with=None,
                  etag_schema=None, disable_etag=False):
         """Decorator generating an endpoint response, specifying the schema
