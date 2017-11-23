@@ -7,9 +7,8 @@ import pytest
 
 from flask.views import MethodView
 
-from flask_rest_api import Api, Blueprint, abort
-from flask_rest_api.etag import check_etag, set_etag
-from flask_rest_api.pagination import Page, set_item_count
+from flask_rest_api import (
+    Api, Blueprint, abort, check_etag, set_etag, Page, set_item_count)
 
 from .conftest import AppConfig
 from .mocks import ItemNotFound

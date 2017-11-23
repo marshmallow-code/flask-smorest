@@ -6,8 +6,7 @@ import pytest
 
 from flask.views import MethodView
 
-from flask_rest_api import Api, Blueprint
-from flask_rest_api .pagination import Page, set_item_count
+from flask_rest_api import Api, Blueprint, Page, set_item_count
 
 
 def pagination_blueprint(collection, schemas, as_method_view):
