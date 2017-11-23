@@ -35,6 +35,10 @@ class PaginationParameters:
         """Return last item number"""
         return self.first_item + self.page_size - 1
 
+    def __repr__(self):
+        return ("{}(page={!r},page_size={!r})"
+                .format(self.__class__.__name__, self.page, self.page_size))
+
 
 class PaginationParametersSchema(ma.Schema):
     """Deserializes pagination parameters into a PaginationParameters object"""
@@ -83,6 +87,11 @@ class PaginationMetadata:
             if self.page < self.last_page:
                 self.next_page = self.page+1
 
+    def __repr__(self):
+        return ("{}(page={!r},page_size={!r},item_count={!r})"
+                .format(self.__class__.__name__,
+                        self.page, self.page_size, self.item_count))
+
 
 class PaginationMetadataSchema(ma.Schema):
     """Serializes pagination metadata"""
@@ -130,11 +139,22 @@ class Page:
         if self._wrapper_class is not None:
             # Custom wrapper class used to access collection elements
             collection = self._wrapper_class(collection)
+        self.collection = collection
+        self.page_params = page_params
 
-        self.items = list(
-            collection[page_params.first_item: page_params.last_item + 1])
+    @property
+    def items(self):
+        return list(self.collection[
+            self.page_params.first_item: self.page_params.last_item + 1])
 
-        self.item_count = len(collection)
+    @property
+    def item_count(self):
+        return len(self.collection)
+
+    def __repr__(self):
+        return ("{}(collection={!r},page_params={!r})"
+                .format(self.__class__.__name__,
+                        self.collection, self.page_params))
 
 
 def _get_pagination_ctx():

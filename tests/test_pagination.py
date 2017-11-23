@@ -7,6 +7,7 @@ import pytest
 from flask.views import MethodView
 
 from flask_rest_api import Api, Blueprint, Page, set_item_count
+from flask_rest_api.pagination import PaginationParameters, PaginationMetadata
 
 
 def pagination_blueprint(collection, schemas, as_method_view):
@@ -67,6 +68,20 @@ def blueprint(request, collection, schemas):
 
 
 class TestPagination():
+
+    def test_pagination_parameters_repr(self):
+        assert(repr(PaginationParameters(1, 10)) ==
+               "PaginationParameters(page=1,page_size=10)")
+
+    def test_pagination_metadata_repr(self):
+        assert(repr(PaginationMetadata(1, 10, 12)) ==
+               "PaginationMetadata(page=1,page_size=10,item_count=12)")
+
+    def test_page_repr(self):
+        page_params = PaginationParameters(1, 2)
+        assert (repr(Page([1, 2, 3, 4, 5], page_params)) ==
+                "Page(collection=[1, 2, 3, 4, 5],page_params={})"
+                .format(repr(page_params)))
 
     @pytest.mark.parametrize('collection', [1000, ], indirect=True)
     def test_pagination(self, app, blueprint):
