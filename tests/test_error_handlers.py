@@ -1,6 +1,7 @@
+import json
+
 import pytest
 
-import json
 from werkzeug.exceptions import default_exceptions
 from flask import Flask
 from flask_rest_api import Api, abort
@@ -46,13 +47,14 @@ class TestErrorHandlers:
         assert data['error']['status_code'] == code
 
     def test_default_exception_handler(self):
+        """Test uncaught exceptions result in 500 status code being returned"""
 
         app = Flask('test')
         client = app.test_client()
 
         @app.route("/")
         def test():
-            raise Exception
+            raise Exception('Oops, something really bad happened.')
 
         Api(app)
 

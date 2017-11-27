@@ -8,7 +8,7 @@ from .blueprint import Blueprint  # noqa
 from .args_parser import abort  # noqa
 from .etag import is_etag_enabled, check_etag, set_etag  # noqa
 from .pagination import Page, set_item_count  # noqa
-from .error_handlers import _handle_http_exception
+from .error_handlers import handle_http_exception
 
 
 class Api(object):
@@ -45,7 +45,7 @@ class Api(object):
         # default handler for each code explicitly.
         # https://github.com/pallets/flask/issues/941#issuecomment-118975275
         for code in default_exceptions:
-            app.register_error_handler(code, _handle_http_exception)
+            app.register_error_handler(code, handle_http_exception)
 
     def register_blueprint(self, bp):
         """Register a blueprint in the application

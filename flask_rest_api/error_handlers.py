@@ -1,12 +1,16 @@
-from flask import jsonify, current_app
+"""Exception handler"""
+
+from flask import jsonify
 from werkzeug import Headers
 from werkzeug.exceptions import HTTPException, InternalServerError
 
 
-def _handle_http_exception(error):
+def handle_http_exception(error):
     """Return error description and details in response body"""
 
     # TODO: use an error Schema
+    # TODO: rework json output
+    # TODO: add logging?
 
     # If error is not a HTTPException, it is an unhandled exception
     # Flask redirects unhandled exceptions to error 500 handler
@@ -32,11 +36,5 @@ def _handle_http_exception(error):
         if 'headers' in data:
             for k, v in data['headers'].items():
                 headers.add(k, v)
-
-    # Log an error only in case of server error, other errors are info level
-    if error.code // 100 == 5:
-        current_app.logger.error(data_error)
-    else:
-        current_app.logger.info(data_error)
 
     return jsonify(data_error), error.code, headers
