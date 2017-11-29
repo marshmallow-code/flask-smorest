@@ -2,7 +2,7 @@ import json
 
 import pytest
 
-from werkzeug.exceptions import default_exceptions
+from werkzeug.exceptions import default_exceptions, InternalServerError
 from flask import Flask
 from flask_rest_api import Api, abort
 
@@ -44,9 +44,68 @@ class TestErrorHandlers:
         assert response.status_code == code
 
         data = json.loads(response.get_data(as_text=True))
-        assert data['error']['status_code'] == code
+        assert data['status'] == str(default_exceptions[code]())
 
-    def test_default_exception_handler(self):
+    def test_error_handler_payload(self):
+
+        app = Flask('test')
+        app.config.debug = True
+        app.config['DEBUG'] = True
+
+        client = app.test_client()
+
+        errors = {
+            'dimensions': ['Too tall', 'Too wide'],
+            'color': ['Too bright']
+        }
+        messages = {'name': ['Too long'], 'age': ['Too young']}
+
+        @app.route("/message")
+        def test_message():
+            abort(404, message='Resource not found')
+
+        @app.route("/messages")
+        def test_messages():
+            abort(422, messages=messages, message='Validation issue')
+
+        @app.route("/errors")
+        def test_errors():
+            abort(422, errors=errors, messages=messages, message='Wrong!')
+
+        @app.route("/headers")
+        def test_headers():
+            abort(401, message='Access denied',
+                  headers={'WWW-Authenticate': 'Basic realm="My Server"'})
+
+        Api(app)
+
+        with NoLoggingContext(app):
+            response = client.get("/message")
+        assert response.status_code == 404
+        data = json.loads(response.get_data(as_text=True))
+        assert data['message'] == 'Resource not found'
+
+        with NoLoggingContext(app):
+            response = client.get("/messages")
+        assert response.status_code == 422
+        data = json.loads(response.get_data(as_text=True))
+        assert data['errors'] == messages
+
+        with NoLoggingContext(app):
+            response = client.get("/errors")
+        assert response.status_code == 422
+        data = json.loads(response.get_data(as_text=True))
+        assert data['errors'] == errors
+
+        with NoLoggingContext(app):
+            response = client.get("/headers")
+        assert response.status_code == 401
+        assert (
+            response.headers['WWW-Authenticate'] == 'Basic realm="My Server"')
+        data = json.loads(response.get_data(as_text=True))
+        assert data['message'] == 'Access denied'
+
+    def test_uncaught_exception_handler(self):
         """Test uncaught exceptions result in 500 status code being returned"""
 
         app = Flask('test')
@@ -63,4 +122,4 @@ class TestErrorHandlers:
         assert response.status_code == 500
 
         data = json.loads(response.get_data(as_text=True))
-        assert data['error']['status_code'] == 500
+        assert data['status'] == str(InternalServerError())
