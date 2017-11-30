@@ -1,6 +1,6 @@
 """Exception handler"""
 
-from flask import jsonify
+from flask import jsonify, current_app
 from werkzeug.exceptions import HTTPException, InternalServerError
 
 
@@ -17,23 +17,29 @@ def handle_http_exception(error):
     flask_rest_api republishes webarg's abort override. This abort allows the
     caller to pass kwargs and stores those kwargs in exception.data.
 
-    This handlers uses this extra information to populate the response.
+    This handler uses this extra information to populate the response.
 
     Extra information considered by this handler:
     - message: a comment (string)
     - errors: a dict of errors, typically validation issues on a form
     - headers: a dict of additional headers
+
+    When the error was triggered with 'abort', it is logged with INFO level.
     """
 
     # TODO: manage case where messages/errors is a list?
     # TODO: use an error Schema
-    # TODO: add logging?
+    # TODO: make log optional?
+
+    log_info = True
 
     # Flask redirects unhandled exceptions to error 500 handler
     # If error is not a HTTPException, then it is an unhandled exception
     # Return a 500 (InternalServerError)
     if not isinstance(error, HTTPException):
         error = InternalServerError()
+        # Flask logs uncaught exceptions as ERROR already, no need to log here
+        log_info = False
 
     headers = {}
 
@@ -59,5 +65,13 @@ def handle_http_exception(error):
         # If we passed additional headers
         if 'headers' in data:
             headers = data['headers']
+
+    # Log error as INFO, including payload content
+    if log_info:
+        log_string_content = [str(error.code), ]
+        for key in ('message', 'errors'):
+            if key in payload:
+                log_string_content.append(str(payload[key]))
+        current_app.logger.info(' '.join(log_string_content))
 
     return jsonify(payload), error.code, headers

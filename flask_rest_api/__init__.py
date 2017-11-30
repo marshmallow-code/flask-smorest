@@ -8,7 +8,7 @@ from .blueprint import Blueprint  # noqa
 from .args_parser import abort  # noqa
 from .etag import is_etag_enabled, check_etag, set_etag  # noqa
 from .pagination import Page, set_item_count  # noqa
-from .error_handlers import handle_http_exception
+from .error_handler import handle_http_exception
 
 
 class Api(object):
