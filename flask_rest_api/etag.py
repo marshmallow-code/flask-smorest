@@ -8,6 +8,9 @@ from .exceptions import PreconditionRequired, PreconditionFailed, NotModified
 from .utils import get_appcontext
 
 
+METHODS_NEEDING_CHECK_ETAG = ['PUT', 'PATCH', 'DELETE']
+
+
 def is_etag_enabled(app):
     """Return True if ETag feature enabled application-wise"""
     return app.config.get('ETAG_ENABLED', False)
@@ -68,30 +71,50 @@ def check_precondition():
 
     Raise 428 if If-Match header missing
 
-    Called automatically for PUT and DELETE methods
+    Called automatically for PUT, PATCH and DELETE methods
     """
     # TODO: other methods?
     # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-Match
     if (is_etag_enabled_for_request() and
-            request.method in ['PUT', 'DELETE'] and
+            request.method in METHODS_NEEDING_CHECK_ETAG and
             not request.if_match):
         raise PreconditionRequired
 
 
-# TODO: log a warning if ETag enabled and this is not called in PUT/DELETE?
 def check_etag(etag_data, etag_schema=None):
     """Compare If-Match header with computed ETag
 
     Raise 412 if If-Match-Header does not match
 
-    Must be called from resource code to check ETag
+    Must be called from resource code to check ETag.
+
+    Unfortunately, there is no way to call it automatically. It is the
+    developer's responsability to do it. However, a warning is logged at
+    runtime if this function was not called.
     """
     if is_etag_enabled_for_request():
         if etag_schema is None:
             etag_schema = _get_etag_schema()
         new_etag = _generate_etag(etag_data, etag_schema)
+        _get_etag_ctx()['etag_checked'] = True
         if new_etag not in request.if_match:
             raise PreconditionFailed
+
+
+def verify_check_etag():
+    """Verify check_etag was called in resource code
+
+    Log a warning if ETag is enabled but check_etag was not called in
+    resource code in a PUT, PATCH or DELETE method.
+
+    This is meant to warn the developer about an issue in his ETag management.
+    """
+    if (is_etag_enabled_for_request() and
+            request.method in METHODS_NEEDING_CHECK_ETAG):
+        if not _get_etag_ctx().get('etag_checked'):
+            current_app.logger.warning(
+                'ETag enabled but not checked on {} request.'
+                .format(request.method))
 
 
 def set_etag(etag_data, etag_schema=None):

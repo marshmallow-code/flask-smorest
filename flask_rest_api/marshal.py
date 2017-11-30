@@ -8,8 +8,8 @@ from .pagination import (
     get_pagination_parameters_from_request, set_item_count,
     get_pagination_metadata, set_pagination_metadata_in_response)
 from .etag import (
-    disable_etag_for_request, check_precondition, set_etag_schema,
-    set_etag_in_response)
+    disable_etag_for_request, check_precondition, verify_check_etag,
+    set_etag_schema, set_etag_in_response)
 from .exceptions import MultiplePaginationModes
 
 
@@ -57,6 +57,9 @@ def response(schema=None, *, code=200, paginate=False, paginate_with=None,
 
             # Execute decorated function
             result = func(*args, **kwargs)
+
+            # Verify that check_etag was called in resource code if needed
+            verify_check_etag()
 
             # Post pagination
             if paginate_with is not None:

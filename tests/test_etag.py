@@ -3,6 +3,7 @@
 from collections import OrderedDict
 import json
 import hashlib
+from unittest import mock
 
 import pytest
 
@@ -13,7 +14,7 @@ from flask_rest_api import Api, Blueprint, abort, check_etag, set_etag
 from flask_rest_api.etag import (
     _generate_etag, is_etag_enabled,
     disable_etag_for_request, is_etag_enabled_for_request, _get_etag_ctx,
-    check_precondition, set_etag_in_response)
+    check_precondition, set_etag_in_response, verify_check_etag)
 from flask_rest_api.exceptions import (
     NotModified, PreconditionRequired, PreconditionFailed)
 
@@ -213,7 +214,7 @@ class TestEtag():
     def test_etag_check_precondition(self, app, method):
 
         with app.test_request_context('/', method=method):
-            if method in ['PUT', 'DELETE'] and is_etag_enabled(app):
+            if method in ['PUT', 'PATCH', 'DELETE'] and is_etag_enabled(app):
                 with pytest.raises(PreconditionRequired):
                     check_precondition()
             else:
@@ -253,6 +254,34 @@ class TestEtag():
             disable_etag_for_request()
             check_etag(old_item)
             check_etag(new_item)
+
+    @pytest.mark.parametrize(
+        'app', [AppConfig, AppConfigEtagEnabled], indirect=True)
+    @pytest.mark.parametrize('method', HTTP_METHODS)
+    def test_etag_verify_check_etag(self, app, method):
+
+        old_item = {'item_id': 1, 'db_field': 0}
+        old_etag = _generate_etag(old_item)
+
+        with mock.patch.object(app.logger, 'warning') as mock_warning:
+            with app.test_request_context('/', method=method,
+                                          headers={'If-Match': old_etag}):
+                verify_check_etag()
+                if (is_etag_enabled(app) and
+                        method in ['PUT', 'PATCH', 'DELETE']):
+                    assert mock_warning.called
+                    mock_warning.reset_mock()
+                else:
+                    assert not mock_warning.called
+                check_etag(old_item)
+                verify_check_etag()
+                assert not mock_warning.called
+                disable_etag_for_request()
+                verify_check_etag()
+                assert not mock_warning.called
+                check_etag(old_item)
+                verify_check_etag()
+                assert not mock_warning.called
 
     @pytest.mark.parametrize(
         'app', [AppConfig, AppConfigEtagEnabled], indirect=True)
