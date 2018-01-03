@@ -34,18 +34,21 @@ class TestErrorHandler:
         app = Flask('test')
         client = app.test_client()
 
-        @app.route('/{}'.format(code))
+        @app.route('/')
         def test():
             abort(code)
 
         Api(app)
 
         with NoLoggingContext(app):
-            response = client.get('/{}'.format(code))
+            response = client.get('/')
         assert response.status_code == code
 
-        data = json.loads(response.get_data(as_text=True))
-        assert data['status'] == str(default_exceptions[code]())
+        # Since Werkzeug 0.14, the body of 412 responses if not sent
+        # https://github.com/pallets/werkzeug/issues/1231
+        if code != 412:
+            data = json.loads(response.get_data(as_text=True))
+            assert data['status'] == str(default_exceptions[code]())
 
     def test_error_handler_payload(self):
 
