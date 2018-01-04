@@ -5,11 +5,15 @@ python:
   - '3.5'
   - '3.6'
 
+env:
+  - MARSHMALLOW=2
+  - MARSHMALLOW=dev
+
 install:
   - pip install tox
   - pip install coveralls
 
-script: tox -e $(echo py$TRAVIS_PYTHON_VERSION | tr -d .)
+script: tox -e $(echo py$TRAVIS_PYTHON_VERSION-ma$MARSHMALLOW | tr -d .)
 
 after_success:
   - coveralls --verbose
