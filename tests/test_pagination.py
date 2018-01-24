@@ -1,6 +1,6 @@
 """Test pagination feature"""
 
-import ast
+import json
 
 import pytest
 
@@ -99,7 +99,7 @@ class TestPagination():
         assert len(data) == 10
         assert data[0] == {'field': 0, 'item_id': 1}
         assert data[9] == {'field': 9, 'item_id': 10}
-        assert ast.literal_eval(headers['X-Pagination']) == {
+        assert json.loads(headers['X-Pagination']) == {
             'total': 1000, 'total_pages': 100,
             'first_page': 1, 'last_page': 100,
             'next_page': 2,
@@ -114,7 +114,7 @@ class TestPagination():
         assert len(data) == 5
         assert data[0] == {'field': 5, 'item_id': 6}
         assert data[4] == {'field': 9, 'item_id': 10}
-        assert ast.literal_eval(headers['X-Pagination']) == {
+        assert json.loads(headers['X-Pagination']) == {
             'total': 1000, 'total_pages': 200,
             'first_page': 1, 'last_page': 200,
             'previous_page': 1, 'next_page': 3,
@@ -133,7 +133,7 @@ class TestPagination():
         data = response.json
         headers = response.headers
         assert len(data) == 1
-        assert ast.literal_eval(headers['X-Pagination']) == {
+        assert json.loads(headers['X-Pagination']) == {
             'total': 1000, 'total_pages': 334,
             'first_page': 1, 'last_page': 334,
             'previous_page': 333,

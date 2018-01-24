@@ -1,6 +1,5 @@
 """Test flask-rest-api on more or less realistic examples"""
 
-import ast
 import json
 
 import pytest
@@ -221,7 +220,7 @@ class TestFullExample():
         assert response.status_code == 200
         list_etag = response.headers['ETag']
         assert len(response.json) == 0
-        assert ast.literal_eval(response.headers['X-Pagination']) == {
+        assert json.loads(response.headers['X-Pagination']) == {
             'total': 0, 'total_pages': 0}
 
         # GET collection with correct ETag: Not modified
@@ -250,7 +249,7 @@ class TestFullExample():
         list_etag = response.headers['ETag']
         assert len(response.json) == 1
         assert response.json[0] == {'field': 0, 'item_id': 1}
-        assert ast.literal_eval(response.headers['X-Pagination']) == {
+        assert json.loads(response.headers['X-Pagination']) == {
             'total': 1, 'total_pages': 1, 'first_page': 1, 'last_page': 1}
 
         # GET by ID without ETag: OK
@@ -311,7 +310,7 @@ class TestFullExample():
         list_etag = response.headers['ETag']
         assert len(response.json) == 1
         assert response.json[0] == {'field': 1, 'item_id': 1}
-        assert ast.literal_eval(response.headers['X-Pagination']) == {
+        assert json.loads(response.headers['X-Pagination']) == {
             'total': 1, 'total_pages': 1, 'first_page': 1, 'last_page': 1}
 
         # POST item_2
@@ -335,7 +334,7 @@ class TestFullExample():
         list_etag = response.headers['ETag']
         assert len(response.json) == 1
         assert response.json[0] == {'field': 1, 'item_id': 1}
-        assert ast.literal_eval(response.headers['X-Pagination']) == {
+        assert json.loads(response.headers['X-Pagination']) == {
             'total': 2, 'total_pages': 2, 'first_page': 1, 'last_page': 2,
             'next_page': 2}
 

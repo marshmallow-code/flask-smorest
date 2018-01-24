@@ -199,7 +199,7 @@ def get_pagination_metadata():
             page_params.page, page_params.page_size, item_count)
     except PageOutOfRangeError as exc:
         abort(404, messages=str(exc), exc=exc)
-    return PaginationMetadataSchema().dump(pagination_metadata)[0]
+    return PaginationMetadataSchema().dumps(pagination_metadata)[0]
 
 
 def set_pagination_metadata_in_response(response, pagination_metadata):
