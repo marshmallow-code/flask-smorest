@@ -10,12 +10,8 @@ flask-rest-api
         :target: https://coveralls.io/github/Nobatek/flask-rest-api/?branch=master
         :alt: Code coverage
 
-.. image:: https://landscape.io/github/Nobatek/flask-rest-api/master/landscape.svg?style=flat
-        :target: https://landscape.io/github/Nobatek/flask-rest-api/master
-        :alt: Code Health
-
 .. image:: https://api.codacy.com/project/badge/Grade/463485aeeac048f08cb4f40ebeb61160
-        :target: https://www.codacy.com/app/lafrech/flask-rest-api?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Nobatek/flask-rest-api&amp;utm_campaign=Badge_Grade
-        :alt: Code Health
+        :target: https://www.codacy.com/app/lafrech/flask-rest-api
+        :alt: Code health
 
 Build a REST API with Flask.
