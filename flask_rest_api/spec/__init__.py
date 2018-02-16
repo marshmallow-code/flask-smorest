@@ -83,7 +83,8 @@ class ApiSpec(object):
                 'OPENAPI_REDOC_VERSION', 'latest')
             redoc_url = ('https://rebilly.github.io/ReDoc/releases/'
                          '{}/redoc.min.js'.format(redoc_version))
-        return flask.render_template('redoc.html', redoc_url=redoc_url)
+        return flask.render_template(
+            'redoc.html', title=self.app.name, redoc_url=redoc_url)
 
     def register_converter(self, converter, conv_type, conv_format):
         CONVERTER_MAPPING[converter] = (conv_type, conv_format)
