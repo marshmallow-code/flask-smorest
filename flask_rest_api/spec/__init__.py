@@ -65,14 +65,25 @@ class ApiSpec(object):
         self.spec.info['version'] = version
 
     def openapi_json(self):
-        """Serve json spec file"""
+        """Serve JSON spec file"""
         return flask.jsonify(self.spec.to_dict())
 
     def openapi_redoc(self):
-        """Serve spec with ReDoc"""
-        # TODO: allow local redoc script (currently using CDN)
-        redoc_version = self.app.config.get('OPENAPI_REDOC_VERSION', 'latest')
-        return flask.render_template('redoc.html', redoc_version=redoc_version)
+        """Expose OpenAPI spec with ReDoc
+
+        The Redoc script URL can be specified using OPENAPI_REDOC_URL.
+        By default, a CDN script is used. When using a CDN script, the
+        version can (and should) be specified using OPENAPI_REDOC_VERSION,
+        otherwise, 'latest' is used.
+        OPENAPI_REDOC_VERSION is ignored when OPENAPI_REDOC_URL is passed.
+        """
+        redoc_url = self.app.config.get('OPENAPI_REDOC_URL', None)
+        if redoc_url is None:
+            redoc_version = self.app.config.get(
+                'OPENAPI_REDOC_VERSION', 'latest')
+            redoc_url = ('https://rebilly.github.io/ReDoc/releases/'
+                         '{}/redoc.min.js'.format(redoc_version))
+        return flask.render_template('redoc.html', redoc_url=redoc_url)
 
     def register_converter(self, converter, conv_type, conv_format):
         CONVERTER_MAPPING[converter] = (conv_type, conv_format)
