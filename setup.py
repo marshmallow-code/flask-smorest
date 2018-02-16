@@ -69,16 +69,4 @@ setup(
         'webargs>=1.5.2',
         'apispec>=0.20.0',
     ],
-
-    # List additional groups of dependencies here (e.g. development
-    # dependencies). You can install these using the following syntax,
-    # for example:
-    # $ pip install -e .[dev,test]
-    extras_require={
-        'test': [
-            'pytest>=2.8',
-            'pytest-cov>=2.4.0',
-            'tox>=2.0',
-        ],
-    },
 )
