@@ -1,6 +1,7 @@
 """Test flask-rest-api on more or less realistic examples"""
 
 import json
+from contextlib import contextmanager
 
 import pytest
 
@@ -196,55 +197,75 @@ def explicit_data_no_schema_etag_blueprint(collection, schemas):
 
 
 @pytest.fixture(params=[
-    implicit_data_and_schema_etag_blueprint,
-    implicit_data_explicit_schema_etag_blueprint,
-    explicit_data_no_schema_etag_blueprint,
+    (implicit_data_and_schema_etag_blueprint, 'Schema'),
+    (implicit_data_explicit_schema_etag_blueprint, 'ETag schema'),
+    (explicit_data_no_schema_etag_blueprint, 'No schema'),
 ])
-def blueprint(request, collection, schemas):
-    blp_factory = request.param
-    return blp_factory(collection, schemas)
+def blueprint_fixture(request, collection, schemas):
+    blp_factory = request.param[0]
+    return blp_factory(collection, schemas), request.param[1]
 
 
 class TestFullExample():
 
     @pytest.mark.parametrize('app', [AppConfigFullExample], indirect=True)
-    def test_examples(self, app, blueprint):
+    def test_examples(self, app, blueprint_fixture, schemas):
+
+        blueprint, bp_schema = blueprint_fixture
 
         api = Api(app)
         api.register_blueprint(blueprint)
 
         client = app.test_client()
 
+        @contextmanager
+        def assert_counters(
+                schema_load, schema_dump, etag_schema_load, etag_schema_dump):
+            """Check number of calls to dump/load methods of schemas"""
+            schemas.DocSchema.reset_load_count()
+            schemas.DocSchema.reset_dump_count()
+            schemas.DocEtagSchema.reset_load_count()
+            schemas.DocEtagSchema.reset_dump_count()
+            yield
+            assert schemas.DocSchema.load_count == schema_load
+            assert schemas.DocSchema.dump_count == schema_dump
+            assert schemas.DocEtagSchema.load_count == etag_schema_load
+            assert schemas.DocEtagSchema.dump_count == etag_schema_dump
+
         # GET collection without ETag: OK
-        response = client.get('/test/')
-        assert response.status_code == 200
-        list_etag = response.headers['ETag']
-        assert len(response.json) == 0
-        assert json.loads(response.headers['X-Pagination']) == {
-            'total': 0, 'total_pages': 0}
+        with assert_counters(0, 0, 0, 0):
+            response = client.get('/test/')
+            assert response.status_code == 200
+            list_etag = response.headers['ETag']
+            assert len(response.json) == 0
+            assert json.loads(response.headers['X-Pagination']) == {
+                'total': 0, 'total_pages': 0}
 
         # GET collection with correct ETag: Not modified
-        response = client.get(
-            '/test/',
-            headers={'If-None-Match': list_etag}
-        )
+        with assert_counters(0, 0, 0, 0):
+            response = client.get(
+                '/test/',
+                headers={'If-None-Match': list_etag}
+            )
         assert response.status_code == 304
 
         # POST item_1
         item_1_data = {'field': 0}
-        response = client.post(
-            '/test/',
-            data=json.dumps(item_1_data),
-            content_type='application/json'
-        )
+        with assert_counters(1, 1, 0, 1 if bp_schema == 'ETag schema' else 0):
+            response = client.post(
+                '/test/',
+                data=json.dumps(item_1_data),
+                content_type='application/json'
+            )
         assert response.status_code == 201
         item_1_id = response.json['item_id']
 
         # GET collection with wrong/outdated ETag: OK
-        response = client.get(
-            '/test/',
-            headers={'If-None-Match': list_etag}
-        )
+        with assert_counters(0, 1, 0, 1 if bp_schema == 'ETag schema' else 0):
+            response = client.get(
+                '/test/',
+                headers={'If-None-Match': list_etag}
+            )
         assert response.status_code == 200
         list_etag = response.headers['ETag']
         assert len(response.json) == 1
@@ -253,59 +274,70 @@ class TestFullExample():
             'total': 1, 'total_pages': 1, 'first_page': 1, 'last_page': 1}
 
         # GET by ID without ETag: OK
-        response = client.get('/test/{}'.format(item_1_id))
+        with assert_counters(0, 1, 0, 1 if bp_schema == 'ETag schema' else 0):
+            response = client.get('/test/{}'.format(item_1_id))
         assert response.status_code == 200
         item_etag = response.headers['ETag']
 
         # GET by ID with correct ETag: Not modified
-        response = client.get(
-            '/test/{}'.format(item_1_id),
-            headers={'If-None-Match': item_etag}
-        )
+        with assert_counters(0, 0 if bp_schema == 'No schema' else 1,
+                             0, 1 if bp_schema == 'ETag schema' else 0):
+            response = client.get(
+                '/test/{}'.format(item_1_id),
+                headers={'If-None-Match': item_etag}
+            )
         assert response.status_code == 304
 
         # PUT without ETag: Precondition required error
         item_1_data['field'] = 1
-        response = client.put(
-            '/test/{}'.format(item_1_id),
-            data=json.dumps(item_1_data),
-            content_type='application/json'
-        )
+        with assert_counters(1, 0, 0, 0):
+            response = client.put(
+                '/test/{}'.format(item_1_id),
+                data=json.dumps(item_1_data),
+                content_type='application/json'
+            )
         assert response.status_code == 428
 
         # PUT with correct ETag: OK
-        response = client.put(
-            '/test/{}'.format(item_1_id),
-            data=json.dumps(item_1_data),
-            content_type='application/json',
-            headers={'If-Match': item_etag}
-        )
+        schemas.DocSchema.reset_dump_count()
+        with assert_counters(1, 2 if bp_schema == 'Schema' else 1,
+                             0, 2 if bp_schema == 'ETag schema' else 0):
+            response = client.put(
+                '/test/{}'.format(item_1_id),
+                data=json.dumps(item_1_data),
+                content_type='application/json',
+                headers={'If-Match': item_etag}
+            )
         assert response.status_code == 200
         new_item_etag = response.headers['ETag']
 
         # PUT with wrong/outdated ETag: Precondition failed error
         item_1_data['field'] = 2
-        response = client.put(
-            '/test/{}'.format(item_1_id),
-            data=json.dumps(item_1_data),
-            content_type='application/json',
-            headers={'If-Match': item_etag}
-        )
+        with assert_counters(1, 1 if bp_schema == 'Schema' else 0,
+                             0, 1 if bp_schema == 'ETag schema' else 0):
+            response = client.put(
+                '/test/{}'.format(item_1_id),
+                data=json.dumps(item_1_data),
+                content_type='application/json',
+                headers={'If-Match': item_etag}
+            )
         assert response.status_code == 412
 
         # GET by ID with wrong/outdated ETag: OK
-        response = client.get(
-            '/test/{}'.format(item_1_id),
-            headers={'If-None-Match': item_etag}
-        )
+        with assert_counters(0, 1, 0, 1 if bp_schema == 'ETag schema' else 0):
+            response = client.get(
+                '/test/{}'.format(item_1_id),
+                headers={'If-None-Match': item_etag}
+            )
         assert response.status_code == 200
 
         # GET collection with pagination set to 1 element per page
-        response = client.get(
-            '/test/',
-            headers={'If-None-Match': list_etag},
-            query_string={'page': 1, 'page_size': 1}
-        )
+        with assert_counters(0, 1, 0, 1 if bp_schema == 'ETag schema' else 0):
+            response = client.get(
+                '/test/',
+                headers={'If-None-Match': list_etag},
+                query_string={'page': 1, 'page_size': 1}
+            )
         assert response.status_code == 200
         list_etag = response.headers['ETag']
         assert len(response.json) == 1
@@ -315,21 +347,23 @@ class TestFullExample():
 
         # POST item_2
         item_2_data = {'field': 1}
-        response = client.post(
-            '/test/',
-            data=json.dumps(item_2_data),
-            content_type='application/json'
-        )
+        with assert_counters(1, 1, 0, 1 if bp_schema == 'ETag schema' else 0):
+            response = client.post(
+                '/test/',
+                data=json.dumps(item_2_data),
+                content_type='application/json'
+            )
         assert response.status_code == 201
 
         # GET collection with pagination set to 1 element per page
         # Content is the same (item_1) but pagination metadata has changed
         # so we don't get a 304 and the data is returned again
-        response = client.get(
-            '/test/',
-            headers={'If-None-Match': list_etag},
-            query_string={'page': 1, 'page_size': 1}
-        )
+        with assert_counters(0, 1, 0, 1 if bp_schema == 'ETag schema' else 0):
+            response = client.get(
+                '/test/',
+                headers={'If-None-Match': list_etag},
+                query_string={'page': 1, 'page_size': 1}
+            )
         assert response.status_code == 200
         list_etag = response.headers['ETag']
         assert len(response.json) == 1
@@ -339,19 +373,24 @@ class TestFullExample():
             'next_page': 2}
 
         # DELETE without ETag: Precondition required error
-        response = client.delete('/test/{}'.format(item_1_id))
+        with assert_counters(0, 0, 0, 0):
+            response = client.delete('/test/{}'.format(item_1_id))
         assert response.status_code == 428
 
         # DELETE with wrong/outdated ETag: Precondition failed error
-        response = client.delete(
-            '/test/{}'.format(item_1_id),
-            headers={'If-Match': item_etag}
-        )
+        with assert_counters(0, 1 if bp_schema == 'Schema' else 0,
+                             0, 1 if bp_schema == 'ETag schema' else 0):
+            response = client.delete(
+                '/test/{}'.format(item_1_id),
+                headers={'If-Match': item_etag}
+            )
         assert response.status_code == 412
 
         # DELETE with correct ETag: No Content
-        response = client.delete(
-            '/test/{}'.format(item_1_id),
-            headers={'If-Match': new_item_etag}
-        )
+        with assert_counters(0, 1 if bp_schema == 'Schema' else 0,
+                             0, 1 if bp_schema == 'ETag schema' else 0):
+            response = client.delete(
+                '/test/{}'.format(item_1_id),
+                headers={'If-Match': new_item_etag}
+            )
         assert response.status_code == 204

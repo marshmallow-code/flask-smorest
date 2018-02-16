@@ -83,8 +83,15 @@ def response(schema=None, *, code=200, paginate=False, paginate_with=None,
                 pagination_metadata = None
 
             # Add etag value to response
-            set_etag_in_response(response, result, etag_schema or schema,
-                                 extra_data=pagination_metadata)
+            # Pass result data to use as ETag data if set_etag was not called
+            # If etag_schema is provided, pass raw data rather than dump, as
+            # the dump needs to be done using etag_schema
+            if etag_schema is not None:
+                set_etag_in_response(response, result, etag_schema,
+                                     extra_data=pagination_metadata)
+            else:
+                set_etag_in_response(response, result_dump,
+                                     extra_data=pagination_metadata)
 
             # Add status code
             return response, code
