@@ -15,7 +15,12 @@ from .exceptions import MultiplePaginationModes
 
 def response(schema=None, *, code=200, paginate=False, paginate_with=None,
              etag_schema=None, disable_etag=False):
-    """Decorator that marshals response with schema."""
+    """Decorator that generates response
+
+    - Dump with provided Schema
+    - Set ETag
+    - Set pagination
+    """
 
     if paginate and paginate_with is not None:
         raise MultiplePaginationModes(

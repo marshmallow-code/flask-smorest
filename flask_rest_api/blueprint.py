@@ -35,7 +35,7 @@ from apispec.ext.marshmallow.swagger import schema2parameters
 
 from .utils import deepupdate
 from .args_parser import parser
-from .marshal import response
+from .response import response
 from .exceptions import EndpointMethodDocAlreadyRegisted, InvalidLocation
 
 
