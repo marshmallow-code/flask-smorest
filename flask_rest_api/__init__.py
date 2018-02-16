@@ -13,17 +13,21 @@ from .error_handler import handle_http_exception
 __version__ = '0.1.0'
 
 
-class Api(object):
+class Api:
+    """Main class
+
+    Provides helpers to build a REST API using Flask.
+
+    :param Flask app: Flask application
+    """
 
     def __init__(self, app=None):
-
         self._apispec = ApiSpec()
-
         if app is not None:
             self.init_app(app)
 
     def init_app(self, app):
-        """Initialize api"""
+        """Initialize Api with application"""
 
         self._app = app
 
@@ -42,21 +46,21 @@ class Api(object):
         for code in default_exceptions:
             app.register_error_handler(code, handle_http_exception)
 
-    def register_blueprint(self, bp):
+    def register_blueprint(self, blp):
         """Register a blueprint in the application
 
         Also registers documentation for the blueprint/resource
         """
 
-        self._app.register_blueprint(bp)
+        self._app.register_blueprint(blp)
 
         # Register views in API documentation for this resource
-        bp.register_views_in_doc(self._app, self._apispec.spec)
+        blp.register_views_in_doc(self._app, self._apispec.spec)
 
         # Add tag relative to this resource to the global tag list
         self._apispec.spec.add_tag({
-            'name': bp.name,
-            'description': bp.description,
+            'name': blp.name,
+            'description': blp.description,
         })
 
     def definition(self, name):

@@ -20,17 +20,20 @@ def make_apispec():
     )
 
 
-class ApiSpec(object):
+class ApiSpec:
+    """API specification class
+
+    :param Flask app: Flask application
+    """
 
     def __init__(self, app=None):
-
         self.spec = make_apispec()
         self.app = app
-
         if app is not None:
             self.init_app(app)
 
     def init_app(self, app):
+        """Initialize ApiSpec with application"""
 
         self.app = app
 
