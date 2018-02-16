@@ -347,6 +347,19 @@ class TestEtag():
 
     @pytest.mark.parametrize(
         'app', [AppConfig, AppConfigEtagEnabled], indirect=True)
+    @pytest.mark.parametrize('method', HTTP_METHODS)
+    def test_set_etag_method_not_allowed_warning(self, app, method):
+
+        with mock.patch.object(app.logger, 'warning') as mock_warning:
+            with app.test_request_context('/', method=method):
+                set_etag(None)
+            if method in ['GET', 'HEAD', 'POST', 'PUT', 'PATCH']:
+                assert not mock_warning.called
+            else:
+                assert mock_warning.called
+
+    @pytest.mark.parametrize(
+        'app', [AppConfig, AppConfigEtagEnabled], indirect=True)
     @pytest.mark.parametrize('extra_data', [None, {'answer': 42}])
     def test_etag_set_etag_in_response(self, app, schemas, extra_data):
 

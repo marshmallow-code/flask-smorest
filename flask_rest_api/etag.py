@@ -9,6 +9,7 @@ from .utils import get_appcontext
 
 
 METHODS_NEEDING_CHECK_ETAG = ['PUT', 'PATCH', 'DELETE']
+METHODS_ALLOWING_SET_ETAG = ['GET', 'HEAD', 'POST', 'PUT', 'PATCH']
 
 
 def is_etag_enabled(app):
@@ -124,7 +125,12 @@ def set_etag(etag_data, etag_schema=None):
 
     Can be called from resource code. If not called, ETag will be computed by
     default from response data before sending response.
+
+    Logs a warning if called in a method other than GET, HEAD, POST, PUT, PATCH
     """
+    if request.method not in METHODS_ALLOWING_SET_ETAG:
+        current_app.logger.warning(
+            'ETag cannot be set on {} request.'.format(request.method))
     if is_etag_enabled_for_request():
         if etag_schema is None:
             etag_schema = _get_etag_schema()
@@ -144,7 +150,8 @@ def set_etag_in_response(
     If no ETag data was computed using set_etag, it is computed here from
     response data.
     """
-    if is_etag_enabled_for_request():
+    if (is_etag_enabled_for_request() and
+            request.method in METHODS_ALLOWING_SET_ETAG):
         new_etag = _get_etag_ctx().get('etag')
         # If no ETag data was manually provided, use response content
         if new_etag is None:
