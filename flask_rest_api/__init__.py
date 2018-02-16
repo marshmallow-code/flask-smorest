@@ -1,7 +1,6 @@
 """Api extension initialization"""
 
 from werkzeug.exceptions import default_exceptions
-from flask_cors import CORS
 
 from .spec import ApiSpec
 from .blueprint import Blueprint  # noqa
@@ -33,13 +32,6 @@ class Api(object):
 
         # Initialize spec
         self._apispec.init_app(app)
-
-        # CORS is setup the most permissive way, to avoid cross-origin
-        # issues when serving the spec or trying it using swagger-ui.
-        expose_headers = []
-        if is_etag_enabled(app):
-            expose_headers.append('Etag')
-        CORS(app, expose_headers=expose_headers)
 
         # Can't register a handler for HTTPException, so let's register
         # default handler for each code explicitly.

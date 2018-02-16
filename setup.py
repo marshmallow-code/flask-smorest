@@ -68,7 +68,6 @@ setup(
         'python-dateutil>=2.5.0',
         'webargs>=1.5.2',
         'apispec>=0.20.0',
-        'flask-cors>=3.0.0',
     ],
 
     # List additional groups of dependencies here (e.g. development
