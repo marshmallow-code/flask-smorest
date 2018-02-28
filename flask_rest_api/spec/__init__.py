@@ -80,11 +80,11 @@ class APISpec(apispec.APISpec):
         return flask.render_template(
             'redoc.html', title=self._app.name, redoc_url=redoc_url)
 
-    def register_converter(self, converter, conv_type, conv_format):
+    def register_converter(self, converter, conv_type, conv_format=None):
         CONVERTER_MAPPING[converter] = (conv_type, conv_format)
 
-    def register_field(self, field, field_type, field_format):
+    def register_field(self, field, field_type, field_format=None):
         FIELD_MAPPING[field] = (field_type, field_format)
 
-    def register_spec_plugin(self, plugin):
-        self.setup_plugin(plugin)
+    def register_spec_plugin(self, plugin_path):
+        self.setup_plugin(plugin_path)

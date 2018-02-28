@@ -63,24 +63,69 @@ class Api:
         })
 
     def definition(self, name):
-        """Decorator to register a schema in the doc
+        """Decorator to register a Schema in the doc
 
         This allows a schema to be defined once in the `definitions`
         section of the spec and be referenced throughtout the spec.
+
+        :param str name: Name of the definition in the spec
+
+            Example: ::
+
+                @api.definition('Pet')
+                class PetSchema(Schema):
+                    ...
         """
         def wrapper(cls, **kwargs):
             self._apispec.definition(name, schema=cls, **kwargs)
             return cls
         return wrapper
 
-    def register_converter(self, converter, conv_type, conv_format):
-        """Register URL parameter converter in docs"""
+    def register_converter(self, converter, conv_type, conv_format=None):
+        """Register custom path parameter converter
+
+        :param BaseConverter converter: Converter.
+            Subclass of werkzeug's BaseConverter
+        :param str conv_type: Parameter type
+        :param str conv_format: Parameter format (optional)
+
+            Example: ::
+
+                app.url_map.converters['uuid'] = UUIDConverter
+                api.register_converter(UUIDConverter, 'string', 'UUID')
+
+                api.route('/pets/{uuid:pet_id}')
+                ...
+
+        Once the converter is registered, all paths using it will have their
+        parameter documented with the right type and format.
+
+        Note: This method does not register the converter in the Flask app
+        but only in the spec.
+        """
         self._apispec.register_converter(converter, conv_type, conv_format)
 
-    def register_field(self, field, field_type, field_format):
-        """Register Marshmallow field in docs"""
+    def register_field(self, field, field_type, field_format=None):
+        """Register custom Marshmallow field
+
+        :param Field field: Marshmallow Field class
+        :param str field_type: Parameter type
+        :param str field_format: Parameter format (optional)
+
+            Example: ::
+
+                api.register_field(UUIDField, 'string', 'UUID')
+
+        Registering the Field class allows the Schema parser to set the proper
+        type and format when documenting parameters from Schema fields.
+        """
         self._apispec.register_field(field, field_type, field_format)
 
-    def register_spec_plugin(self, plugin):
-        """Register apispec plugin"""
-        self._apispec.register_spec_plugin(plugin)
+    def register_spec_plugin(self, plugin_path):
+        """Register apispec plugin
+
+        :param str plugin_path: Import path to plugin
+
+        This allows the application to define custom apispec helpers.
+        """
+        self._apispec.register_spec_plugin(plugin_path)
