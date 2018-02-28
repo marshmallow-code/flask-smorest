@@ -1,45 +1,42 @@
 """API specification using Open API"""
 
 import flask
-from apispec import APISpec
-
-from .plugin import CONVERTER_MAPPING
+import apispec
 from apispec.ext.marshmallow.swagger import FIELD_MAPPING
 
-
-def make_apispec():
-    return APISpec(
-        title='OpenAPI spec',
-        version='v1.0.0',
-        plugins=[
-            'flask_rest_api.spec.plugin',
-            # XXX: Ideally, we shouldn't register schema_path_helper but it's
-            # hard to extract only what we want from apispec.ext.marshmallow
-            'apispec.ext.marshmallow',
-        ]
-    )
+from .plugin import CONVERTER_MAPPING
 
 
-class ApiSpec:
+PLUGINS = (
+    'flask_rest_api.spec.plugin',
+    # XXX: Ideally, we shouldn't register schema_path_helper but it's
+    # hard to extract only what we want from apispec.ext.marshmallow
+    'apispec.ext.marshmallow',
+)
+
+
+class APISpec(apispec.APISpec):
     """API specification class
 
     :param Flask app: Flask application
     """
 
     def __init__(self, app=None):
-        self.spec = make_apispec()
-        self.app = app
+        # We need to pass title and version as they are positional parameters
+        # Those values are replaced in init_app
+        super().__init__(title='OpenAPI spec', version='1', plugins=PLUGINS)
+        self._app = app
         if app is not None:
             self.init_app(app)
 
     def init_app(self, app):
         """Initialize ApiSpec with application"""
 
-        self.app = app
+        self._app = app
 
         # API info from app
-        self.set_title(app.name)
-        self.set_version(app.config.get('API_VERSION', 'v1.0.0'))
+        self.info['title'] = app.name
+        self.info['version'] = app.config.get('API_VERSION', '1')
 
         # Add routes to json spec file and spec UI (ReDoc)
         api_url = app.config.get('OPENAPI_URL_PREFIX', None)
@@ -61,15 +58,9 @@ class ApiSpec:
                     redoc_url, view_func=self.openapi_redoc)
             app.register_blueprint(blueprint)
 
-    def set_title(self, title):
-        self.spec.info['title'] = title
-
-    def set_version(self, version):
-        self.spec.info['version'] = version
-
     def openapi_json(self):
         """Serve JSON spec file"""
-        return flask.jsonify(self.spec.to_dict())
+        return flask.jsonify(self.to_dict())
 
     def openapi_redoc(self):
         """Expose OpenAPI spec with ReDoc
@@ -80,14 +71,14 @@ class ApiSpec:
         otherwise, 'latest' is used.
         OPENAPI_REDOC_VERSION is ignored when OPENAPI_REDOC_URL is passed.
         """
-        redoc_url = self.app.config.get('OPENAPI_REDOC_URL', None)
+        redoc_url = self._app.config.get('OPENAPI_REDOC_URL', None)
         if redoc_url is None:
-            redoc_version = self.app.config.get(
+            redoc_version = self._app.config.get(
                 'OPENAPI_REDOC_VERSION', 'latest')
             redoc_url = ('https://rebilly.github.io/ReDoc/releases/'
                          '{}/redoc.min.js'.format(redoc_version))
         return flask.render_template(
-            'redoc.html', title=self.app.name, redoc_url=redoc_url)
+            'redoc.html', title=self._app.name, redoc_url=redoc_url)
 
     def register_converter(self, converter, conv_type, conv_format):
         CONVERTER_MAPPING[converter] = (conv_type, conv_format)
@@ -96,4 +87,4 @@ class ApiSpec:
         FIELD_MAPPING[field] = (field_type, field_format)
 
     def register_spec_plugin(self, plugin):
-        self.spec.setup_plugin(plugin)
+        self.setup_plugin(plugin)

@@ -2,7 +2,7 @@
 
 from werkzeug.exceptions import default_exceptions
 
-from .spec import ApiSpec
+from .spec import APISpec
 from .blueprint import Blueprint  # noqa
 from .args_parser import abort  # noqa
 from .etag import is_etag_enabled, check_etag, set_etag  # noqa
@@ -22,7 +22,7 @@ class Api:
     """
 
     def __init__(self, app=None):
-        self._apispec = ApiSpec()
+        self._apispec = APISpec()
         if app is not None:
             self.init_app(app)
 
@@ -35,7 +35,6 @@ class Api:
         app.extensions = getattr(app, 'extensions', {})
         ext = app.extensions.setdefault('flask-rest-api', {})
         ext['ext_obj'] = self
-        ext['spec'] = self._apispec.spec
 
         # Initialize spec
         self._apispec.init_app(app)
@@ -55,10 +54,10 @@ class Api:
         self._app.register_blueprint(blp)
 
         # Register views in API documentation for this resource
-        blp.register_views_in_doc(self._app, self._apispec.spec)
+        blp.register_views_in_doc(self._app, self._apispec)
 
         # Add tag relative to this resource to the global tag list
-        self._apispec.spec.add_tag({
+        self._apispec.add_tag({
             'name': blp.name,
             'description': blp.description,
         })
@@ -70,7 +69,7 @@ class Api:
         section of the spec and be referenced throughtout the spec.
         """
         def wrapper(cls, **kwargs):
-            self._apispec.spec.definition(name, schema=cls, **kwargs)
+            self._apispec.definition(name, schema=cls, **kwargs)
             return cls
         return wrapper
 
