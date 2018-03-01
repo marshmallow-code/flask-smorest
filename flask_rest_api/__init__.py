@@ -94,11 +94,13 @@ class Api:
                 app.url_map.converters['uuid'] = UUIDConverter
                 api.register_converter(UUIDConverter, 'string', 'UUID')
 
-                api.route('/pets/{uuid:pet_id}')
+                @blp.route('/pets/{uuid:pet_id}')
                 ...
 
+                api.register_blueprint(blp)
+
         Once the converter is registered, all paths using it will have their
-        parameter documented with the right type and format.
+        path parameter documented with the right type and format.
 
         Note: This method does not register the converter in the Flask app
         but only in the spec.
