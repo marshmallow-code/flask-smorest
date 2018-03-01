@@ -39,6 +39,21 @@ from .response import response
 from .exceptions import EndpointMethodDocAlreadyRegisted, InvalidLocation
 
 
+# Map webargs locations to OpenAPI locations
+LOCATION_MAP = {
+    'querystring': 'query',
+    'query': 'query',
+    'json': 'body',
+    'form': 'formData',
+    'headers': 'header',
+    'files': 'formData',
+    # Unsupported in OpenAPI v2, uncomment for OpenAPI v3 support
+    # 'cookies': cookie,
+    # Unsupported: path params are managed in flask_path_helper
+    # 'view_args': 'path',
+}
+
+
 class Blueprint(FlaskBlueprint):
     """Blueprint that registers info in API documentation"""
 
@@ -205,22 +220,8 @@ class Blueprint(FlaskBlueprint):
                 schema, locations=[location], **kwargs)(func)
 
             # Add parameters info to documentation
-
-            # Map webargs locations to OpenAPI locations
-            location_map = {
-                'querystring': 'query',
-                'query': 'query',
-                'json': 'body',
-                'form': 'formData',
-                'headers': 'header',
-                'files': 'formData',
-                # Unsupported in OpenAPI v2, uncomment for OpenAPI v3 support
-                # 'cookies': cookie,
-                # Unsupported: path params are managed in flask_path_helper
-                # 'view_args': 'path',
-            }
             try:
-                location = location_map[location]
+                location = LOCATION_MAP[location]
             except KeyError:
                 raise InvalidLocation(
                     "{} is not a valid location".format(location))
