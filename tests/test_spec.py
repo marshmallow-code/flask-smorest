@@ -1,5 +1,7 @@
 """Test Api class"""
 
+import itertools
+
 import pytest
 
 from flask import jsonify
@@ -8,6 +10,8 @@ from werkzeug.routing import BaseConverter
 import marshmallow as ma
 
 from flask_rest_api import Api, Blueprint
+
+from .conftest import AppConfig
 
 
 class TestAPISpec():
@@ -85,3 +89,51 @@ class TestAPISpec():
         assert (spec['paths']['/test/']['get']['parameters'] ==
                 [{'in': 'body', 'required': False, 'name': 'body',
                   'schema': {'properties': properties, 'type': 'object'}, }])
+
+
+# Prepare all configuration combinations to test doc serving features
+OPENAPI_URL_PREFIXES = (
+    None, 'docs_url_prefix',
+    '/docs_url_prefix', 'docs_url_prefix/', '/docs_url_prefix/')
+
+OPENAPI_JSON_PATH = (None, 'openapi.json')
+
+OPENAPI_REDOC_PATH = (None, 'redoc')
+
+APP_CONFIGS = []
+
+for prefix, json_path, redoc_path in itertools.product(
+        OPENAPI_URL_PREFIXES, OPENAPI_JSON_PATH, OPENAPI_REDOC_PATH):
+
+    class NewAppConfig(AppConfig):
+        if prefix:
+            OPENAPI_URL_PREFIX = prefix
+        if json_path:
+            OPENAPI_JSON_PATH = json_path
+        if redoc_path:
+            OPENAPI_REDOC_PATH = redoc_path
+
+    APP_CONFIGS.append(NewAppConfig)
+
+
+class TestAPISpecServeDocs():
+    """Test APISpec class docs serving features"""
+
+    @pytest.mark.parametrize('app', APP_CONFIGS, indirect=True)
+    def test_apipec_serve_spec(self, app):
+        Api(app)
+        client = app.test_client()
+        response_json_docs = client.get('/docs_url_prefix/openapi.json')
+        response_redoc = client.get('/docs_url_prefix/redoc')
+        if app.config.get('OPENAPI_URL_PREFIX') is None:
+            assert response_json_docs.status_code == 404
+            assert response_redoc.status_code == 404
+        else:
+            assert response_json_docs.json['info'] == {
+                'version': '1', 'title': 'API Test'}
+            if app.config.get('OPENAPI_REDOC_PATH') is None:
+                assert response_redoc.status_code == 404
+            else:
+                assert response_redoc.status_code == 200
+                assert (response_redoc.headers['Content-Type'] ==
+                        'text/html; charset=utf-8')
