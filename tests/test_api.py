@@ -26,7 +26,7 @@ class TestApi():
 
     @pytest.mark.parametrize('view_type', ['function', 'method'])
     @pytest.mark.parametrize('custom_format', ['custom', None])
-    def test_register_converter(self, app, view_type, custom_format):
+    def test_api_register_converter(self, app, view_type, custom_format):
         api = Api(app)
         blp = Blueprint('test', 'test', url_prefix='/test')
 
@@ -60,7 +60,7 @@ class TestApi():
 
     @pytest.mark.parametrize('view_type', ['function', 'method'])
     @pytest.mark.parametrize('custom_format', ['custom', None])
-    def test_register_field(self, app, view_type, custom_format):
+    def test_api_register_field(self, app, view_type, custom_format):
         api = Api(app)
         blp = Blueprint('test', 'test', url_prefix='/test')
 
@@ -95,3 +95,9 @@ class TestApi():
         assert (spec['paths']['/test/']['get']['parameters'] ==
                 [{'in': 'body', 'required': False, 'name': 'body',
                   'schema': {'properties': properties, 'type': 'object'}, }])
+
+    def test_api_register_spec_plugin(self, app):
+        api = Api(app)
+        with mock.patch.object(apispec.APISpec, 'setup_plugin') as mock_def:
+            api.register_spec_plugin('package.plugin')
+        mock_def.assert_called_once_with('package.plugin')

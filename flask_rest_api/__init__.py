@@ -130,4 +130,4 @@ class Api:
 
         This allows the application to define custom apispec helpers.
         """
-        self._apispec.register_spec_plugin(plugin_path)
+        self._apispec.setup_plugin(plugin_path)
