@@ -152,18 +152,18 @@ class Blueprint(FlaskBlueprint):
                     operations=deepcopy(doc)
                 )
 
-    def route(self, url, endpoint=None, **kwargs):
+    def route(self, rule, **options):
         """Decorator to register url rule in application
 
         Also stores doc info for later registration
 
         Use this to decorate a MethodView or a resource function
         """
-
         def wrapper(wrapped):
 
             # By default, endpoint for User is 'user'
-            _endpoint = endpoint or wrapped.__name__.lower()
+            # TODO: Remove lower() (Breaking change)
+            endpoint = options.pop('endpoint', wrapped.__name__.lower())
 
             # MethodView (class)
             if isinstance(wrapped, MethodViewType):
@@ -172,7 +172,7 @@ class Blueprint(FlaskBlueprint):
                 # mapped to the same endpoint, so we should call 'as_view' only
                 # once and keep the result in MethodView._view_func
                 if not getattr(wrapped, '_view_func', None):
-                    wrapped._view_func = wrapped.as_view(_endpoint)
+                    wrapped._view_func = wrapped.as_view(endpoint)
                 view_func = wrapped._view_func
 
             # Function
@@ -180,8 +180,8 @@ class Blueprint(FlaskBlueprint):
                 view_func = wrapped
 
             # Add URL rule in Flask and store endpoint documentation
-            self.add_url_rule(url, view_func=view_func, **kwargs)
-            self._store_endpoint_docs(_endpoint, wrapped, **kwargs)
+            self.add_url_rule(rule, view_func=view_func, **options)
+            self._store_endpoint_docs(endpoint, wrapped, **options)
 
             return wrapped
 
