@@ -80,7 +80,8 @@ class APISpec(apispec.APISpec):
         return flask.render_template(
             'redoc.html', title=self._app.name, redoc_url=redoc_url)
 
-    def register_converter(self, converter, conv_type, conv_format=None):
+    @staticmethod
+    def register_converter(converter, conv_type, conv_format=None):
         """Register custom path parameter converter
 
         :param BaseConverter converter: Converter.
@@ -103,7 +104,8 @@ class APISpec(apispec.APISpec):
         """
         CONVERTER_MAPPING[converter] = (conv_type, conv_format)
 
-    def register_field(self, field, field_type, field_format=None):
+    @staticmethod
+    def register_field(field, field_type, field_format=None):
         """Register custom Marshmallow field
 
         :param Field field: Marshmallow Field class

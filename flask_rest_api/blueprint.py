@@ -187,7 +187,8 @@ class Blueprint(FlaskBlueprint):
 
         return wrapper
 
-    def doc(self, **kwargs):
+    @staticmethod
+    def doc(**kwargs):
         """Decorator allowing to pass description attributes
 
         For instance: summary,...
@@ -199,7 +200,8 @@ class Blueprint(FlaskBlueprint):
 
         return decorator
 
-    def arguments(self, schema, **kwargs):
+    @staticmethod
+    def arguments(schema, **kwargs):
         """Decorator specifying the schema used to deserialize parameters
 
         :param type|Schema schema: A marshmallow Schema class or instance.
@@ -239,7 +241,8 @@ class Blueprint(FlaskBlueprint):
 
         return decorator
 
-    def response(self, schema=None, *, code=200, description='',
+    @staticmethod
+    def response(schema=None, *, code=200, description='',
                  paginate=False, paginate_with=None,
                  etag_schema=None, disable_etag=False):
         """Decorator generating an endpoint response, specifying the schema
