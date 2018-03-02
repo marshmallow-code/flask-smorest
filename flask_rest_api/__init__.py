@@ -22,7 +22,8 @@ class Api:
     """
 
     def __init__(self, app=None):
-        self._apispec = APISpec()
+        self.spec = APISpec()
+        self._app = app
         if app is not None:
             self.init_app(app)
 
@@ -37,7 +38,7 @@ class Api:
         ext['ext_obj'] = self
 
         # Initialize spec
-        self._apispec.init_app(app)
+        self.spec.init_app(app)
 
         # Can't register a handler for HTTPException, so let's register
         # default handler for each code explicitly.
@@ -54,10 +55,10 @@ class Api:
         self._app.register_blueprint(blp)
 
         # Register views in API documentation for this resource
-        blp.register_views_in_doc(self._app, self._apispec)
+        blp.register_views_in_doc(self._app, self.spec)
 
         # Add tag relative to this resource to the global tag list
-        self._apispec.add_tag({
+        self.spec.add_tag({
             'name': blp.name,
             'description': blp.description,
         })
@@ -77,57 +78,6 @@ class Api:
                     ...
         """
         def wrapper(cls, **kwargs):
-            self._apispec.definition(name, schema=cls, **kwargs)
+            self.spec.definition(name, schema=cls, **kwargs)
             return cls
         return wrapper
-
-    def register_converter(self, converter, conv_type, conv_format=None):
-        """Register custom path parameter converter
-
-        :param BaseConverter converter: Converter.
-            Subclass of werkzeug's BaseConverter
-        :param str conv_type: Parameter type
-        :param str conv_format: Parameter format (optional)
-
-            Example: ::
-
-                app.url_map.converters['uuid'] = UUIDConverter
-                api.register_converter(UUIDConverter, 'string', 'UUID')
-
-                @blp.route('/pets/{uuid:pet_id}')
-                ...
-
-                api.register_blueprint(blp)
-
-        Once the converter is registered, all paths using it will have their
-        path parameter documented with the right type and format.
-
-        Note: This method does not register the converter in the Flask app
-        but only in the spec.
-        """
-        self._apispec.register_converter(converter, conv_type, conv_format)
-
-    def register_field(self, field, field_type, field_format=None):
-        """Register custom Marshmallow field
-
-        :param Field field: Marshmallow Field class
-        :param str field_type: Parameter type
-        :param str field_format: Parameter format (optional)
-
-            Example: ::
-
-                api.register_field(UUIDField, 'string', 'UUID')
-
-        Registering the Field class allows the Schema parser to set the proper
-        type and format when documenting parameters from Schema fields.
-        """
-        self._apispec.register_field(field, field_type, field_format)
-
-    def register_spec_plugin(self, plugin_path):
-        """Register apispec plugin
-
-        :param str plugin_path: Import path to plugin
-
-        This allows the application to define custom apispec helpers.
-        """
-        self._apispec.setup_plugin(plugin_path)

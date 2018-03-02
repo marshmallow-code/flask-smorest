@@ -50,19 +50,19 @@ class APISpec(apispec.APISpec):
             # Serve json spec at 'url_prefix/api-docs.json' by default
             json_url = app.config.get('OPENAPI_JSON_PATH', 'api-docs.json')
             blueprint.add_url_rule(
-                json_url, view_func=self.openapi_json)
+                json_url, view_func=self._openapi_json)
             # Serve ReDoc only if path specified
             redoc_url = app.config.get('OPENAPI_REDOC_PATH', None)
             if redoc_url:
                 blueprint.add_url_rule(
-                    redoc_url, view_func=self.openapi_redoc)
+                    redoc_url, view_func=self._openapi_redoc)
             app.register_blueprint(blueprint)
 
-    def openapi_json(self):
+    def _openapi_json(self):
         """Serve JSON spec file"""
         return flask.jsonify(self.to_dict())
 
-    def openapi_redoc(self):
+    def _openapi_redoc(self):
         """Expose OpenAPI spec with ReDoc
 
         The Redoc script URL can be specified using OPENAPI_REDOC_URL.
@@ -81,7 +81,40 @@ class APISpec(apispec.APISpec):
             'redoc.html', title=self._app.name, redoc_url=redoc_url)
 
     def register_converter(self, converter, conv_type, conv_format=None):
+        """Register custom path parameter converter
+
+        :param BaseConverter converter: Converter.
+            Subclass of werkzeug's BaseConverter
+        :param str conv_type: Parameter type
+        :param str conv_format: Parameter format (optional)
+
+            Example: ::
+
+                app.url_map.converters['uuid'] = UUIDConverter
+                api.spec.register_converter(UUIDConverter, 'string', 'UUID')
+
+                @blp.route('/pets/{uuid:pet_id}')
+                ...
+
+                api.register_blueprint(blp)
+
+        Once the converter is registered, all paths using it will have their
+        path parameter documented with the right type and format.
+        """
         CONVERTER_MAPPING[converter] = (conv_type, conv_format)
 
     def register_field(self, field, field_type, field_format=None):
+        """Register custom Marshmallow field
+
+        :param Field field: Marshmallow Field class
+        :param str field_type: Parameter type
+        :param str field_format: Parameter format (optional)
+
+            Example: ::
+
+                api.spec.register_field(UUIDField, 'string', 'UUID')
+
+        Registering the Field class allows the Schema parser to set the proper
+        type and format when documenting parameters from Schema fields.
+        """
         FIELD_MAPPING[field] = (field_type, field_format)
