@@ -1,6 +1,11 @@
 Changelog
 ---------
 
+0.3.0 (unreleased)
+++++++++++++++++++
+
+- *Backwards-incompatible*: ``Blueprint.route(self, rule, **options)`` matches ``flask``'s ``Blueprint`` signature
+
 0.2.0 (2018-03-02)
 ++++++++++++++++++
 
