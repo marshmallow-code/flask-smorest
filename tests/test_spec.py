@@ -1,7 +1,5 @@
 """Test Api class"""
 
-import itertools
-
 import pytest
 
 from flask import jsonify
@@ -91,36 +89,25 @@ class TestAPISpec():
                   'schema': {'properties': properties, 'type': 'object'}, }])
 
 
-# Prepare all configuration combinations to test doc serving features
-OPENAPI_URL_PREFIXES = (
-    None, 'docs_url_prefix',
-    '/docs_url_prefix', 'docs_url_prefix/', '/docs_url_prefix/')
-
-OPENAPI_JSON_PATH = (None, 'openapi.json')
-
-OPENAPI_REDOC_PATH = (None, 'redoc')
-
-APP_CONFIGS = []
-
-for prefix, json_path, redoc_path in itertools.product(
-        OPENAPI_URL_PREFIXES, OPENAPI_JSON_PATH, OPENAPI_REDOC_PATH):
-
-    class NewAppConfig(AppConfig):
-        if prefix:
-            OPENAPI_URL_PREFIX = prefix
-        if json_path:
-            OPENAPI_JSON_PATH = json_path
-        if redoc_path:
-            OPENAPI_REDOC_PATH = redoc_path
-
-    APP_CONFIGS.append(NewAppConfig)
-
-
 class TestAPISpecServeDocs():
     """Test APISpec class docs serving features"""
 
-    @pytest.mark.parametrize('app', APP_CONFIGS, indirect=True)
-    def test_apipec_serve_spec(self, app):
+    @pytest.mark.parametrize(
+        'prefix', (None, 'docs_url_prefix', '/docs_url_prefix',
+                   'docs_url_prefix/', '/docs_url_prefix/'))
+    @pytest.mark.parametrize('json_path', (None, 'openapi.json'))
+    @pytest.mark.parametrize('redoc_path', (None, 'redoc'))
+    def test_apipec_serve_spec(self, app, prefix, json_path, redoc_path):
+
+        class NewAppConfig(AppConfig):
+            if prefix:
+                OPENAPI_URL_PREFIX = prefix
+            if json_path:
+                OPENAPI_JSON_PATH = json_path
+            if redoc_path:
+                OPENAPI_REDOC_PATH = redoc_path
+
+        app.config.from_object(NewAppConfig)
         Api(app)
         client = app.test_client()
         response_json_docs = client.get('/docs_url_prefix/openapi.json')
