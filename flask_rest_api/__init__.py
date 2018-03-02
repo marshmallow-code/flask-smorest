@@ -81,3 +81,34 @@ class Api:
             self.spec.definition(name, schema=cls, **kwargs)
             return cls
         return wrapper
+
+    def register_converter(self, name, converter, conv_type, conv_format=None):
+        """Register custom path parameter converter
+
+        :param str name: Name of the converter, used in route declarations
+        :param BaseConverter converter: Converter
+            Subclass of werkzeug's BaseConverter
+        :param str conv_type: Parameter type
+        :param str conv_format: Parameter format (optional)
+
+            Example: ::
+
+                api.register_converter('uuid', UUIDConverter, 'string', 'UUID')
+
+                @blp.route('/pets/{uuid:pet_id}')
+                ...
+
+                api.register_blueprint(blp)
+
+        This registers the converter in the Flask app and in the internal
+        APISpec instance. The call in the example above is equivalent to ::
+
+            app.url_map.converters['uuid'] = UUIDConverter
+            api.spec.register_converter(UUIDConverter, 'string', 'UUID')
+
+        Call api.spec.register_converter() directly if the converter is
+        already registered in the app, for instance if it comes from a Flask
+        extension that already registers it in the app.
+        """
+        self._app.url_map.converters[name] = converter
+        self.spec.register_converter(converter, conv_type, conv_format)
