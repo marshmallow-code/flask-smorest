@@ -1,9 +1,17 @@
 Changelog
 ---------
 
-0.3.0 (unreleased)
+0.3.0 (2018-03-02)
 ++++++++++++++++++
 
+Features:
+
+- App leading and trailing ``/`` to OPENAPI_URL_PREFIX if missing.
+
+Bugfixes:
+
+- Fix OpenAPI docs URL paths
+- *Backwards-incompatible*: Change default URL path for OpenAPI JSON to ``'openapi.json'``
 - *Backwards-incompatible*: ``Blueprint.route(self, rule, **options)`` matches ``flask``'s ``Blueprint`` signature
 
 0.2.0 (2018-03-02)
@@ -15,7 +23,7 @@ Features:
 - APISpec inherits from original apispec.APISpec.
 - *Backwards-incompatible*: The internal ``APISpec`` instance is now exposed as public attribute ``spec`` of ``Api``. ``register_converter`` and ``register_field`` are not proxied anymore by ``Api`` and must be called on ``spec``.
 - *Backwards-incompatible*: ``Api.register_converter`` takes a ``name`` parameter and registers a converter in the ``Flask`` application as well as in its internal ``APISpec`` instance.
-- *Backwards-incompatible*: ``Api.register_spec_plugin`` is removed. ``api.register_spec_plugin(...)`` shall be replaced with ``api.spec.setup_plugin(...)``
+- *Backwards-incompatible*: ``Api.register_spec_plugin`` is removed. ``api.register_spec_plugin(...)`` shall be replaced with ``api.spec.setup_plugin(...)``.
 
 0.1.1 (2018-02-16)
 ++++++++++++++++++
