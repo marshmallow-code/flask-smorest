@@ -2,57 +2,53 @@
 
 import pytest
 
-import marshmallow as ma
-
 from flask_rest_api import Api
 from flask_rest_api.blueprint import Blueprint
-from flask_rest_api.exceptions import InvalidLocation, MultiplePaginationModes
+from flask_rest_api.exceptions import MultiplePaginationModes, InvalidLocation
 from flask_rest_api.pagination import Page
+
+
+LOCATIONS_MAPPING = (
+    ('querystring', 'query',),
+    ('query', 'query',),
+    ('json', 'body',),
+    ('form', 'formData',),
+    ('headers', 'header',),
+    ('files', 'formData',),
+    # Test 'body' is default
+    (None, 'body',),
+)
 
 
 class TestBlueprint():
     """Test Blueprint class"""
 
-    def test_blueprint_arguments(self, app):
-        """Test arguments function"""
-
+    @pytest.mark.parametrize('location_map', LOCATIONS_MAPPING)
+    def test_blueprint_arguments_location(self, app, schemas, location_map):
         api = Api(app)
-        bp = Blueprint('test', __name__, url_prefix='/test')
-        api.register_blueprint(bp)
+        blp = Blueprint('test', __name__, url_prefix='/test')
+        location, openapi_location = location_map
 
-        class SampleQueryArgsSchema(ma.Schema):
-            """Sample query parameters to define in documentation"""
-            class Meta:
-                strict = True
-            item_id = ma.fields.Integer(dump_only=True)
-            field = ma.fields.String()
+        if location is not None:
+            @blp.route('/')
+            @blp.arguments(schemas.DocSchema, location=location)
+            def func():
+                """Dummy view func"""
+        else:
+            @blp.route('/')
+            @blp.arguments(schemas.DocSchema)
+            def func():
+                """Dummy view func"""
 
-        def sample_func():
-            """Sample method to define in documentation"""
-            return "It's Supercalifragilisticexpialidocious!"
+        api.register_blueprint(blp)
+        spec = api.spec.to_dict()
+        loc = spec['paths']['/test/']['get']['parameters'][0]['in']
+        assert loc == openapi_location
 
-        # Check OpenAPI location mapping
-        res = bp.arguments(
-            SampleQueryArgsSchema, location='querystring')(sample_func)
-        assert res._apidoc['parameters']['location'] == 'query'
-        res = bp.arguments(
-            SampleQueryArgsSchema, location='query')(sample_func)
-        assert res._apidoc['parameters']['location'] == 'query'
-        res = bp.arguments(
-            SampleQueryArgsSchema, location='json')(sample_func)
-        assert res._apidoc['parameters']['location'] == 'body'
-        res = bp.arguments(
-            SampleQueryArgsSchema, location='form')(sample_func)
-        assert res._apidoc['parameters']['location'] == 'formData'
-        res = bp.arguments(
-            SampleQueryArgsSchema, location='headers')(sample_func)
-        assert res._apidoc['parameters']['location'] == 'header'
-        res = bp.arguments(
-            SampleQueryArgsSchema, location='files')(sample_func)
-        assert res._apidoc['parameters']['location'] == 'formData'
+    def test_blueprint_arguments_location_invalid(self, app, schemas):
+        blp = Blueprint('test', __name__, url_prefix='/test')
         with pytest.raises(InvalidLocation):
-            res = bp.arguments(
-                SampleQueryArgsSchema, location='bad')(sample_func)
+            blp.arguments(schemas.DocSchema, location='invalid')
 
     @pytest.mark.parametrize('required', (None, True, False))
     def test_blueprint_arguments_required(self, schemas, required):
@@ -68,30 +64,26 @@ class TestBlueprint():
         assert res._apidoc['parameters']['required'] == (required is not False)
 
     def test_blueprint_multiple_paginate_modes(self):
-
         blp = Blueprint('test', __name__, url_prefix='/test')
-
         with pytest.raises(MultiplePaginationModes):
             @blp.response(paginate=True, paginate_with=Page)
             def get(self):
                 pass
 
     def test_blueprint_keywork_only_args(self):
-
         blp = Blueprint('test', __name__, url_prefix='/test')
-
         # All arguments but schema are keyword-only arguments
         with pytest.raises(TypeError):
             # pylint: disable=too-many-function-args
             blp.response(None, 200)
 
-    def test_blueprint_doc(self, app):
+    def test_blueprint_doc(self):
         blp = Blueprint('test', __name__, url_prefix='/test')
 
-        def dummy_func():
+        def view_func():
             pass
 
         res = blp.doc(summary='Dummy func', description='Do dummy stuff')(
-            dummy_func)
+            view_func)
         assert res._apidoc['summary'] == 'Dummy func'
         assert res._apidoc['description'] == 'Do dummy stuff'

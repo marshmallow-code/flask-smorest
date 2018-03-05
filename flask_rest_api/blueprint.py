@@ -31,27 +31,12 @@ from copy import deepcopy
 from flask import Blueprint as FlaskBlueprint
 from flask.views import MethodViewType
 
-from apispec.ext.marshmallow.swagger import schema2parameters
+from apispec.ext.marshmallow.swagger import schema2parameters, __location_map__
 
 from .utils import deepupdate
 from .args_parser import parser
 from .response import response
 from .exceptions import EndpointMethodDocAlreadyRegisted, InvalidLocation
-
-
-# Map webargs locations to OpenAPI locations
-LOCATION_MAP = {
-    'querystring': 'query',
-    'query': 'query',
-    'json': 'body',
-    'form': 'formData',
-    'headers': 'header',
-    'files': 'formData',
-    # Unsupported in OpenAPI v2, uncomment for OpenAPI v3 support
-    # 'cookies': cookie,
-    # Unsupported: path params are managed in flask_path_helper
-    # 'view_args': 'path',
-}
 
 
 class Blueprint(FlaskBlueprint):
@@ -212,35 +197,29 @@ class Blueprint(FlaskBlueprint):
 
         Can only be called once on a resource function.
         """
-
         if isinstance(schema, type):
             schema = schema()
 
+        location = kwargs.pop('location', 'json')
+        required = kwargs.pop('required', True)
+        if location not in __location_map__:
+            raise InvalidLocation(
+                "{} is not a valid location".format(location))
+
+        # At this stage, put schema instance in doc dictionary. Il will be
+        # replaced later on by $ref or json.
+        doc = {'parameters': {
+            'location': location,
+            'required': required,
+            'schema': schema,
+        }}
+
         def decorator(func):
-
-            location = kwargs.pop('location', 'json')
-            required = kwargs.pop('required', True)
-
             # Call use_args (from webargs) to inject params in function
             func = parser.use_args(
                 schema, locations=[location], **kwargs)(func)
-
-            # Add parameters info to documentation
-            try:
-                location = LOCATION_MAP[location]
-            except KeyError:
-                raise InvalidLocation(
-                    "{} is not a valid location".format(location))
-
-            # At this stage, only dump schema and parameters in doc dictionary
-            # schema instance will be replaced later on by $ref or json
-            doc = {'parameters': {
-                'location': location,
-                'required': required,
-                'schema': schema,
-            }}
+            # Store doc info in function object
             func._apidoc = deepupdate(getattr(func, '_apidoc', {}), doc)
-
             return func
 
         return decorator
