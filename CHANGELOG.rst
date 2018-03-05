@@ -1,17 +1,25 @@
 Changelog
 ---------
 
+0.4.0 (unreleased)
+++++++++++++++++++
+
+Features:
+
+- *Backwards-incompatible*: Schema parameter passed in ``Blueprint.arguments`` is required by default
+
+
 0.3.0 (2018-03-02)
 ++++++++++++++++++
 
 Features:
 
 - App leading and trailing ``/`` to OPENAPI_URL_PREFIX if missing.
+- *Backwards-incompatible*: Change default URL path for OpenAPI JSON to ``'openapi.json'``
 
 Bugfixes:
 
 - Fix OpenAPI docs URL paths
-- *Backwards-incompatible*: Change default URL path for OpenAPI JSON to ``'openapi.json'``
 - *Backwards-incompatible*: ``Blueprint.route(self, rule, **options)`` matches ``flask``'s ``Blueprint`` signature
 
 0.2.0 (2018-03-02)
