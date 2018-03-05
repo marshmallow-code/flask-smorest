@@ -159,33 +159,33 @@ class Blueprint(FlaskBlueprint):
 
         Use this to decorate a MethodView or a resource function
         """
-        def wrapper(wrapped):
+        def decorator(func):
 
             # By default, endpoint for User is 'user'
             # TODO: Remove lower() (Breaking change)
-            endpoint = options.pop('endpoint', wrapped.__name__.lower())
+            endpoint = options.pop('endpoint', func.__name__.lower())
 
             # MethodView (class)
-            if isinstance(wrapped, MethodViewType):
+            if isinstance(func, MethodViewType):
                 # This decorator may be called multiple times on the same
                 # MethodView, but Flask will complain if different views are
                 # mapped to the same endpoint, so we should call 'as_view' only
                 # once and keep the result in MethodView._view_func
-                if not getattr(wrapped, '_view_func', None):
-                    wrapped._view_func = wrapped.as_view(endpoint)
-                view_func = wrapped._view_func
+                if not getattr(func, '_view_func', None):
+                    func._view_func = func.as_view(endpoint)
+                view_func = func._view_func
 
             # Function
             else:
-                view_func = wrapped
+                view_func = func
 
             # Add URL rule in Flask and store endpoint documentation
             self.add_url_rule(rule, view_func=view_func, **options)
-            self._store_endpoint_docs(endpoint, wrapped, **options)
+            self._store_endpoint_docs(endpoint, func, **options)
 
-            return wrapped
+            return func
 
-        return wrapper
+        return decorator
 
     @staticmethod
     def doc(**kwargs):
@@ -261,7 +261,7 @@ class Blueprint(FlaskBlueprint):
         :param bool disable_etag: Disable ETag feature locally even if enabled
             globally
         """
-        def wrapper(func):
+        def decorator(func):
 
             # Add schema as response in the API doc
             doc = {'responses': {code: {'description': description}}}
@@ -282,4 +282,4 @@ class Blueprint(FlaskBlueprint):
                 etag_schema=etag_schema, disable_etag=disable_etag
             )(func)
 
-        return wrapper
+        return decorator

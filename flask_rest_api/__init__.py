@@ -77,10 +77,10 @@ class Api:
                 class PetSchema(Schema):
                     ...
         """
-        def wrapper(cls, **kwargs):
-            self.spec.definition(name, schema=cls, **kwargs)
-            return cls
-        return wrapper
+        def decorator(schema_cls, **kwargs):
+            self.spec.definition(name, schema=schema_cls, **kwargs)
+            return schema_cls
+        return decorator
 
     def register_converter(self, name, converter, conv_type, conv_format=None):
         """Register custom path parameter converter
