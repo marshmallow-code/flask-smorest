@@ -71,3 +71,14 @@ class TestBlueprint():
         with pytest.raises(TypeError):
             # pylint: disable=too-many-function-args
             blp.response(None, 200)
+
+    def test_blueprint_doc(self, app):
+        blp = Blueprint('test', __name__, url_prefix='/test')
+
+        def dummy_func():
+            pass
+
+        res = blp.doc(summary='Dummy func', description='Do dummy stuff')(
+            dummy_func)
+        assert res._apidoc['summary'] == 'Dummy func'
+        assert res._apidoc['description'] == 'Do dummy stuff'

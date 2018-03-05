@@ -189,15 +189,19 @@ class Blueprint(FlaskBlueprint):
 
     @staticmethod
     def doc(**kwargs):
-        """Decorator allowing to pass description attributes
+        """Decorator adding description attributes to a view function
 
-        For instance: summary,...
+        Values passed as kwargs are copied verbatim in the docs
+
+            Example: ::
+
+                @blp.doc("description": "Return pets based on ID",
+                        "summary": "Find pets by ID")
+                def get(...)
         """
-
         def decorator(func):
             func._apidoc = deepupdate(getattr(func, '_apidoc', {}), kwargs)
             return func
-
         return decorator
 
     @staticmethod
