@@ -54,6 +54,19 @@ class TestBlueprint():
             res = bp.arguments(
                 SampleQueryArgsSchema, location='bad')(sample_func)
 
+    @pytest.mark.parametrize('required', (None, True, False))
+    def test_blueprint_arguments_required(self, schemas, required):
+        bp = Blueprint('test', __name__, url_prefix='/test')
+
+        def view_func():
+            pass
+
+        if required is None:
+            res = bp.arguments(schemas.DocSchema)(view_func)
+        else:
+            res = bp.arguments(schemas.DocSchema, required=required)(view_func)
+        assert res._apidoc['parameters']['required'] == (required is not False)
+
     def test_blueprint_multiple_paginate_modes(self):
 
         blp = Blueprint('test', __name__, url_prefix='/test')

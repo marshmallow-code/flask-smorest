@@ -219,7 +219,7 @@ class Blueprint(FlaskBlueprint):
         def decorator(func):
 
             location = kwargs.pop('location', 'json')
-            required = kwargs.pop('required', False)
+            required = kwargs.pop('required', True)
 
             # Call use_args (from webargs) to inject params in function
             func = parser.use_args(

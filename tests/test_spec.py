@@ -85,7 +85,7 @@ class TestAPISpec():
             properties['field']['format'] = 'custom'
 
         assert (spec['paths']['/test/']['get']['parameters'] ==
-                [{'in': 'body', 'required': False, 'name': 'body',
+                [{'in': 'body', 'required': True, 'name': 'body',
                   'schema': {'properties': properties, 'type': 'object'}, }])
 
 
