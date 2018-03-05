@@ -51,17 +51,25 @@ class TestBlueprint():
             blp.arguments(schemas.DocSchema, location='invalid')
 
     @pytest.mark.parametrize('required', (None, True, False))
-    def test_blueprint_arguments_required(self, schemas, required):
-        bp = Blueprint('test', __name__, url_prefix='/test')
-
-        def view_func():
-            pass
+    def test_blueprint_arguments_required(self, app, schemas, required):
+        api = Api(app)
+        blp = Blueprint('test', __name__, url_prefix='/test')
 
         if required is None:
-            res = bp.arguments(schemas.DocSchema)(view_func)
+            @blp.route('/')
+            @blp.arguments(schemas.DocSchema)
+            def func():
+                pass
         else:
-            res = bp.arguments(schemas.DocSchema, required=required)(view_func)
-        assert res._apidoc['parameters']['required'] == (required is not False)
+            @blp.route('/')
+            @blp.arguments(schemas.DocSchema, required=required)
+            def func():
+                pass
+
+        api.register_blueprint(blp)
+        spec = api.spec.to_dict()
+        assert (spec['paths']['/test/']['get']['parameters'][0]['required'] ==
+                (required is not False))
 
     def test_blueprint_multiple_paginate_modes(self):
         blp = Blueprint('test', __name__, url_prefix='/test')
