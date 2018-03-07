@@ -72,16 +72,8 @@ def flask_path_helper(spec, app, rule, operations=None, **kwargs):
         for operation in operations.values():
             for response in operation.get('responses', {}).values():
                 if 'schema' in response:
-                    # If the API returns a list,
-                    # the schema is specfied as [schema]
-                    if isinstance(response['schema'], list):
-                        response['schema'] = [
-                            resolve_schema_dict(spec, response['schema'][0])
-                        ]
-                    else:
-                        response['schema'] = resolve_schema_dict(
-                            spec, response['schema'])
-
+                    response['schema'] = resolve_schema_dict(
+                        spec, response['schema'])
             for parameter in operation.get('parameters', []):
                 if 'schema' in parameter:
                     parameter['schema'] = resolve_schema_dict(

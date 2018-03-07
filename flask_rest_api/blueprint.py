@@ -36,7 +36,8 @@ from apispec.ext.marshmallow.swagger import schema2parameters, __location_map__
 from .utils import deepupdate
 from .args_parser import parser
 from .response import response
-from .exceptions import EndpointMethodDocAlreadyRegisted, InvalidLocation
+from .exceptions import (
+    EndpointMethodDocAlreadyRegisted, InvalidLocation, MultiplePaginationModes)
 
 
 class Blueprint(FlaskBlueprint):
@@ -239,20 +240,33 @@ class Blueprint(FlaskBlueprint):
             or instance, or `None`
         :param bool disable_etag: Disable ETag feature locally even if enabled
             globally
+
+        If the resource returns many elements, pass a Schema instance with
+        "many" set to True.
+
+            Example: ::
+
+                @blp.response(MySchema(many=True), description: 'My objects')
+                def get(...)
+
+        When using "paginate" or "paginate_with", this is not necessary as the
+        schema will be instantiated with "many" automatically.
         """
+        if paginate and paginate_with is not None:
+            raise MultiplePaginationModes(
+                "paginate_with and paginate are mutually exclusive.")
+
+        if isinstance(schema, type):
+            schema = schema(many=(paginate or paginate_with))
+        if isinstance(etag_schema, type):
+            etag_schema = etag_schema(many=(paginate or paginate_with))
+
         def decorator(func):
 
             # Add schema as response in the API doc
             doc = {'responses': {code: {'description': description}}}
             if schema:
-                if paginate:
-                    # Pagination -> we're returning a list
-                    doc['responses'][code]['schema'] = {
-                        'type': 'array',
-                        'items': schema
-                    }
-                else:
-                    doc['responses'][code]['schema'] = schema
+                doc['responses'][code]['schema'] = schema
             func._apidoc = deepupdate(getattr(func, '_apidoc', {}), doc)
 
             return response(

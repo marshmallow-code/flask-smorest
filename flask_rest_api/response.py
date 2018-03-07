@@ -10,31 +10,19 @@ from .pagination import (
 from .etag import (
     disable_etag_for_request, check_precondition, verify_check_etag,
     set_etag_schema, set_etag_in_response)
-from .exceptions import MultiplePaginationModes
 
 
 def response(schema=None, *, code=200, paginate=False, paginate_with=None,
              etag_schema=None, disable_etag=False):
     """Decorator that generates response
 
-    - Dump with provided Schema
+    - Dump with provided Schema instance
     - Set ETag
     - Set pagination
+
+    Blueprint.response ensures schema and etag_schema are Schema instances,
+    not classes.
     """
-
-    if paginate and paginate_with is not None:
-        raise MultiplePaginationModes(
-            "paginate_with and paginate are mutually exclusive.")
-
-    # If given Schema class, create instance
-    # If resource is paginated, set "many" automatically
-    # For a list without pagination, provide a schema instance with many=True:
-    #     response(schema=MySchema(any=True),...)
-    if isinstance(schema, type):
-        schema = schema(many=(paginate or paginate_with is not None))
-    if isinstance(etag_schema, type):
-        etag_schema = etag_schema(many=(paginate or paginate_with is not None))
-
     def decorator(func):
 
         @wraps(func)

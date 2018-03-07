@@ -7,7 +7,7 @@ from flask.views import MethodView
 from werkzeug.routing import BaseConverter
 import marshmallow as ma
 
-from flask_rest_api import Api, Blueprint
+from flask_rest_api import Api, Blueprint, Page
 
 from .conftest import AppConfig
 
@@ -124,3 +124,47 @@ class TestAPISpecServeDocs():
                 assert response_redoc.status_code == 200
                 assert (response_redoc.headers['Content-Type'] ==
                         'text/html; charset=utf-8')
+
+
+class TestAPISpecPlugin():
+    """Test apispec plugin"""
+
+    def test_apipec_path_response_schema_many(self, app, schemas):
+        """Check that plural response is documented as array in the spec"""
+        api = Api(app)
+        blp = Blueprint('test', 'test', url_prefix='/test')
+
+        @blp.route('/schema_many_false')
+        @blp.response(schemas.DocSchema(many=False))
+        def many_false():
+            pass
+
+        @blp.route('/schema_many_true')
+        @blp.response(schemas.DocSchema(many=True))
+        def many_true():
+            pass
+
+        @blp.route('/paginate')
+        @blp.response(schemas.DocSchema, paginate=True)
+        def paginate():
+            pass
+
+        @blp.route('/paginate_with')
+        @blp.response(schemas.DocSchema, paginate_with=Page)
+        def paginate_with():
+            pass
+
+        api.register_blueprint(blp)
+
+        paths = api.spec.to_dict()['paths']
+
+        schema_many_false = paths[
+            '/test/schema_many_false']['get']['responses'][200]['schema']
+        assert schema_many_false['type'] == 'object'
+        assert 'items' not in schema_many_false
+
+        for path in ('schema_many_true', 'paginate', 'paginate_with'):
+            schema = paths[
+                '/test/{}'.format(path)]['get']['responses'][200]['schema']
+            assert schema['type'] == 'array'
+            assert schema['items']['type'] == 'object'
