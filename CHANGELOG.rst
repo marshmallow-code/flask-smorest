@@ -6,7 +6,11 @@ Changelog
 
 Features:
 
-- *Backwards-incompatible*: Schema parameter passed in ``Blueprint.arguments`` is required by default
+- *Backwards-incompatible*: By default, Schema parameter passed in ``Blueprint.arguments`` is documented as required.
+
+Bugfixes:
+
+- Document response as array when using paginate_with.
 
 
 0.3.0 (2018-03-02)
@@ -15,12 +19,12 @@ Features:
 Features:
 
 - App leading and trailing ``/`` to OPENAPI_URL_PREFIX if missing.
-- *Backwards-incompatible*: Change default URL path for OpenAPI JSON to ``'openapi.json'``
+- *Backwards-incompatible*: Change default URL path for OpenAPI JSON to ``'openapi.json'``.
 
 Bugfixes:
 
-- Fix OpenAPI docs URL paths
-- *Backwards-incompatible*: ``Blueprint.route(self, rule, **options)`` matches ``flask``'s ``Blueprint`` signature
+- Fix OpenAPI docs URL paths.
+- *Backwards-incompatible*: ``Blueprint.route(self, rule, **options)`` matches ``flask``'s ``Blueprint`` signature.
 
 0.2.0 (2018-03-02)
 ++++++++++++++++++
@@ -42,7 +46,7 @@ Bug fixes:
 
 Support:
 
-- Add dev-requirements.txt
+- Add dev-requirements.txt.
 
 0.1.0 (2018-02-16)
 ++++++++++++++++++
