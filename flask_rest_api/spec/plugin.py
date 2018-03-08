@@ -36,8 +36,6 @@ def rule_to_params(rule):
         param['type'] = type_
         if format_ is not None:
             param['format'] = format_
-        if rule.defaults and argument in rule.defaults:
-            param['default'] = rule.defaults[argument]
         params.append(param)
     return params
 
