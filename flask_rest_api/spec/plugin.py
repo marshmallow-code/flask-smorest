@@ -23,9 +23,8 @@ DEFAULT_TYPE = ('string', None)
 
 # Greatly inspired by flask-apispec
 def rule_to_params(rule):
-
+    """Get parameters from flask Rule"""
     params = []
-
     for argument in rule.arguments:
         param = {
             'in': 'path',
@@ -45,7 +44,7 @@ def rule_to_params(rule):
 
 # Greatly inspired by apispec
 def flask_path_helper(spec, app, rule, operations=None, **kwargs):
-
+    """Make Path from flask Rule"""
     path = flaskpath2swagger(rule.rule)
     app_root = app.config['APPLICATION_ROOT'] or '/'
     path = urljoin(app_root.rstrip('/') + '/', path.lstrip('/'))
@@ -55,19 +54,10 @@ def flask_path_helper(spec, app, rule, operations=None, **kwargs):
         path_parameters = rule_to_params(rule)
         if path_parameters:
             for operation in operations.values():
-                parameters = operation.setdefault('parameters', list())
+                parameters = operation.setdefault('parameters', [])
                 # Add path parameters to documentation
-                # If a parameter is already in the doc (because it appears in
-                # the parameters schema), merge properties rather than
-                # duplicate or replace
                 for path_p in path_parameters:
-                    op_p = next((x for x in parameters
-                                 if x['name'] == path_p['name']),
-                                None)
-                    if op_p is not None:
-                        op_p.update(path_p)
-                    else:
-                        parameters.append(path_p)
+                    parameters.append(path_p)
         # Translate Marshmallow Schema
         for operation in operations.values():
             for response in operation.get('responses', {}).values():
