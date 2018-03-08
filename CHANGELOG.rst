@@ -6,6 +6,7 @@ Changelog
 
 Features:
 
+- *Backwards-incompatible*: The case of a parameter both in URL and in arguments Schema is now unsupported.
 - *Backwards-incompatible*: By default, Schema parameter passed in ``Blueprint.arguments`` is documented as required.
 
 Bugfixes:
