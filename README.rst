@@ -14,4 +14,28 @@ flask-rest-api
         :target: https://www.codacy.com/app/lafrech/flask-rest-api
         :alt: Code health
 
-Build a REST API with Flask.
+Build a REST API with Flask and marshmallow.
+
+**flask-rest-api** relies on `marshmallow <https://github.com/marshmallow-code/marshmallow>`_, `webargs <https://github.com/sloria/webargs>`_ and `apispec <https://github.com/marshmallow-code/apispec/>`_ to provide a complete REST API framework.
+
+Features
+========
+
+- Serialization, deserialization and validation using marshmallow ``Schema``.
+- OpenAPI (Swagger) specification automatically generated, and exposed with `ReDoc <https://github.com/Rebilly/ReDoc>`_.
+- ETag.
+- Pagination.
+
+Install
+=======
+
+::
+
+    pip install flask-rest-api
+
+flask-rest-api supports Python >= 3.4.
+
+License
+=======
+
+MIT licensed. See the `LICENSE <https://github.com/Nobatek/flask-rest-api/blob/master/LICENSE>`_ file for more details.
