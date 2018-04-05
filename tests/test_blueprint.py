@@ -2,8 +2,10 @@
 
 import pytest
 
+from flask.views import MethodView
+
 from flask_rest_api import Api
-from flask_rest_api.blueprint import Blueprint
+from flask_rest_api.blueprint import Blueprint, HTTP_METHODS
 from flask_rest_api.exceptions import MultiplePaginationModes, InvalidLocation
 from flask_rest_api.pagination import Page
 
@@ -95,3 +97,35 @@ class TestBlueprint():
             view_func)
         assert res._apidoc['summary'] == 'Dummy func'
         assert res._apidoc['description'] == 'Do dummy stuff'
+
+    def test_blueprint_enforce_method_order(self, app):
+        api = Api(app)
+        blp = Blueprint('test', __name__, url_prefix='/test')
+
+        @blp.route('/')
+        class Resource(MethodView):
+
+            def post(self):
+                pass
+
+            def put(self):
+                pass
+
+            def options(self):
+                pass
+
+            def patch(self):
+                pass
+
+            def head(self):
+                pass
+
+            def delete(self):
+                pass
+
+            def get(self):
+                pass
+
+        api.register_blueprint(blp)
+        methods_spec = api.spec.to_dict()['paths']['/test/']
+        assert list(methods_spec.keys()) == [m.lower() for m in HTTP_METHODS]

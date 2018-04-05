@@ -10,10 +10,6 @@ from .mocks import DatabaseMock
 from .utils import JSONResponse
 
 
-HTTP_METHODS = [
-    'GET', 'PATCH', 'POST', 'HEAD', 'PUT', 'DELETE', 'OPTIONS', 'TRACE']
-
-
 class AppConfig:
     """Base application configuration class
 

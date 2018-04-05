@@ -26,6 +26,7 @@ Documentation process works in several steps:
   - Endpoints documentation is registered in the APISpec object
 """
 
+from collections import OrderedDict
 from copy import deepcopy
 
 from flask import Blueprint as FlaskBlueprint
@@ -40,6 +41,11 @@ from .exceptions import (
     EndpointMethodDocAlreadyRegisted, InvalidLocation, MultiplePaginationModes)
 
 
+# This is the order in which the methods are presented in the spec
+HTTP_METHODS = [
+    'OPTIONS', 'HEAD', 'GET', 'POST', 'PUT', 'PATCH', 'DELETE']
+
+
 class Blueprint(FlaskBlueprint):
     """Blueprint that registers info in API documentation"""
 
@@ -49,19 +55,19 @@ class Blueprint(FlaskBlueprint):
 
         super().__init__(*args, **kwargs)
 
-        # _docs is a dict storing endpoints documentation:
+        # _docs is an ordered dict storing endpoints documentation:
         # {endpoint: {
         #     'get': documentation,
         #     'post': documentation,
         #     ...
         #     }
         # }
-        self._docs = {}
+        self._docs = OrderedDict()
 
     def _store_endpoint_docs(self, endpoint, obj, **kwargs):
         """Store view or function doc info"""
 
-        endpoint_doc = self._docs.setdefault(endpoint, {})
+        endpoint_doc = self._docs.setdefault(endpoint, OrderedDict())
 
         def store_method_docs(method, function):
             doc = getattr(function, '_apidoc', {})
@@ -79,9 +85,10 @@ class Blueprint(FlaskBlueprint):
 
         # MethodView (class)
         if isinstance(obj, MethodViewType):
-            for method in obj.methods:
-                func = getattr(obj, method.lower())
-                store_method_docs(method, func)
+            for method in HTTP_METHODS:
+                if method in obj.methods:
+                    func = getattr(obj, method.lower())
+                    store_method_docs(method, func)
         # Function
         else:
             methods = kwargs.pop('methods', None) or ['GET']

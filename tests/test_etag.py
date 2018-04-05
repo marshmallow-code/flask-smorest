@@ -17,9 +17,10 @@ from flask_rest_api.etag import (
     check_precondition, set_etag_in_response, verify_check_etag)
 from flask_rest_api.exceptions import (
     NotModified, PreconditionRequired, PreconditionFailed)
+from flask_rest_api.blueprint import HTTP_METHODS
 
 from .mocks import ItemNotFound
-from .conftest import AppConfig, HTTP_METHODS
+from .conftest import AppConfig
 
 
 class AppConfigEtagEnabled(AppConfig):
