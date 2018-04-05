@@ -1,13 +1,18 @@
 Changelog
 ---------
 
-0.4.0 (unreleased)
+0.4.0 (2018-04-05)
 ++++++++++++++++++
 
 Features:
 
 - *Backwards-incompatible*: The case of a parameter both in URL and in arguments Schema is now unsupported.
 - *Backwards-incompatible*: By default, Schema parameter passed in ``Blueprint.arguments`` is documented as required.
+- *Backwards-incompatible*: ``APISpec.register_field`` now uses apispec API. It must be passed a  ``(type, format)`` couple or an amready registered ``Field`` class (this includes base marshmallow ``Fields``. When using ``(type, format)``, `format` doesn't default to ``None`` anymore.
+- Preserve order when serving the spec file:
+  - Fields are printed in declaration order if Schema.Meta.ordered is True
+  - Methods in a method view are printed in this order: ['OPTIONS', 'HEAD', 'GET', 'POST', 'PUT', 'PATCH', 'DELETE']
+  - Paths are added in declaration order
 
 Bugfixes:
 
