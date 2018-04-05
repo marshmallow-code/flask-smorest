@@ -45,6 +45,7 @@ class PaginationParametersSchema(ma.Schema):
 
     class Meta:
         strict = True
+        ordered = True
 
     page = ma.fields.Integer(
         missing=1,
@@ -95,6 +96,9 @@ class PaginationMetadata:
 
 class PaginationMetadataSchema(ma.Schema):
     """Serializes pagination metadata"""
+
+    class Meta:
+        ordered = True
 
     total = ma.fields.Integer(
         attribute='item_count'
