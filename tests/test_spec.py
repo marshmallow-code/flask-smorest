@@ -1,5 +1,7 @@
 """Test Api class"""
 
+from collections import OrderedDict
+
 import pytest
 
 from flask import jsonify
@@ -124,6 +126,19 @@ class TestAPISpecServeDocs():
                 assert response_redoc.status_code == 200
                 assert (response_redoc.headers['Content-Type'] ==
                         'text/html; charset=utf-8')
+
+    def test_apipec_serve_spec_preserve_order(self, app):
+        app.config['OPENAPI_URL_PREFIX'] = '/api-docs/'
+        api = Api(app)
+        client = app.test_client()
+
+        # Add ordered stuff. This is invalid, but it will do for the test.
+        paths = OrderedDict(
+            [('/path_{}'.format(i), str(i)) for i in range(20)])
+        api.spec._paths = paths
+
+        response_json_docs = client.get('/api-docs/openapi.json')
+        assert response_json_docs.json['paths'] == paths
 
 
 class TestAPISpecPlugin():

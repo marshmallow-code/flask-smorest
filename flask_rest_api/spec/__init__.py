@@ -1,6 +1,9 @@
 """API specification using Open API"""
 
+import json
+
 import flask
+from flask import current_app
 import apispec
 from apispec.ext.marshmallow.swagger import FIELD_MAPPING
 
@@ -64,7 +67,11 @@ class APISpec(apispec.APISpec):
 
     def _openapi_json(self):
         """Serve JSON spec file"""
-        return flask.jsonify(self.to_dict())
+        # We don't use Flask.jsonify here as it would sort the keys
+        # alphabetically while we want to preserve the order.
+        return current_app.response_class(
+            json.dumps(self.to_dict(), indent=2),
+            mimetype='application/json')
 
     def _openapi_redoc(self):
         """Expose OpenAPI spec with ReDoc

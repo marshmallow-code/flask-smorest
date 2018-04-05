@@ -1,3 +1,4 @@
+from collections import OrderedDict
 import json
 
 from werkzeug.utils import cached_property
@@ -15,4 +16,7 @@ class JSONResponse(Response):
 
     @cached_property
     def json(self):
-        return json.loads(self.get_data(as_text=True))
+        return json.loads(
+            self.get_data(as_text=True),
+            object_pairs_hook=OrderedDict
+        )
