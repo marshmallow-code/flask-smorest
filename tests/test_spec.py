@@ -53,15 +53,19 @@ class TestAPISpec():
         assert spec['paths']['/test/{val}']['get']['parameters'] == parameters
 
     @pytest.mark.parametrize('view_type', ['function', 'method'])
-    @pytest.mark.parametrize('custom_format', ['custom', None])
-    def test_apispec_register_field(self, app, view_type, custom_format):
+    @pytest.mark.parametrize('mapping', [
+        ('custom string', 'custom'),
+        ('custom string', None),
+        (ma.fields.Integer, ),
+    ])
+    def test_apispec_register_field(self, app, view_type, mapping):
         api = Api(app)
         blp = Blueprint('test', 'test', url_prefix='/test')
 
         class CustomField(ma.fields.Field):
             pass
 
-        api.spec.register_field(CustomField, 'custom string', custom_format)
+        api.spec.register_field(CustomField, *mapping)
 
         class Document(ma.Schema):
             field = CustomField()
@@ -81,10 +85,13 @@ class TestAPISpec():
         api.register_blueprint(blp)
         spec = api.spec.to_dict()
 
-        # If custom_format is None (default), it does not appear in the spec
-        properties = {'field': {'type': 'custom string'}}
-        if custom_format is not None:
-            properties['field']['format'] = 'custom'
+        if len(mapping) == 2:
+            properties = {'field': {'type': 'custom string'}}
+            # If mapping format is None, it does not appear in the spec
+            if mapping[1] is not None:
+                properties['field']['format'] = mapping[1]
+        else:
+            properties = {'field': {'type': 'integer', 'format': 'int32'}}
 
         assert (spec['paths']['/test/']['get']['parameters'] ==
                 [{'in': 'body', 'required': True, 'name': 'body',

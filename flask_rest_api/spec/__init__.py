@@ -5,7 +5,7 @@ import json
 import flask
 from flask import current_app
 import apispec
-from apispec.ext.marshmallow.swagger import FIELD_MAPPING
+from apispec.ext.marshmallow.swagger import map_to_swagger_type
 
 from .plugin import CONVERTER_MAPPING
 
@@ -100,15 +100,15 @@ class APISpec(apispec.APISpec):
         :param str conv_type: Parameter type
         :param str conv_format: Parameter format (optional)
 
-            Example: ::
+        Example: ::
 
-                app.url_map.converters['uuid'] = UUIDConverter
-                api.spec.register_converter(UUIDConverter, 'string', 'UUID')
+            app.url_map.converters['uuid'] = UUIDConverter
+            api.spec.register_converter(UUIDConverter, 'string', 'UUID')
 
-                @blp.route('/pets/{uuid:pet_id}')
-                ...
+            @blp.route('/pets/{uuid:pet_id}')
+            ...
 
-                api.register_blueprint(blp)
+            api.register_blueprint(blp)
 
         Once the converter is registered, all paths using it will have their
         path parameter documented with the right type and format.
@@ -116,18 +116,28 @@ class APISpec(apispec.APISpec):
         CONVERTER_MAPPING[converter] = (conv_type, conv_format)
 
     @staticmethod
-    def register_field(field, field_type, field_format=None):
+    def register_field(field, *args):
         """Register custom Marshmallow field
-
-        :param Field field: Marshmallow Field class
-        :param str field_type: Parameter type
-        :param str field_format: Parameter format (optional)
-
-            Example: ::
-
-                api.spec.register_field(UUIDField, 'string', 'UUID')
 
         Registering the Field class allows the Schema parser to set the proper
         type and format when documenting parameters from Schema fields.
+
+        :param Field field: Marshmallow Field class
+
+        ``*args`` can be:
+
+        - a pair of the form ``(type, format)`` to map to
+        - a core marshmallow field type (then that type's mapping is used)
+
+        Examples: ::
+
+            # Map to ('string, 'UUID')
+            api.spec.register_field(UUIDField, 'string', 'UUID')
+
+            # Map to ('integer, 'int32')
+            api.spec.register_field(CustomIntegerField, ma.fields.Integer)
+
+        In the first case, if the second element of the tuple is None, it does
+        not appear in the spec.
         """
-        FIELD_MAPPING[field] = (field_type, field_format)
+        map_to_swagger_type(*args)(field)
