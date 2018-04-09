@@ -32,7 +32,7 @@ from copy import deepcopy
 from flask import Blueprint as FlaskBlueprint
 from flask.views import MethodViewType
 
-from apispec.ext.marshmallow.swagger import schema2parameters, __location_map__
+from apispec.ext.marshmallow.swagger import __location_map__
 
 from .utils import deepupdate
 from .args_parser import parser
@@ -121,29 +121,11 @@ class Blueprint(FlaskBlueprint):
             for method_l in doc.keys():
                 doc[method_l].update({'tags': [self.name]})
 
-            # Process parameters: resolve schema reference
-            # or convert schema to json description
-            for apidoc in doc.values():
-                params = apidoc.get('parameters', None)
-                if params:
-                    # self.arguments can only register a Schema
-                    # so there's no need to check if schema is in params
-                    params = schema2parameters(
-                        params['schema'],
-                        spec=spec,
-                        required=params['required'],
-                        default_in=params['location'])
-                    apidoc['parameters'] = params
-
             for rule in app.url_map.iter_rules(endpoint):
                 # We need to deepcopy operations here as well
                 # because it is modified in add_path, which causes
                 # issues if there are multiple rules for the same endpoint
-                spec.add_path(
-                    app=app,
-                    rule=rule,
-                    operations=deepcopy(doc)
-                )
+                spec.add_path(app=app, rule=rule, operations=deepcopy(doc))
 
     def route(self, rule, **options):
         """Decorator to register url rule in application
@@ -210,17 +192,20 @@ class Blueprint(FlaskBlueprint):
 
         location = kwargs.pop('location', 'json')
         required = kwargs.pop('required', True)
-        if location not in __location_map__:
+
+        try:
+            openapi_location = __location_map__[location]
+        except KeyError:
             raise InvalidLocation(
                 "{} is not a valid location".format(location))
 
         # At this stage, put schema instance in doc dictionary. Il will be
         # replaced later on by $ref or json.
-        doc = {'parameters': {
-            'location': location,
+        doc = {'parameters': [{
+            'in': openapi_location,
             'required': required,
             'schema': schema,
-        }}
+        }]}
 
         def decorator(func):
             # Call use_args (from webargs) to inject params in function
