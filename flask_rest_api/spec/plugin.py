@@ -9,7 +9,6 @@ import werkzeug.routing
 
 from apispec import Path
 from apispec.ext.flask import flaskpath2swagger
-from apispec.ext.marshmallow import resolve_schema_dict
 
 # From flask-apispec
 CONVERTER_MAPPING = {
@@ -56,16 +55,6 @@ def flask_path_helper(spec, app, rule, operations=None, **kwargs):
                 # Add path parameters to documentation
                 for path_p in path_parameters:
                     parameters.append(path_p)
-        # Translate Marshmallow Schema
-        for operation in operations.values():
-            for response in operation.get('responses', {}).values():
-                if 'schema' in response:
-                    response['schema'] = resolve_schema_dict(
-                        spec, response['schema'])
-            for parameter in operation.get('parameters', []):
-                if 'schema' in parameter:
-                    parameter['schema'] = resolve_schema_dict(
-                        spec, parameter['schema'])
 
     return Path(path=path, operations=operations)
 
