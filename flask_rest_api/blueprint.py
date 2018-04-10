@@ -104,26 +104,22 @@ class Blueprint(FlaskBlueprint):
 
         "schema":{"$ref": "#/definitions/MySchema"}
         """
-
         for endpoint, doc in self._docs.items():
-
-            endpoint = '.'.join((self.name, endpoint))
-
-            # Modifying doc in place causes troubles if this method is
-            # called twice. Typically, during tests, because modules are
-            # imported once but initialized once before each test.
-            doc = deepcopy(doc)
-
             # doc is a dict of documentation per method for the endpoint
             # {'get': documentation, 'post': documentation,...}
 
-            # Tag the function with the resource name
-            for method_l in doc.keys():
-                doc[method_l].update({'tags': [self.name]})
+            # Prepend Blueprint name to endpoint
+            endpoint = '.'.join((self.name, endpoint))
 
+            # Tag each operation with Blueprint name
+            for operation in doc.values():
+                operation.update({'tags': [self.name]})
+
+            # TODO: Do we support multiple rules per endpoint?
+            # https://github.com/marshmallow-code/apispec/issues/181
             for rule in app.url_map.iter_rules(endpoint):
-                # We need to deepcopy operations here as well
-                # because it is modified in add_path, which causes
+                # We need to deepcopy operations here
+                # because it can be modified in add_path, which causes
                 # issues if there are multiple rules for the same endpoint
                 spec.add_path(app=app, rule=rule, operations=deepcopy(doc))
 
@@ -149,7 +145,6 @@ class Blueprint(FlaskBlueprint):
                 if not getattr(func, '_view_func', None):
                     func._view_func = func.as_view(endpoint)
                 view_func = func._view_func
-
             # Function
             else:
                 view_func = func
