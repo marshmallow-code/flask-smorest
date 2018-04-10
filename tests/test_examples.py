@@ -68,7 +68,7 @@ def implicit_data_and_schema_etag_blueprint(collection, schemas):
             item = self._get_item(item_id)
             # Check ETag is a manual action and schema must be provided
             check_etag(item, DocSchema)
-            del collection.items[collection.items.index(item)]
+            collection.delete(item_id)
 
     return blp
 
@@ -127,7 +127,7 @@ def implicit_data_explicit_schema_etag_blueprint(collection, schemas):
             item = self._get_item(item_id)
             # Check ETag is a manual action, ETag schema is used
             check_etag(item)
-            del collection.items[collection.items.index(item)]
+            collection.delete(item_id)
 
     return blp
 
@@ -191,7 +191,7 @@ def explicit_data_no_schema_etag_blueprint(collection, schemas):
             item = self._get_item(item_id)
             # Check ETag is a manual action, no shema used
             check_etag(item['db_field'])
-            del collection.items[collection.items.index(item)]
+            collection.delete(item_id)
 
     return blp
 
