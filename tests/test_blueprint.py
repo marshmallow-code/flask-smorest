@@ -1,8 +1,12 @@
 """Test Blueprint extra features"""
 
+import json
 import pytest
 
+from flask import jsonify
 from flask.views import MethodView
+
+import marshmallow as ma
 
 from flask_rest_api import Api
 from flask_rest_api.blueprint import Blueprint, HTTP_METHODS
@@ -72,6 +76,54 @@ class TestBlueprint():
         spec = api.spec.to_dict()
         assert (spec['paths']['/test/']['get']['parameters'][0]['required'] ==
                 (required is not False))
+
+    def test_blueprint_arguments_multiple(self, app, schemas):
+        api = Api(app)
+        blp = Blueprint('test', __name__, url_prefix='/test')
+        client = app.test_client()
+
+        class QueryArgsSchema(ma.Schema):
+            class Meta:
+                strict = True
+                ordered = True
+
+            arg1 = ma.fields.String()
+            arg2 = ma.fields.Integer()
+
+        @blp.route('/', methods=('POST', ))
+        @blp.arguments(schemas.DocSchema)
+        @blp.arguments(QueryArgsSchema, location='query')
+        def func(document, query_args):
+            return jsonify({
+                'document': document,
+                'query_args': query_args,
+            })
+
+        api.register_blueprint(blp)
+        spec = api.spec.to_dict()
+
+        # Check parameters are documented
+        parameters = spec['paths']['/test/']['post']['parameters']
+        assert parameters[0]['name'] == 'arg1'
+        assert parameters[0]['in'] == 'query'
+        assert parameters[1]['name'] == 'arg2'
+        assert parameters[1]['in'] == 'query'
+        assert parameters[2]['in'] == 'body'
+        assert 'field' in parameters[2]['schema']['properties']
+
+        # Check parameters are passed as arguments to view function
+        item_data = {'field': 12}
+        response = client.post(
+            '/test/',
+            data=json.dumps(item_data),
+            content_type='application/json',
+            query_string={'arg1': 'test'}
+        )
+        assert response.status_code == 200
+        assert response.json == {
+            'document': {'db_field': 12},
+            'query_args': {'arg1': 'test'},
+        }
 
     def test_blueprint_multiple_paginate_modes(self):
         blp = Blueprint('test', __name__, url_prefix='/test')

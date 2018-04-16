@@ -167,7 +167,7 @@ class Blueprint(FlaskBlueprint):
 
                 @blp.doc("description": "Return pets based on ID",
                         "summary": "Find pets by ID")
-                def get(...)
+                def get(...):
         """
         def decorator(func):
             func._apidoc = deepupdate(getattr(func, '_apidoc', {}), kwargs)
@@ -180,7 +180,21 @@ class Blueprint(FlaskBlueprint):
 
         :param type|Schema schema: A marshmallow Schema class or instance.
 
-        Can only be called once on a resource function.
+        The parameters are deserialized into a dictionary that is injected as
+        a positional argument to the view function.
+
+        This decorator can be called several times on a resource function,
+        for instance to accept both body and query parameters.
+
+            Example: ::
+
+                @blp.route('/', methods=('POST', ))
+                @blp.arguments(DocSchema)
+                @blp.arguments(QueryArgsSchema, location='query')
+                def post(document, query_args):
+
+        The order of the decorator calls matter as it determines the order in 
+        which the parameters are passed to the view function.
         """
         if isinstance(schema, type):
             schema = schema()
@@ -196,18 +210,19 @@ class Blueprint(FlaskBlueprint):
 
         # At this stage, put schema instance in doc dictionary. Il will be
         # replaced later on by $ref or json.
-        doc = {'parameters': [{
+        parameters = {
             'in': openapi_location,
             'required': required,
             'schema': schema,
-        }]}
+        }
 
         def decorator(func):
             # Call use_args (from webargs) to inject params in function
             func = parser.use_args(
                 schema, locations=[location], **kwargs)(func)
-            # Store doc info in function object
-            func._apidoc = deepupdate(getattr(func, '_apidoc', {}), doc)
+            # Add parameter to parameters list in doc info in function object
+            func._apidoc = getattr(func, '_apidoc', {})
+            func._apidoc.setdefault('parameters', []).append(parameters)
             return func
 
         return decorator
