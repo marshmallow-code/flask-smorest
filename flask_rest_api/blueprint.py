@@ -175,13 +175,28 @@ class Blueprint(FlaskBlueprint):
         return decorator
 
     @staticmethod
-    def arguments(schema, **kwargs):
+    def arguments(schema, *, location='json', required=True, **kwargs):
         """Decorator specifying the schema used to deserialize parameters
 
         :param type|Schema schema: A marshmallow Schema class or instance.
+        :param str location: The location of the parameter, in webargs terms.
+            https://webargs.readthedocs.io/en/latest/quickstart.html#request-locations
+            Allows values: 'query' or 'querystring', 'json', 'form', 'headers',
+            'cookies', 'files'.
+            Defaults to 'json', which means 'body'.
+            Note that unlike webargs, flask-rest-api allows only one location
+            for a parameter.
+        :param bool required: Whether this set of arguments is required.
+            Defaults to True.
+            This only affects json/body arguments as, in this case, the docs
+            expose the whole schema as a required parameter.
+            For other locations, the schema is turned into an array of
+            parameters and their required value is grabbed from their Field.
 
-        The parameters are deserialized into a dictionary that is injected as
-        a positional argument to the view function.
+        The kwargs are passed to webargs's Parser.use_args.
+
+        Upon endpoint access, the parameters are deserialized into a dictionary
+        that is injected as a positional argument to the view function.
 
         This decorator can be called several times on a resource function,
         for instance to accept both body and query parameters.
@@ -193,14 +208,11 @@ class Blueprint(FlaskBlueprint):
                 @blp.arguments(QueryArgsSchema, location='query')
                 def post(document, query_args):
 
-        The order of the decorator calls matter as it determines the order in 
+        The order of the decorator calls matter as it determines the order in
         which the parameters are passed to the view function.
         """
         if isinstance(schema, type):
             schema = schema()
-
-        location = kwargs.pop('location', 'json')
-        required = kwargs.pop('required', True)
 
         try:
             openapi_location = __location_map__[location]

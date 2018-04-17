@@ -21,15 +21,15 @@ LOCATIONS_MAPPING = (
     ('form', 'formData',),
     ('headers', 'header',),
     ('files', 'formData',),
-    # Test 'body' is default
-    (None, 'body',),
 )
 
 
 class TestBlueprint():
     """Test Blueprint class"""
 
-    @pytest.mark.parametrize('location_map', LOCATIONS_MAPPING)
+    @pytest.mark.parametrize(
+        # Also test 'json/body' is default
+        'location_map', LOCATIONS_MAPPING + ((None, 'body'),))
     def test_blueprint_arguments_location(self, app, schemas, location_map):
         api = Api(app)
         blp = Blueprint('test', __name__, url_prefix='/test')
@@ -56,26 +56,41 @@ class TestBlueprint():
         with pytest.raises(InvalidLocation):
             blp.arguments(schemas.DocSchema, location='invalid')
 
-    @pytest.mark.parametrize('required', (None, True, False))
-    def test_blueprint_arguments_required(self, app, schemas, required):
+    @pytest.mark.parametrize('location_map', LOCATIONS_MAPPING)
+    @pytest.mark.parametrize('required', (True, False, None))
+    def test_blueprint_arguments_required(
+            self, app, schemas, required, location_map):
         api = Api(app)
         blp = Blueprint('test', __name__, url_prefix='/test')
+        location, _ = location_map
 
         if required is None:
             @blp.route('/')
-            @blp.arguments(schemas.DocSchema)
+            @blp.arguments(schemas.DocSchema, location=location)
             def func():
                 pass
         else:
             @blp.route('/')
-            @blp.arguments(schemas.DocSchema, required=required)
+            @blp.arguments(
+                schemas.DocSchema, required=required, location=location)
             def func():
                 pass
 
         api.register_blueprint(blp)
-        spec = api.spec.to_dict()
-        assert (spec['paths']['/test/']['get']['parameters'][0]['required'] ==
-                (required is not False))
+        parameters = api.spec.to_dict()['paths']['/test/']['get']['parameters']
+        if location == 'json':
+            # One parameter: the schema
+            assert len(parameters) == 1
+            assert 'schema' in parameters[0]
+            # Check required defaults to True
+            assert parameters[0]['required'] == (required is not False)
+        else:
+            # One parameter: the 'field' field in DocSchema
+            assert len(parameters) == 1
+            assert parameters[0]['name'] == 'field'
+            # Check the required parameter has no impact.
+            # Only the required attribute of the field matters
+            assert parameters[0]['required'] is False
 
     def test_blueprint_arguments_multiple(self, app, schemas):
         api = Api(app)
@@ -111,7 +126,7 @@ class TestBlueprint():
         assert parameters[2]['in'] == 'body'
         assert 'field' in parameters[2]['schema']['properties']
 
-        # Check parameters are passed as arguments to view function
+        # Check parameters are passed as arguments to view function
         item_data = {'field': 12}
         response = client.post(
             '/test/',
