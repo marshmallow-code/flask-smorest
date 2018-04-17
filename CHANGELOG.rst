@@ -1,6 +1,15 @@
 Changelog
 ---------
 
+0.4.1 (2018-04-17)
+++++++++++++++++++
+
+Features:
+
+- Allow multiple calls to ``Blueprint.arguments`` on a view function.
+- Enforce order of fields in ``PaginationParametersSchema`` and ``PaginationMetadataSchema``.
+- Minor improvements in test_examples.py.
+
 0.4.0 (2018-04-05)
 ++++++++++++++++++
 
@@ -8,7 +17,7 @@ Features:
 
 - *Backwards-incompatible*: The case of a parameter both in URL and in arguments Schema is now unsupported.
 - *Backwards-incompatible*: By default, Schema parameter passed in ``Blueprint.arguments`` is documented as required.
-- *Backwards-incompatible*: ``APISpec.register_field`` now uses apispec API. It must be passed a  ``(type, format)`` couple or an amready registered ``Field`` class (this includes base marshmallow ``Fields``. When using ``(type, format)``, `format` doesn't default to ``None`` anymore.
+- *Backwards-incompatible*: ``APISpec.register_field`` now uses apispec API. It must be passed a  ``(type, format)`` couple or an amready registered ``Field`` class (this includes base marshmallow ``Fields``. When using ``(type, format)``, ``format`` doesn't default to ``None`` anymore.
 - Preserve order when serving the spec file:
   - Fields are printed in declaration order if Schema.Meta.ordered is True
   - Methods in a method view are printed in this order: ['OPTIONS', 'HEAD', 'GET', 'POST', 'PUT', 'PATCH', 'DELETE']
@@ -17,7 +26,6 @@ Features:
 Bugfixes:
 
 - Document response as array when using paginate_with.
-
 
 0.3.0 (2018-03-02)
 ++++++++++++++++++
