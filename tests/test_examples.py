@@ -38,7 +38,7 @@ def implicit_data_and_schema_etag_blueprint(collection, schemas):
             return collection.items
 
         @blp.arguments(DocSchema)
-        @blp.response(DocSchema, code=201)
+        @blp.response(DocSchema)
         def post(self, new_item):
             return collection.post(new_item)
 
@@ -94,8 +94,7 @@ def implicit_data_explicit_schema_etag_blueprint(collection, schemas):
             return collection.items[first_item: last_item + 1]
 
         @blp.arguments(DocSchema)
-        @blp.response(DocSchema, code=201,
-                      etag_schema=DocEtagSchema)
+        @blp.response(DocSchema, etag_schema=DocEtagSchema)
         def post(self, new_item):
             return collection.post(new_item)
 
@@ -153,7 +152,7 @@ def explicit_data_no_schema_etag_blueprint(collection, schemas):
             return collection.items[first_item: last_item + 1]
 
         @blp.arguments(DocSchema)
-        @blp.response(DocSchema, code=201)
+        @blp.response(DocSchema)
         def post(self, new_item):
             # Compute ETag using arbitrary data and no schema
             set_etag(new_item['db_field'])
@@ -257,7 +256,7 @@ class TestFullExample():
                 data=json.dumps(item_1_data),
                 content_type='application/json'
             )
-        assert response.status_code == 201
+        assert response.status_code == 200
         item_1_id = response.json['item_id']
 
         # GET collection with wrong/outdated ETag: OK
@@ -353,7 +352,7 @@ class TestFullExample():
                 data=json.dumps(item_2_data),
                 content_type='application/json'
             )
-        assert response.status_code == 201
+        assert response.status_code == 200
 
         # GET collection with pagination set to 1 element per page
         # Content is the same (item_1) but pagination metadata has changed
