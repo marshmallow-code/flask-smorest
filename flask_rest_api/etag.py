@@ -63,7 +63,7 @@ def _generate_etag(etag_data, etag_schema=None, *, extra_data=None):
         if isinstance(etag_schema, type):
             etag_schema = etag_schema()
         raw_data = etag_schema.dump(etag_data)[0]
-    if extra_data is not None:
+    if extra_data:
         raw_data = (raw_data, extra_data)
     data = json.dumps(raw_data, sort_keys=True)
     return hashlib.sha1(bytes(data, 'utf-8')).hexdigest()

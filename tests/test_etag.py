@@ -169,12 +169,12 @@ class TestEtag():
         data_copies_etag = [_generate_etag(d) for d in data_copies]
         assert all(e == etag for e in data_copies_etag)
 
-    @pytest.mark.parametrize('extra_data', [None, {'answer': 42}])
+    @pytest.mark.parametrize('extra_data', [None, {}, {'answer': 42}])
     def test_etag_generate_etag(self, schemas, extra_data):
         etag_schema = schemas.DocEtagSchema
         item = {'item_id': 1, 'db_field': 0}
         item_schema_dump = etag_schema().dump(item)[0]
-        if extra_data is None:
+        if extra_data is None or extra_data == {}:
             data = item
             data_dump = item_schema_dump
         else:
