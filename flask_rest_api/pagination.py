@@ -186,8 +186,8 @@ def set_item_count(item_count):
     _get_pagination_ctx()['item_count'] = item_count
 
 
-def get_pagination_metadata():
-    """Get pagination metadata from AppContext
+def set_pagination_header():
+    """Get pagination metadata from AppContext and add it to headers
 
     Called automatically
 
@@ -200,20 +200,12 @@ def get_pagination_metadata():
         # item_count is not set, this is a issue in the app. Pass and warn.
         current_app.logger.warning(
             'item_count not set in endpoint {}'.format(request.endpoint))
-        return None
+        return
     page_params = pagination_ctx['parameters']
     try:
         pagination_metadata = PaginationMetadata(
             page_params.page, page_params.page_size, item_count)
     except PageOutOfRangeError as exc:
         abort(404, messages=str(exc), exc=exc)
-    return PaginationMetadataSchema().dumps(pagination_metadata)[0]
-
-
-def set_pagination_metadata_in_response(response, pagination_metadata):
-    """Set pagination metadata in response object
-
-    Called automatically
-    """
-    if pagination_metadata is not None:
-        response.headers['X-Pagination'] = pagination_metadata
+    page_header = PaginationMetadataSchema().dumps(pagination_metadata)[0]
+    get_appcontext()['headers']['X-Pagination'] = page_header

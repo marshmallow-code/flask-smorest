@@ -6,10 +6,11 @@ from flask import jsonify
 
 from .pagination import (
     get_pagination_parameters_from_request, set_item_count,
-    get_pagination_metadata, set_pagination_metadata_in_response)
+    set_pagination_header)
 from .etag import (
     disable_etag_for_request, check_precondition, verify_check_etag,
     set_etag_schema, set_etag_in_response)
+from .utils import get_appcontext
 
 
 def response(schema=None, *, code=200, paginate=False, paginate_with=None,
@@ -60,34 +61,33 @@ def response(schema=None, *, code=200, paginate=False, paginate_with=None,
                 result = page.items
                 set_item_count(page.item_count)
 
+            # Add pagination metadata to headers
+            if paginate or (paginate_with is not None):
+                set_pagination_header()
+
             # Dump result with schema if specified
             result_dump = (schema.dump(result)[0] if schema is not None
                            else result)
 
             # Build response
-            response = jsonify(result_dump)
-
-            # Add pagination metadata to response
-            if paginate or (paginate_with is not None):
-                pagination_metadata = get_pagination_metadata()
-                set_pagination_metadata_in_response(
-                    response, pagination_metadata)
-            else:
-                pagination_metadata = None
+            resp = jsonify(result_dump)
+            headers = get_appcontext()['headers']
+            resp.headers.extend(headers)
 
             # Add etag value to response
             # Pass result data to use as ETag data if set_etag was not called
             # If etag_schema is provided, pass raw data rather than dump, as
             # the dump needs to be done using etag_schema
+            pagination_header = headers.get('X-Pagination', {})
             if etag_schema is not None:
-                set_etag_in_response(response, result, etag_schema,
-                                     extra_data=pagination_metadata)
+                set_etag_in_response(resp, result, etag_schema,
+                                     extra_data=pagination_header)
             else:
-                set_etag_in_response(response, result_dump,
-                                     extra_data=pagination_metadata)
+                set_etag_in_response(resp, result_dump,
+                                     extra_data=pagination_header)
 
             # Add status code
-            return response, code
+            return resp, code
 
         return wrapper
 
