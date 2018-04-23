@@ -232,7 +232,7 @@ class TestFullExample():
             assert schemas.DocEtagSchema.dump_count == etag_schema_dump
 
         # GET collection without ETag: OK
-        with assert_counters(0, 0, 0, 0):
+        with assert_counters(0, 1, 0, 1 if bp_schema == 'ETag schema' else 0):
             response = client.get('/test/')
             assert response.status_code == 200
             list_etag = response.headers['ETag']
@@ -241,7 +241,7 @@ class TestFullExample():
                 'total': 0, 'total_pages': 0}
 
         # GET collection with correct ETag: Not modified
-        with assert_counters(0, 0, 0, 0):
+        with assert_counters(0, 1, 0, 1 if bp_schema == 'ETag schema' else 0):
             response = client.get(
                 '/test/',
                 headers={'If-None-Match': list_etag}

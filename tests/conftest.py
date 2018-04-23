@@ -47,12 +47,12 @@ class CounterSchema(Schema):
     def reset_dump_count(cls):
         cls.dump_count = 0
 
-    @post_load
-    def increment_load_count(self, _):
+    @post_load(pass_many=True)
+    def increment_load_count(self, *_):
         self.__class__.load_count += 1
 
-    @post_dump
-    def increment_dump_count(self, _):
+    @post_dump(pass_many=True)
+    def increment_dump_count(self, *_):
         self.__class__.dump_count += 1
 
 
