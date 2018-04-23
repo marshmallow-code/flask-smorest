@@ -37,8 +37,8 @@ from apispec.ext.marshmallow.swagger import __location_map__
 from .utils import deepupdate
 from .args_parser import parser
 from .response import response
-from .exceptions import (
-    EndpointMethodDocAlreadyRegisted, InvalidLocation, MultiplePaginationModes)
+from .pagination import paginate
+from .exceptions import EndpointMethodDocAlreadyRegisted, InvalidLocation
 
 
 # This is the order in which the methods are presented in the spec
@@ -243,19 +243,16 @@ class Blueprint(FlaskBlueprint):
 
     @staticmethod
     def response(schema=None, *, code=200, description='',
-                 paginate=False, paginate_with=None,
                  etag_schema=None, disable_etag=False):
-        """Decorator generating an endpoint response, specifying the schema
-        to use for serialization and others parameters.
+        """Decorator generating an endpoint response
 
-        :param schema: :class:`Schema <marshmallow.Schema>` class or instance,
-            or `None`
-        :param int code: HTTP status code (default 200)
-        :param bool paginate: Assume resource function returns paginated result
+        :param schema: :class:`Schema <marshmallow.Schema>` class or instance.
+            If not None, will be used to serialize response data.
+        :param int code: HTTP status code (defaults to 200).
         :param etag_schema: :class:`Schema <marshmallow.Schema>` class
-            or instance, or `None`
+            or instance. If not None, will be used to serialize etag data.
         :param bool disable_etag: Disable ETag feature locally even if enabled
-            globally
+            globally.
 
         If the resource returns many elements, pass a Schema instance with
         "many" set to True.
@@ -264,18 +261,11 @@ class Blueprint(FlaskBlueprint):
 
                 @blp.response(MySchema(many=True), description: 'My objects')
                 def get(...)
-
-        When using "paginate" or "paginate_with", this is not necessary as the
-        schema will be instantiated with "many" automatically.
         """
-        if paginate and paginate_with is not None:
-            raise MultiplePaginationModes(
-                "paginate_with and paginate are mutually exclusive.")
-
         if isinstance(schema, type):
-            schema = schema(many=(paginate or paginate_with))
+            schema = schema()
         if isinstance(etag_schema, type):
-            etag_schema = etag_schema(many=(paginate or paginate_with))
+            etag_schema = etag_schema()
 
         def decorator(func):
 
@@ -287,8 +277,26 @@ class Blueprint(FlaskBlueprint):
 
             return response(
                 schema=schema, code=code,
-                paginate=paginate, paginate_with=paginate_with,
                 etag_schema=etag_schema, disable_etag=disable_etag
             )(func)
 
+        return decorator
+
+    @staticmethod
+    def paginate(pager=None):
+        """Decorator adding pagination to the endpoint
+
+        :param Page pager: Page class used to paginate response data
+
+        If no pager class is provided, pagination is handled in the view
+        function. The view function is passed `first_item` and `last_item`
+        indexes and it must store the total number of items in the application
+        context using `pagination.set_item_count`.
+
+        If a pager class is provided, it is used to paginate the data returned
+        by the view function, typically a lazy database cursor.
+        """
+        def decorator(func):
+            # TODO: document pagination in the API doc
+            return paginate(pager=pager)(func)
         return decorator

@@ -15,10 +15,6 @@ class InvalidLocation(FlaskRestApiError):
     """Parameter location is not a valid location"""
 
 
-class MultiplePaginationModes(FlaskRestApiError):
-    """More than one pagination mode were specified"""
-
-
 class PageOutOfRangeError(FlaskRestApiError):
     """Requested page number out of page range"""
 

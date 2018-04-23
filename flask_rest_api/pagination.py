@@ -9,6 +9,8 @@ Two pagination modes are supported:
   a pager is provided to paginate the data and get the total number of items.
 """
 
+from functools import wraps
+
 from flask import request, current_app
 
 import marshmallow as ma
@@ -166,18 +168,6 @@ def _get_pagination_ctx():
     return get_appcontext()['pagination']
 
 
-def get_pagination_parameters_from_request():
-    """Parse pagination parameters in request object
-
-    Store pagination data in AppContext and return it
-
-    Called automatically
-    """
-    page_params = parser.parse(PaginationParametersSchema, request)
-    _get_pagination_ctx()['parameters'] = page_params
-    return page_params
-
-
 def set_item_count(item_count):
     """Set total number of items when paginating
 
@@ -186,22 +176,18 @@ def set_item_count(item_count):
     _get_pagination_ctx()['item_count'] = item_count
 
 
-def set_pagination_header():
+def _set_pagination_header(page_params):
     """Get pagination metadata from AppContext and add it to headers
-
-    Called automatically
 
     Abort with 404 status if requested page number is out of range
     """
-    pagination_ctx = _get_pagination_ctx()
     try:
-        item_count = pagination_ctx['item_count']
+        item_count = _get_pagination_ctx()['item_count']
     except KeyError:
         # item_count is not set, this is a issue in the app. Pass and warn.
         current_app.logger.warning(
             'item_count not set in endpoint {}'.format(request.endpoint))
         return
-    page_params = pagination_ctx['parameters']
     try:
         pagination_metadata = PaginationMetadata(
             page_params.page, page_params.page_size, item_count)
@@ -209,3 +195,38 @@ def set_pagination_header():
         abort(404, messages=str(exc), exc=exc)
     page_header = PaginationMetadataSchema().dumps(pagination_metadata)[0]
     get_appcontext()['headers']['X-Pagination'] = page_header
+
+
+def paginate(pager=None):
+    """Decorator that handles pagination"""
+    def decorator(func):
+
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+
+            page_params = parser.parse(PaginationParametersSchema, request)
+
+            # Pagination in resource code: inject first/last as kwargs
+            if pager is None:
+                kwargs.update({
+                    'first_item': page_params.first_item,
+                    'last_item': page_params.last_item,
+                })
+
+            # Execute decorated function
+            result = func(*args, **kwargs)
+
+            # Post pagination: use pager class to paginate the result
+            if pager is not None:
+                page = pager(result, page_params=page_params)
+                result = page.items
+                set_item_count(page.item_count)
+
+            # Add pagination metadata to headers
+            _set_pagination_header(page_params)
+
+            return result
+
+        return wrapper
+
+    return decorator

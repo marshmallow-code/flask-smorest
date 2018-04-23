@@ -33,7 +33,8 @@ def implicit_data_and_schema_etag_blueprint(collection, schemas):
     @blp.route('/')
     class Resource(MethodView):
 
-        @blp.response(DocSchema, paginate_with=Page)
+        @blp.response(DocSchema(many=True))
+        @blp.paginate(Page)
         def get(self):
             return collection.items
 
@@ -87,7 +88,10 @@ def implicit_data_explicit_schema_etag_blueprint(collection, schemas):
     @blp.route('/')
     class Resource(MethodView):
 
-        @blp.response(DocSchema, paginate=True, etag_schema=DocEtagSchema)
+        @blp.response(
+            DocSchema(many=True), etag_schema=DocEtagSchema(many=True)
+        )
+        @blp.paginate()
         def get(self, first_item, last_item):
             set_item_count(len(collection.items))
             return collection.items[first_item: last_item + 1]
@@ -145,7 +149,8 @@ def explicit_data_no_schema_etag_blueprint(collection, schemas):
     @blp.route('/')
     class Resource(MethodView):
 
-        @blp.response(DocSchema, paginate=True)
+        @blp.response(DocSchema(many=True))
+        @blp.paginate()
         def get(self, first_item, last_item):
             set_item_count(len(collection.items))
             return collection.items[first_item: last_item + 1]

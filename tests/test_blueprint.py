@@ -10,8 +10,7 @@ import marshmallow as ma
 
 from flask_rest_api import Api
 from flask_rest_api.blueprint import Blueprint, HTTP_METHODS
-from flask_rest_api.exceptions import MultiplePaginationModes, InvalidLocation
-from flask_rest_api.pagination import Page
+from flask_rest_api.exceptions import InvalidLocation
 
 
 LOCATIONS_MAPPING = (
@@ -139,13 +138,6 @@ class TestBlueprint():
             'document': {'db_field': 12},
             'query_args': {'arg1': 'test'},
         }
-
-    def test_blueprint_multiple_paginate_modes(self):
-        blp = Blueprint('test', __name__, url_prefix='/test')
-        with pytest.raises(MultiplePaginationModes):
-            @blp.response(paginate=True, paginate_with=Page)
-            def get(self):
-                pass
 
     def test_blueprint_keywork_only_args(self):
         blp = Blueprint('test', __name__, url_prefix='/test')

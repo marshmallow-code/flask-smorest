@@ -9,7 +9,7 @@ from flask.views import MethodView
 from werkzeug.routing import BaseConverter
 import marshmallow as ma
 
-from flask_rest_api import Api, Blueprint, Page
+from flask_rest_api import Api, Blueprint
 
 from .conftest import AppConfig
 
@@ -167,16 +167,6 @@ class TestAPISpecPlugin():
         def many_true():
             pass
 
-        @blp.route('/paginate')
-        @blp.response(schemas.DocSchema, paginate=True)
-        def paginate():
-            pass
-
-        @blp.route('/paginate_with')
-        @blp.response(schemas.DocSchema, paginate_with=Page)
-        def paginate_with():
-            pass
-
         api.register_blueprint(blp)
 
         paths = api.spec.to_dict()['paths']
@@ -186,8 +176,7 @@ class TestAPISpecPlugin():
         assert schema_many_false['type'] == 'object'
         assert 'items' not in schema_many_false
 
-        for path in ('schema_many_true', 'paginate', 'paginate_with'):
-            schema = paths[
-                '/test/{}'.format(path)]['get']['responses'][200]['schema']
-            assert schema['type'] == 'array'
-            assert schema['items']['type'] == 'object'
+        schema_many_true = paths[
+            '/test/schema_many_true']['get']['responses'][200]['schema']
+        assert schema_many_true['type'] == 'array'
+        assert schema_many_true['items']['type'] == 'object'

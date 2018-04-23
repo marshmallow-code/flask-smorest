@@ -21,13 +21,15 @@ def pagination_blueprint(collection, schemas, as_method_view):
     if as_method_view:
         @blp.route('/')
         class Resource(MethodView):
-            @blp.response(DocSchema, paginate=True)
+            @blp.response(DocSchema(many=True))
+            @blp.paginate()
             def get(self, first_item, last_item):
                 set_item_count(len(collection.items))
                 return collection.items[first_item: last_item + 1]
     else:
         @blp.route('/')
-        @blp.response(DocSchema, paginate=True)
+        @blp.response(DocSchema(many=True))
+        @blp.paginate()
         def get_resources(first_item, last_item):
             set_item_count(len(collection.items))
             return collection.items[first_item: last_item + 1]
@@ -45,12 +47,14 @@ def post_pagination_blueprint(collection, schemas, as_method_view):
     if as_method_view:
         @blp.route('/')
         class Resource(MethodView):
-            @blp.response(DocSchema, paginate_with=Page)
+            @blp.response(DocSchema(many=True))
+            @blp.paginate(Page)
             def get(self):
                 return collection.items
     else:
         @blp.route('/')
-        @blp.response(DocSchema, paginate_with=Page)
+        @blp.response(DocSchema(many=True))
+        @blp.paginate(Page)
         def get_resources():
             return collection.items
 
@@ -90,7 +94,8 @@ class TestPagination():
         blp = Blueprint('test', __name__, url_prefix='/test')
 
         @blp.route('/')
-        @blp.response(paginate=True)
+        @blp.response()
+        @blp.paginate()
         def func(first_item, last_item):
             # Here, we purposely forget to call set_item_count
             # set_item_count(2)
