@@ -1,6 +1,7 @@
 """Test pagination feature"""
 
 import json
+from unittest import mock
 
 import pytest
 
@@ -82,6 +83,27 @@ class TestPagination():
         assert (repr(Page([1, 2, 3, 4, 5], page_params)) ==
                 "Page(collection=[1, 2, 3, 4, 5],page_params={})"
                 .format(repr(page_params)))
+
+    def test_pagination_item_count_missing(self, app):
+        """If item_count was not set, pass and warn"""
+        api = Api(app)
+        blp = Blueprint('test', __name__, url_prefix='/test')
+
+        @blp.route('/')
+        @blp.response(paginate=True)
+        def func(first_item, last_item):
+            # Here, we purposely forget to call set_item_count
+            # set_item_count(2)
+            return [1, 2]
+
+        api.register_blueprint(blp)
+        client = app.test_client()
+
+        with mock.patch.object(app.logger, 'warning') as mock_warning:
+            response = client.get('/test/')
+            assert response.status_code == 200
+            assert 'X-Pagination' not in response.headers
+            mock_warning.call_count == 1
 
     @pytest.mark.parametrize('collection', [1000, ], indirect=True)
     def test_pagination(self, app, blueprint):

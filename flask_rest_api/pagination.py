@@ -9,7 +9,7 @@ Two pagination modes are supported:
   a pager is provided to paginate the data and get the total number of items.
 """
 
-from flask import request
+from flask import request, current_app
 
 import marshmallow as ma
 
@@ -194,8 +194,12 @@ def get_pagination_metadata():
     Abort with 404 status if requested page number is out of range
     """
     pagination_ctx = _get_pagination_ctx()
-    item_count = pagination_ctx['item_count']
-    if item_count is None:
+    try:
+        item_count = pagination_ctx['item_count']
+    except KeyError:
+        # item_count is not set, this is a issue in the app. Pass and warn.
+        current_app.logger.warning(
+            'item_count not set in endpoint {}'.format(request.endpoint))
         return None
     page_params = pagination_ctx['parameters']
     try:
@@ -211,4 +215,5 @@ def set_pagination_metadata_in_response(response, pagination_metadata):
 
     Called automatically
     """
-    response.headers['X-Pagination'] = pagination_metadata
+    if pagination_metadata is not None:
+        response.headers['X-Pagination'] = pagination_metadata
