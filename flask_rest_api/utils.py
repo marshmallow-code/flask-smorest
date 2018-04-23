@@ -1,5 +1,7 @@
 """Utils"""
 
+from collections import defaultdict
+
 from flask import _app_ctx_stack
 
 
@@ -24,5 +26,5 @@ def get_appcontext():
     # http://flask.pocoo.org/docs/0.12/extensiondev/#the-extension-code
     ctx = _app_ctx_stack.top
     if not hasattr(ctx, 'flask_rest_api'):
-        ctx.flask_rest_api = {}
+        ctx.flask_rest_api = defaultdict(dict)
     return ctx.flask_rest_api

@@ -163,7 +163,7 @@ class Page:
 
 def _get_pagination_ctx():
     """Get pagination section of AppContext"""
-    return get_appcontext().setdefault('pagination', {})
+    return get_appcontext()['pagination']
 
 
 def get_pagination_parameters_from_request():

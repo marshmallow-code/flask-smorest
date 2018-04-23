@@ -19,7 +19,7 @@ def is_etag_enabled(app):
 
 def _get_etag_ctx():
     """Get ETag section of AppContext"""
-    return get_appcontext().setdefault('etag', {})
+    return get_appcontext()['etag']
 
 
 def disable_etag_for_request():
