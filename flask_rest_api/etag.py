@@ -116,8 +116,8 @@ def verify_check_etag():
             request.method in METHODS_NEEDING_CHECK_ETAG):
         if not _get_etag_ctx().get('etag_checked'):
             current_app.logger.warning(
-                'ETag enabled but not checked on {} request.'
-                .format(request.method))
+                'ETag enabled but not checked in endpoint {} on {} request.'
+                .format(request.endpoint, request.method))
 
 
 def set_etag(etag_data, etag_schema=None):
