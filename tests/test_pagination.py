@@ -103,7 +103,7 @@ class TestPagination():
             response = client.get('/test/')
             assert response.status_code == 200
             assert 'X-Pagination' not in response.headers
-            mock_warning.call_count == 1
+            assert mock_warning.call_count == 1
 
     @pytest.mark.parametrize('collection', [1000, ], indirect=True)
     def test_pagination(self, app, blueprint):
