@@ -167,13 +167,6 @@ class TestBlueprint():
         assert parameters[3]['name'] == 'arg2'
         assert parameters[3]['in'] == 'query'
 
-    def test_blueprint_keywork_only_args(self):
-        blp = Blueprint('test', __name__, url_prefix='/test')
-        # All arguments but schema are keyword-only arguments
-        with pytest.raises(TypeError):
-            # pylint: disable=too-many-function-args
-            blp.response(None, 200)
-
     def test_blueprint_doc(self):
         blp = Blueprint('test', __name__, url_prefix='/test')
 
