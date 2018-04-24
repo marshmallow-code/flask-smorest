@@ -6,8 +6,6 @@ import pytest
 from flask import jsonify
 from flask.views import MethodView
 
-import marshmallow as ma
-
 from flask_rest_api import Api
 from flask_rest_api.blueprint import Blueprint, HTTP_METHODS
 from flask_rest_api.exceptions import InvalidLocation
@@ -96,17 +94,9 @@ class TestBlueprint():
         blp = Blueprint('test', __name__, url_prefix='/test')
         client = app.test_client()
 
-        class QueryArgsSchema(ma.Schema):
-            class Meta:
-                strict = True
-                ordered = True
-
-            arg1 = ma.fields.String()
-            arg2 = ma.fields.Integer()
-
         @blp.route('/', methods=('POST', ))
         @blp.arguments(schemas.DocSchema)
-        @blp.arguments(QueryArgsSchema, location='query')
+        @blp.arguments(schemas.QueryArgsSchema, location='query')
         def func(document, query_args):
             return jsonify({
                 'document': document,
@@ -138,6 +128,44 @@ class TestBlueprint():
             'document': {'db_field': 12},
             'query_args': {'arg1': 'test'},
         }
+
+    def test_blueprint_pagination(self, app, schemas):
+        api = Api(app)
+        blp = Blueprint('test', __name__, url_prefix='/test')
+
+        @blp.route('/')
+        @blp.arguments(schemas.QueryArgsSchema, location='query')
+        @blp.response(schemas.DocSchema)
+        @blp.paginate()
+        def func():
+            """Dummy view func"""
+
+        api.register_blueprint(blp)
+        spec = api.spec.to_dict()
+
+        # Check parameters are documented
+        parameters = spec['paths']['/test/']['get']['parameters']
+        # Page
+        assert parameters[0]['name'] == 'page'
+        assert parameters[0]['in'] == 'query'
+        assert parameters[0]['type'] == 'integer'
+        assert parameters[0]['required'] is False
+        assert parameters[0]['default'] == 1
+        assert parameters[0]['minimum'] == 1
+        # Page size
+        assert parameters[1]['name'] == 'page_size'
+        assert parameters[1]['in'] == 'query'
+        assert parameters[1]['type'] == 'integer'
+        assert parameters[1]['required'] is False
+        assert parameters[1]['default'] == 10
+        assert parameters[1]['minimum'] == 1
+        assert parameters[1]['maximum'] == 100
+        # Other query string parameters
+        assert parameters[1]['in'] == 'query'
+        assert parameters[2]['name'] == 'arg1'
+        assert parameters[2]['in'] == 'query'
+        assert parameters[3]['name'] == 'arg2'
+        assert parameters[3]['in'] == 'query'
 
     def test_blueprint_keywork_only_args(self):
         blp = Blueprint('test', __name__, url_prefix='/test')

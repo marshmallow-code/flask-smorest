@@ -70,5 +70,13 @@ def schemas():
             strict = True
         field = fields.Int(attribute='db_field')
 
+    class QueryArgsSchema(Schema):
+        class Meta:
+            strict = True
+            ordered = True
+        arg1 = fields.String()
+        arg2 = fields.Integer()
+
     return namedtuple(
-        'Model', ('DocSchema', 'DocEtagSchema'))(DocSchema, DocEtagSchema)
+        'Model', ('DocSchema', 'DocEtagSchema', 'QueryArgsSchema'))(
+            DocSchema, DocEtagSchema, QueryArgsSchema)

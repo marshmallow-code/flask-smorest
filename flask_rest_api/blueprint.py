@@ -37,7 +37,7 @@ from apispec.ext.marshmallow.swagger import __location_map__
 from .utils import deepupdate
 from .args_parser import parser
 from .response import response
-from .pagination import paginate, DEFAULT_PAGINATION_PARAMETERS
+from .pagination import paginate, pagination_parameters_schema_factory
 from .exceptions import EndpointMethodDocAlreadyRegisted, InvalidLocation
 
 
@@ -231,14 +231,12 @@ class Blueprint(FlaskBlueprint):
         }
 
         def decorator(func):
-            # Call use_args (from webargs) to inject params in function
-            func = parser.use_args(
-                schema, locations=[location], **kwargs)(func)
             # Add parameter to parameters list in doc info in function object
             func._apidoc = getattr(func, '_apidoc', {})
             func._apidoc.setdefault('parameters', []).append(parameters)
-            return func
-
+            # Call use_args (from webargs) to inject params in function
+            return parser.use_args(
+                schema, locations=[location], **kwargs)(func)
         return decorator
 
     @staticmethod
@@ -296,17 +294,17 @@ class Blueprint(FlaskBlueprint):
         If a pager class is provided, it is used to paginate the data returned
         by the view function, typically a lazy database cursor.
         """
-        if page is None:
-            page = DEFAULT_PAGINATION_PARAMETERS['page']
-        if page_size is None:
-            page_size = DEFAULT_PAGINATION_PARAMETERS['page_size']
-        if max_page_size is None:
-            max_page_size = DEFAULT_PAGINATION_PARAMETERS['max_page_size']
+        page_params_schema = pagination_parameters_schema_factory(
+            page, page_size, max_page_size)
+
+        parameters = {
+            'in': 'query',
+            'schema': page_params_schema,
+        }
 
         def decorator(func):
-            # TODO: document pagination in the API doc
-            return paginate(
-                pager, def_page=page,
-                def_page_size=page_size, def_max_page_size=max_page_size
-            )(func)
+            # Add pagination params to doc info in function object
+            func._apidoc = getattr(func, '_apidoc', {})
+            func._apidoc.setdefault('parameters', []).append(parameters)
+            return paginate(pager, page_params_schema)(func)
         return decorator

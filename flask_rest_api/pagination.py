@@ -48,6 +48,39 @@ class PaginationParameters:
                 .format(self.__class__.__name__, self.page, self.page_size))
 
 
+def pagination_parameters_schema_factory(
+        def_page=None, def_page_size=None, def_max_page_size=None):
+    """Generate a PaginationParametersSchema"""
+    if def_page is None:
+        def_page = DEFAULT_PAGINATION_PARAMETERS['page']
+    if def_page_size is None:
+        def_page_size = DEFAULT_PAGINATION_PARAMETERS['page_size']
+    if def_max_page_size is None:
+        def_max_page_size = DEFAULT_PAGINATION_PARAMETERS['max_page_size']
+
+    class PaginationParametersSchema(ma.Schema):
+        """Deserializes pagination params into PaginationParameters"""
+
+        class Meta:
+            strict = True
+            ordered = True
+
+        page = ma.fields.Integer(
+            missing=def_page,
+            validate=ma.validate.Range(min=1)
+        )
+        page_size = ma.fields.Integer(
+            missing=def_page_size,
+            validate=ma.validate.Range(min=1, max=def_max_page_size)
+        )
+
+        @ma.post_load
+        def make_paginator(self, data):
+            return PaginationParameters(**data)
+
+    return PaginationParametersSchema
+
+
 class PaginationMetadata:
 
     def __init__(self, page, page_size, item_count):
@@ -181,35 +214,15 @@ def _set_pagination_header(page_params):
     get_appcontext()['headers']['X-Pagination'] = page_header
 
 
-def paginate(pager=None, *, def_page, def_page_size, def_max_page_size):
+def paginate(pager, page_params_schema):
     """Decorator that handles pagination"""
-
-    class PaginationParametersSchema(ma.Schema):
-        """Deserializes pagination params into PaginationParameters"""
-
-        class Meta:
-            strict = True
-            ordered = True
-
-        page = ma.fields.Integer(
-            missing=def_page,
-            validate=ma.validate.Range(min=1)
-        )
-        page_size = ma.fields.Integer(
-            missing=def_page_size,
-            validate=ma.validate.Range(min=1, max=def_max_page_size)
-        )
-
-        @ma.post_load
-        def make_paginator(self, data):
-            return PaginationParameters(**data)
 
     def decorator(func):
 
         @wraps(func)
         def wrapper(*args, **kwargs):
 
-            page_params = parser.parse(PaginationParametersSchema, request)
+            page_params = parser.parse(page_params_schema, request)
 
             # Pagination in resource code: inject first/last as kwargs
             if pager is None:
