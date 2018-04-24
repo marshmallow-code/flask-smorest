@@ -37,7 +37,7 @@ from apispec.ext.marshmallow.swagger import __location_map__
 from .utils import deepupdate
 from .args_parser import parser
 from .response import response
-from .pagination import paginate
+from .pagination import paginate, DEFAULT_PAGINATION_PARAMETERS
 from .exceptions import EndpointMethodDocAlreadyRegisted, InvalidLocation
 
 
@@ -283,7 +283,7 @@ class Blueprint(FlaskBlueprint):
         return decorator
 
     @staticmethod
-    def paginate(pager=None):
+    def paginate(pager=None, *, page=None, page_size=None, max_page_size=None):
         """Decorator adding pagination to the endpoint
 
         :param Page pager: Page class used to paginate response data
@@ -296,7 +296,17 @@ class Blueprint(FlaskBlueprint):
         If a pager class is provided, it is used to paginate the data returned
         by the view function, typically a lazy database cursor.
         """
+        if page is None:
+            page = DEFAULT_PAGINATION_PARAMETERS['page']
+        if page_size is None:
+            page_size = DEFAULT_PAGINATION_PARAMETERS['page_size']
+        if max_page_size is None:
+            max_page_size = DEFAULT_PAGINATION_PARAMETERS['max_page_size']
+
         def decorator(func):
             # TODO: document pagination in the API doc
-            return paginate(pager=pager)(func)
+            return paginate(
+                pager, def_page=page,
+                def_page_size=page_size, def_max_page_size=max_page_size
+            )(func)
         return decorator

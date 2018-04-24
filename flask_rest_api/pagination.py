@@ -20,6 +20,12 @@ from .utils import get_appcontext
 from .exceptions import PageOutOfRangeError
 
 
+# Global default pagination parameters
+# Can be mutated to provide custom defaults
+DEFAULT_PAGINATION_PARAMETERS = {
+    'page': 1, 'page_size': 10, 'max_page_size': 100}
+
+
 class PaginationParameters:
     """Holds pagination arguments"""
 
@@ -40,28 +46,6 @@ class PaginationParameters:
     def __repr__(self):
         return ("{}(page={!r},page_size={!r})"
                 .format(self.__class__.__name__, self.page, self.page_size))
-
-
-class PaginationParametersSchema(ma.Schema):
-    """Deserializes pagination parameters into a PaginationParameters object"""
-
-    class Meta:
-        strict = True
-        ordered = True
-
-    page = ma.fields.Integer(
-        missing=1,
-        validate=ma.validate.Range(min=1)
-    )
-    page_size = ma.fields.Integer(
-        # TODO: don't hardcode default and max page_size values?
-        missing=10,
-        validate=ma.validate.Range(min=1, max=100)
-    )
-
-    @ma.post_load
-    def make_paginator(self, data):
-        return PaginationParameters(**data)
 
 
 class PaginationMetadata:
@@ -197,8 +181,29 @@ def _set_pagination_header(page_params):
     get_appcontext()['headers']['X-Pagination'] = page_header
 
 
-def paginate(pager=None):
+def paginate(pager=None, *, def_page, def_page_size, def_max_page_size):
     """Decorator that handles pagination"""
+
+    class PaginationParametersSchema(ma.Schema):
+        """Deserializes pagination params into PaginationParameters"""
+
+        class Meta:
+            strict = True
+            ordered = True
+
+        page = ma.fields.Integer(
+            missing=def_page,
+            validate=ma.validate.Range(min=1)
+        )
+        page_size = ma.fields.Integer(
+            missing=def_page_size,
+            validate=ma.validate.Range(min=1, max=def_max_page_size)
+        )
+
+        @ma.post_load
+        def make_paginator(self, data):
+            return PaginationParameters(**data)
+
     def decorator(func):
 
         @wraps(func)
