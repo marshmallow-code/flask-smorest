@@ -211,6 +211,8 @@ class Blueprint(FlaskBlueprint):
         The order of the decorator calls matter as it determines the order in
         which the parameters are passed to the view function.
         """
+        # TODO: This shouldn't be needed. I think I did this because apispec
+        # worked better with instances, but this should have been solved since.
         if isinstance(schema, type):
             schema = schema()
 
