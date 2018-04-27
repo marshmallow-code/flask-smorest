@@ -18,6 +18,11 @@ PLUGINS = (
 )
 
 
+def _add_leading_slash(string):
+    """Add leading slash to a string if there is None"""
+    return string if string[0] == '/' else '/' + string
+
+
 class APISpec(apispec.APISpec):
     """API specification class
 
@@ -44,25 +49,29 @@ class APISpec(apispec.APISpec):
         # Add routes to json spec file and spec UI (ReDoc)
         api_url = app.config.get('OPENAPI_URL_PREFIX', None)
         if api_url:
-            if not api_url.startswith('/'):
-                api_url = '/' + api_url
-            if not api_url.endswith('/'):
-                api_url += '/'
+            # TODO: Remove this when dropping Flask < 1.0 compatibility
+            # Strip single trailing slash (flask.Blueprint does it from v1.0)
+            if api_url and api_url[-1] == '/':
+                api_url = api_url[:-1]
             blueprint = flask.Blueprint(
                 'api-docs',
                 __name__,
-                url_prefix=api_url,
+                url_prefix=_add_leading_slash(api_url),
                 template_folder='./templates',
             )
             # Serve json spec at 'url_prefix/openapi.json' by default
-            json_url = app.config.get('OPENAPI_JSON_PATH', 'openapi.json')
-            blueprint.add_url_rule(json_url, endpoint='openapi_json',
-                                   view_func=self._openapi_json)
+            json_url = app.config.get('OPENAPI_JSON_PATH', '/openapi.json')
+            blueprint.add_url_rule(
+                _add_leading_slash(json_url),
+                endpoint='openapi_json',
+                view_func=self._openapi_json)
             # Serve ReDoc only if path specified
             redoc_url = app.config.get('OPENAPI_REDOC_PATH', None)
             if redoc_url:
-                blueprint.add_url_rule(redoc_url, endpoint='openapi_redoc',
-                                       view_func=self._openapi_redoc)
+                blueprint.add_url_rule(
+                    _add_leading_slash(redoc_url),
+                    endpoint='openapi_redoc',
+                    view_func=self._openapi_redoc)
             app.register_blueprint(blueprint)
 
     def _openapi_json(self):

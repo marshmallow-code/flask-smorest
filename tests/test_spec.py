@@ -135,7 +135,7 @@ class TestAPISpecServeDocs():
                         'text/html; charset=utf-8')
 
     def test_apipec_serve_spec_preserve_order(self, app):
-        app.config['OPENAPI_URL_PREFIX'] = '/api-docs/'
+        app.config['OPENAPI_URL_PREFIX'] = '/api-docs'
         api = Api(app)
         client = app.test_client()
 
@@ -145,6 +145,7 @@ class TestAPISpecServeDocs():
         api.spec._paths = paths
 
         response_json_docs = client.get('/api-docs/openapi.json')
+        assert response_json_docs.status_code == 200
         assert response_json_docs.json['paths'] == paths
 
 
