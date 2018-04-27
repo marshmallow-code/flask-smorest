@@ -1,6 +1,14 @@
 Changelog
 ---------
 
+0.4.2 (2018-04-27)
+++++++++++++++++++
+
+Bugfixes:
+
+- Pagination: don't crash if ``item_count`` is not set, just log a warning and set no pagination header.
+- API spec: Fix leading/trailing slash issues in api-docs Blueprint. Fixes compatibility with Flask 1.0.
+
 0.4.1 (2018-04-17)
 ++++++++++++++++++
 
