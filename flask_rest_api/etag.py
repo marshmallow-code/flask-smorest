@@ -55,8 +55,6 @@ def _generate_etag(etag_data, etag_schema=None, *, extra_data=None):
     Typically, extra_data is used to add pagination metadata to the hash. It is
     not dumped through the Schema.
     """
-    # flask's json.dumps is needed here
-    # as vanilla json.dumps chokes on lazy_strings
     if etag_schema is None:
         raw_data = etag_data
     else:
@@ -65,6 +63,8 @@ def _generate_etag(etag_data, etag_schema=None, *, extra_data=None):
         raw_data = etag_schema.dump(etag_data)[0]
     if extra_data:
         raw_data = (raw_data, extra_data)
+    # flask's json.dumps is needed here
+    # as vanilla json.dumps chokes on lazy_strings
     data = json.dumps(raw_data, sort_keys=True)
     return hashlib.sha1(bytes(data, 'utf-8')).hexdigest()
 
@@ -96,8 +96,7 @@ def check_etag(etag_data, etag_schema=None):
     runtime if this function was not called.
     """
     if is_etag_enabled_for_request():
-        if etag_schema is None:
-            etag_schema = _get_etag_schema()
+        etag_schema = etag_schema or _get_etag_schema()
         new_etag = _generate_etag(etag_data, etag_schema)
         _get_etag_ctx()['etag_checked'] = True
         if new_etag not in request.if_match:
@@ -134,8 +133,7 @@ def set_etag(etag_data, etag_schema=None):
         current_app.logger.warning(
             'ETag cannot be set on {} request.'.format(request.method))
     if is_etag_enabled_for_request():
-        if etag_schema is None:
-            etag_schema = _get_etag_schema()
+        etag_schema = etag_schema or _get_etag_schema()
         new_etag = _generate_etag(etag_data, etag_schema)
         if new_etag in request.if_none_match:
             raise NotModified
