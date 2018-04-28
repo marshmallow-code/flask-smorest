@@ -297,7 +297,6 @@ class TestFullExample():
         assert response.status_code == 428
 
         # PUT with correct ETag: OK
-        schemas.DocSchema.reset_dump_count()
         with assert_counters(1, 2 if bp_schema == 'Schema' else 1,
                              0, 2 if bp_schema == 'ETag schema' else 0):
             response = client.put(
