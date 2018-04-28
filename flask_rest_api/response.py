@@ -52,10 +52,8 @@ def response(schema=None, *, code=200, etag_schema=None, disable_etag=False):
             # Pass result data to use as ETag data if set_etag was not called
             # If etag_schema is provided, pass raw data rather than dump, as
             # the dump needs to be done using etag_schema
-            pagination_header = headers.get('X-Pagination', {})
             etag_data = result_dump if etag_schema is None else result
-            set_etag_in_response(
-                resp, etag_data, etag_schema, extra_data=pagination_header)
+            set_etag_in_response(resp, etag_data, etag_schema)
 
             # Add status code
             return resp, code

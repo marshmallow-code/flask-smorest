@@ -11,6 +11,9 @@ from .utils import get_appcontext
 METHODS_NEEDING_CHECK_ETAG = ['PUT', 'PATCH', 'DELETE']
 METHODS_ALLOWING_SET_ETAG = ['GET', 'HEAD', 'POST', 'PUT', 'PATCH']
 
+# Can be mutated to specify which headers to use for ETag computation
+INCLUDE_HEADERS = ['X-Pagination']
+
 
 def is_etag_enabled(app):
     """Return True if ETag feature enabled application-wise"""
@@ -45,7 +48,7 @@ def _get_etag_schema():
     return _get_etag_ctx().get('etag_schema')
 
 
-def _generate_etag(etag_data, etag_schema=None, *, extra_data=None):
+def _generate_etag(etag_data, etag_schema=None, extra_data=None):
     """Generate an ETag from data
 
     etag_data: Data to use to compute ETag
@@ -141,8 +144,7 @@ def set_etag(etag_data, etag_schema=None):
         _get_etag_ctx()['etag'] = new_etag
 
 
-def set_etag_in_response(
-        response, etag_data, etag_schema=None, *, extra_data=None):
+def set_etag_in_response(response, etag_data, etag_schema):
     """Set ETag in response object
 
     Called automatically.
@@ -155,8 +157,9 @@ def set_etag_in_response(
         new_etag = _get_etag_ctx().get('etag')
         # If no ETag data was manually provided, use response content
         if new_etag is None:
-            new_etag = _generate_etag(
-                etag_data, etag_schema, extra_data=extra_data)
+            headers = (response.headers.get(h) for h in INCLUDE_HEADERS)
+            extra_data = tuple(h for h in headers if h is not None)
+            new_etag = _generate_etag(etag_data, etag_schema, extra_data)
             if new_etag in request.if_none_match:
                 raise NotModified
         response.set_etag(new_etag)

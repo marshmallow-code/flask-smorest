@@ -194,11 +194,6 @@ class TestEtag():
             bytes(json.dumps(data_dump, sort_keys=True), 'utf-8')
             ).hexdigest()
 
-        # extra_data is a keyword-only argument
-        with pytest.raises(TypeError):
-            # pylint: disable=too-many-function-args
-            _generate_etag(item, etag_schema(), extra_data)
-
     @pytest.mark.parametrize(
         'app', [AppConfig, AppConfigEtagEnabled], indirect=True)
     def test_etag_is_etag_enabled_for_request(self, app):
@@ -361,45 +356,36 @@ class TestEtag():
 
     @pytest.mark.parametrize(
         'app', [AppConfig, AppConfigEtagEnabled], indirect=True)
-    @pytest.mark.parametrize('extra_data', [None, {'answer': 42}])
-    def test_etag_set_etag_in_response(self, app, schemas, extra_data):
+    @pytest.mark.parametrize('paginate', (True, False))
+    def test_etag_set_etag_in_response(self, app, schemas, paginate):
 
         etag_schema = schemas.DocEtagSchema
         item = {'item_id': 1, 'db_field': 0}
-        resp = Response()
+        extra_data = ('Dummy pagination header', ) if paginate else tuple()
         etag = _generate_etag(item, extra_data=extra_data)
         etag_with_schema = _generate_etag(
             item, etag_schema, extra_data=extra_data)
 
         with app.test_request_context('/'):
             resp = Response()
+            if extra_data:
+                resp.headers['X-Pagination'] = 'Dummy pagination header'
             if is_etag_enabled(app):
-                set_etag_in_response(
-                    resp, item, None, extra_data=extra_data)
+                set_etag_in_response(resp, item, None)
                 assert resp.get_etag() == (etag, False)
-                set_etag_in_response(
-                    resp, item, etag_schema, extra_data=extra_data)
+                set_etag_in_response(resp, item, etag_schema)
                 assert resp.get_etag() == (etag_with_schema, False)
             else:
-                set_etag_in_response(
-                    resp, item, None, extra_data=extra_data)
+                set_etag_in_response(resp, item, None)
                 assert resp.get_etag() == (None, None)
-                set_etag_in_response(
-                    resp, item, etag_schema, extra_data=extra_data)
+                set_etag_in_response(resp, item, etag_schema)
                 assert resp.get_etag() == (None, None)
             disable_etag_for_request()
             resp = Response()
-            set_etag_in_response(
-                resp, item, None, extra_data=extra_data)
+            set_etag_in_response(resp, item, None)
             assert resp.get_etag() == (None, None)
-            set_etag_in_response(
-                resp, item, etag_schema, extra_data=extra_data)
+            set_etag_in_response(resp, item, etag_schema)
             assert resp.get_etag() == (None, None)
-
-        # extra_data is a keywork-only argument
-        with pytest.raises(TypeError):
-            # pylint: disable=too-many-function-args
-            set_etag_in_response(resp, item, None, extra_data)
 
     @pytest.mark.parametrize('app', [AppConfigEtagEnabled], indirect=True)
     def test_etag_operations_etag_enabled(self, app_with_etag):
