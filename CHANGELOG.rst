@@ -1,6 +1,14 @@
 Changelog
 ---------
 
+0.5.0 (unreleased)
+++++++++++++++++++
+
+Features:
+
+- *Backwards-incompatible*: Pagination is now managed by dedicated ``Blueprint.paginate`` decorator.
+
+
 0.4.2 (2018-04-27)
 ++++++++++++++++++
 
@@ -24,8 +32,8 @@ Features:
 Features:
 
 - *Backwards-incompatible*: The case of a parameter both in URL and in arguments Schema is now unsupported.
-- *Backwards-incompatible*: By default, Schema parameter passed in ``Blueprint.arguments`` is documented as required.
-- *Backwards-incompatible*: ``APISpec.register_field`` now uses apispec API. It must be passed a  ``(type, format)`` couple or an amready registered ``Field`` class (this includes base marshmallow ``Fields``. When using ``(type, format)``, ``format`` doesn't default to ``None`` anymore.
+- *Backwards-incompatible*: By default, Schema parameter passed in ``Blueprint.arguments`` is documented as `required`.
+- *Backwards-incompatible*: ``APISpec.register_field`` now uses apispec API. It must be passed a  ``(type, format)`` couple or an already registered ``Field`` class (this includes base marshmallow ``Fields``. When using ``(type, format)``, ``format`` doesn't default to ``None`` anymore.
 - Preserve order when serving the spec file:
   - Fields are printed in declaration order if Schema.Meta.ordered is True
   - Methods in a method view are printed in this order: ['OPTIONS', 'HEAD', 'GET', 'POST', 'PUT', 'PATCH', 'DELETE']
