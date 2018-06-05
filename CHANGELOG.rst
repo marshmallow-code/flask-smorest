@@ -1,14 +1,15 @@
 Changelog
 ---------
 
-0.5.0 (unreleased)
+0.5.0 (2018-06-05)
 ++++++++++++++++++
 
 Features:
 
-- *Backwards-incompatible*: Pagination is now managed by dedicated ``Blueprint.paginate`` decorator.
 - *Backwards-incompatible*: In ``Blueprint.route``, the endpoint name defaults to the function name with the case unchanged. Before this change, the name was lowercased.
-
+- *Backwards-incompatible*: Pagination is now managed by dedicated ``Blueprint.paginate`` decorator.
+- Add ``etag.INCLUDE_HEADERS`` to specify which headers to use for ETag computation (defaults to ``['X-Pagination']``).
+- In ``verify_check_etag``, endpoint name is added to the warning message.
 
 0.4.2 (2018-04-27)
 ++++++++++++++++++
