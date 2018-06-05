@@ -132,9 +132,8 @@ class Blueprint(FlaskBlueprint):
         """
         def decorator(func):
 
-            # By default, endpoint for User is 'user'
-            # TODO: Remove lower() (Breaking change)
-            endpoint = options.pop('endpoint', func.__name__.lower())
+            # By default, endpoint name is function name
+            endpoint = options.pop('endpoint', func.__name__)
 
             # MethodView (class)
             if isinstance(func, MethodViewType):
