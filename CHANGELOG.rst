@@ -7,6 +7,7 @@ Changelog
 Features:
 
 - *Backwards-incompatible*: Pagination is now managed by dedicated ``Blueprint.paginate`` decorator.
+- *Backwards-incompatible*: In ``Blueprint.route``, the endpoint name defaults to the function name with the case unchanged. Before this change, the name was lowercased.
 
 
 0.4.2 (2018-04-27)
