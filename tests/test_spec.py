@@ -134,6 +134,38 @@ class TestAPISpecServeDocs():
                 assert (response_redoc.headers['Content-Type'] ==
                         'text/html; charset=utf-8')
 
+    @pytest.mark.parametrize(
+        'redoc_version',
+        (None, 'latest', 'v1.22', 'next', '2.0.0-alpha.17', 'v2.0.0-alpha.17')
+    )
+    def test_apipec_serve_redoc_using_cdn(self, app, redoc_version):
+
+        class NewAppConfig(AppConfig):
+            OPENAPI_URL_PREFIX = 'api-docs'
+            OPENAPI_REDOC_PATH = 'redoc'
+            if redoc_version:
+                OPENAPI_REDOC_VERSION = redoc_version
+
+        app.config.from_object(NewAppConfig)
+        Api(app)
+        client = app.test_client()
+        response_redoc = client.get('/api-docs/redoc')
+        assert (response_redoc.headers['Content-Type'] ==
+                'text/html; charset=utf-8')
+
+        redoc_version = redoc_version or 'latest'
+        if redoc_version == 'latest' or redoc_version.startswith('v1'):
+            redoc_url = (
+                'https://rebilly.github.io/ReDoc/releases/'
+                '{}/redoc.min.js'.format(redoc_version))
+        else:
+            redoc_url = (
+                'https://cdn.jsdelivr.net/npm/redoc@'
+                '{}/bundles/redoc.standalone.js'.format(redoc_version))
+        script_elem = '<script src="{}"></script>'.format(redoc_url)
+
+        assert script_elem in response_redoc.get_data(as_text=True)
+
     def test_apipec_serve_spec_preserve_order(self, app):
         app.config['OPENAPI_URL_PREFIX'] = '/api-docs'
         api = Api(app)

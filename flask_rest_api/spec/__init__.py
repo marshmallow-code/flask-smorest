@@ -60,16 +60,16 @@ class APISpec(apispec.APISpec):
                 template_folder='./templates',
             )
             # Serve json spec at 'url_prefix/openapi.json' by default
-            json_url = app.config.get('OPENAPI_JSON_PATH', '/openapi.json')
+            json_path = app.config.get('OPENAPI_JSON_PATH', '/openapi.json')
             blueprint.add_url_rule(
-                _add_leading_slash(json_url),
+                _add_leading_slash(json_path),
                 endpoint='openapi_json',
                 view_func=self._openapi_json)
             # Serve ReDoc only if path specified
-            redoc_url = app.config.get('OPENAPI_REDOC_PATH', None)
-            if redoc_url:
+            redoc_path = app.config.get('OPENAPI_REDOC_PATH', None)
+            if redoc_path:
                 blueprint.add_url_rule(
-                    _add_leading_slash(redoc_url),
+                    _add_leading_slash(redoc_path),
                     endpoint='openapi_redoc',
                     view_func=self._openapi_redoc)
             app.register_blueprint(blueprint)
@@ -85,18 +85,35 @@ class APISpec(apispec.APISpec):
     def _openapi_redoc(self):
         """Expose OpenAPI spec with ReDoc
 
-        The Redoc script URL can be specified using OPENAPI_REDOC_URL.
-        By default, a CDN script is used. When using a CDN script, the
-        version can (and should) be specified using OPENAPI_REDOC_VERSION,
+        The ReDoc script URL can be specified using OPENAPI_REDOC_URL.
+
+        Otherwise, a CDN script is used based on the ReDoc version. The
+        version can - and should - be specified using OPENAPI_REDOC_VERSION,
         otherwise, 'latest' is used.
+
+        When using 1.x branch (i.e. when OPENAPI_REDOC_VERSION is "latest" or
+        begins with "v1"), GitHub CDN is used.
+
+        When using 2.x branch (i.e. when OPENAPI_REDOC_VERSION is "next" or
+        begins with "2" or "v2"), unpkg nmp CDN is used.
+
         OPENAPI_REDOC_VERSION is ignored when OPENAPI_REDOC_URL is passed.
         """
         redoc_url = self._app.config.get('OPENAPI_REDOC_URL', None)
         if redoc_url is None:
+            # TODO: default to 'next' when ReDoc 2.0.0 is released.
             redoc_version = self._app.config.get(
                 'OPENAPI_REDOC_VERSION', 'latest')
-            redoc_url = ('https://rebilly.github.io/ReDoc/releases/'
-                         '{}/redoc.min.js'.format(redoc_version))
+            # latest or v1.x -> Redoc GitHub CDN
+            if redoc_version == 'latest' or redoc_version.startswith('v1'):
+                redoc_url = (
+                    'https://rebilly.github.io/ReDoc/releases/'
+                    '{}/redoc.min.js'.format(redoc_version))
+            # next or 2.x -> unpkg npm CDN
+            else:
+                redoc_url = (
+                    'https://cdn.jsdelivr.net/npm/redoc@'
+                    '{}/bundles/redoc.standalone.js'.format(redoc_version))
         return flask.render_template(
             'redoc.html', title=self._app.name, redoc_url=redoc_url)
 
