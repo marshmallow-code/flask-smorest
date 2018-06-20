@@ -32,7 +32,8 @@ class APISpec(apispec.APISpec):
         super().__init__(
             title=app.name,
             version=app.config.get('API_VERSION', '1'),
-            plugins=PLUGINS
+            plugins=PLUGINS,
+            openapi_version=app.config.get('OPENAPI_VERSION', '2.0')
         )
         self._app = app
 

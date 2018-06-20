@@ -17,6 +17,23 @@ from .conftest import AppConfig
 class TestAPISpec():
     """Test APISpec class"""
 
+    @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.1'])
+    def test_apispec_parameters_from_app(self, app, openapi_version):
+
+        class NewAppConfig(AppConfig):
+            API_VERSION = 'v42'
+            OPENAPI_VERSION = openapi_version
+
+        app.config.from_object(NewAppConfig)
+        api = Api(app)
+        spec = api.spec.to_dict()
+
+        assert spec['info'] == {'title': 'API Test', 'version': 'v42'}
+        if openapi_version == '2.0':
+            assert spec['swagger'] == '2.0'
+        else:
+            assert spec['openapi'] == '3.0.1'
+
     @pytest.mark.parametrize('view_type', ['function', 'method'])
     @pytest.mark.parametrize('custom_format', ['custom', None])
     def test_apispec_register_converter(self, app, view_type, custom_format):
