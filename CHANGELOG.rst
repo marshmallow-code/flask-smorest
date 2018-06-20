@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+0.5.2 (unreleased)
+++++++++++++++++++
+
+Features:
+
+- Pass OpenAPI version as ``OPENAPI_VERSION`` app config parameter.
+
 0.5.1 (2018-06-18)
 ++++++++++++++++++
 
