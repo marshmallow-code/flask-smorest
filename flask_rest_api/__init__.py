@@ -22,8 +22,8 @@ class Api:
     """
 
     def __init__(self, app=None):
-        self.spec = APISpec()
         self._app = app
+        self.spec = None
         if app is not None:
             self.init_app(app)
 
@@ -38,7 +38,7 @@ class Api:
         ext['ext_obj'] = self
 
         # Initialize spec
-        self.spec.init_app(app)
+        self.spec = APISpec(app)
 
         # Can't register a handler for HTTPException, so let's register
         # default handler for each code explicitly.

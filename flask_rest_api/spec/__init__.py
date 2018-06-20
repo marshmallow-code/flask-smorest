@@ -28,23 +28,13 @@ class APISpec(apispec.APISpec):
 
     :param Flask app: Flask application
     """
-
-    def __init__(self, app=None):
-        # We need to pass title and version as they are positional parameters
-        # Those values are replaced in init_app
-        super().__init__(title='OpenAPI spec', version='1', plugins=PLUGINS)
+    def __init__(self, app):
+        super().__init__(
+            title=app.name,
+            version=app.config.get('API_VERSION', '1'),
+            plugins=PLUGINS
+        )
         self._app = app
-        if app is not None:
-            self.init_app(app)
-
-    def init_app(self, app):
-        """Initialize ApiSpec with application"""
-
-        self._app = app
-
-        # API info from app
-        self.info['title'] = app.name
-        self.info['version'] = app.config.get('API_VERSION', '1')
 
         # Add routes to json spec file and spec UI (ReDoc)
         api_url = app.config.get('OPENAPI_URL_PREFIX', None)
