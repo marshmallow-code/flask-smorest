@@ -1,12 +1,13 @@
 Changelog
 ---------
 
-0.5.2 (unreleased)
+0.5.2 (2018-06-21)
 ++++++++++++++++++
 
 Features:
 
 - Pass OpenAPI version as ``OPENAPI_VERSION`` app config parameter.
+- Add Swagger UI (3.x) integration.
 
 0.5.1 (2018-06-18)
 ++++++++++++++++++
