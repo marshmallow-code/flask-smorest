@@ -22,7 +22,7 @@ Features
 ========
 
 - Serialization, deserialization and validation using marshmallow ``Schema``.
-- OpenAPI (Swagger) specification automatically generated, and exposed with `ReDoc <https://github.com/Rebilly/ReDoc>`_.
+- OpenAPI (Swagger) specification automatically generated, and exposed with `ReDoc <https://github.com/Rebilly/ReDoc>`_ or `Swagger UI <https://swagger.io/tools/swagger-ui/>`_.
 - ETag.
 - Pagination.
 
