@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <title>{{title}}</title>
+    <link href="{{swagger_ui_url}}swagger-ui.css" rel="stylesheet" type="text/css"/>
+  </head>
+
+ <body>
+
+   <div id="swagger-ui-container"></div>
+
+   <script src="{{swagger_ui_url}}swagger-ui-standalone-preset.js"></script>
+   <script src="{{swagger_ui_url}}swagger-ui-bundle.js"></script>
+   <script>
+     window.onload = function() {
+       const ui = SwaggerUIBundle({
+         url: "{{ url_for('api-docs.openapi_json') }}",
+         dom_id: '#swagger-ui-container',
+         deepLinking: true,
+         layout: "BaseLayout",
+         supportedSubmitMethods: [{% for meth in swagger_ui_supported_submit_methods %}"{{meth.lower()}}",{% endfor %}],
+       })
+       window.ui = ui
+     }
+   </script>
+
+ </body>
+
+</html>

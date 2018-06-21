@@ -123,7 +123,10 @@ class TestAPISpecServeDocs():
                    'docs_url_prefix/', '/docs_url_prefix/'))
     @pytest.mark.parametrize('json_path', (None, 'openapi.json'))
     @pytest.mark.parametrize('redoc_path', (None, 'redoc'))
-    def test_apipec_serve_spec(self, app, prefix, json_path, redoc_path):
+    @pytest.mark.parametrize('swagger_ui_path', (None, 'swagger-ui'))
+    @pytest.mark.parametrize('swagger_ui_version', (None, '3.0.0'))
+    def test_apipec_serve_spec(self, app, prefix, json_path, redoc_path,
+                               swagger_ui_path, swagger_ui_version):
 
         class NewAppConfig(AppConfig):
             if prefix:
@@ -132,15 +135,19 @@ class TestAPISpecServeDocs():
                 OPENAPI_JSON_PATH = json_path
             if redoc_path:
                 OPENAPI_REDOC_PATH = redoc_path
+            if swagger_ui_path:
+                OPENAPI_SWAGGER_UI_PATH = swagger_ui_path
 
         app.config.from_object(NewAppConfig)
         Api(app)
         client = app.test_client()
         response_json_docs = client.get('/docs_url_prefix/openapi.json')
         response_redoc = client.get('/docs_url_prefix/redoc')
+        response_swagger_ui = client.get('/docs_url_prefix/swagger-ui')
         if app.config.get('OPENAPI_URL_PREFIX') is None:
             assert response_json_docs.status_code == 404
             assert response_redoc.status_code == 404
+            assert response_swagger_ui.status_code == 404
         else:
             assert response_json_docs.json['info'] == {
                 'version': '1', 'title': 'API Test'}
@@ -149,6 +156,13 @@ class TestAPISpecServeDocs():
             else:
                 assert response_redoc.status_code == 200
                 assert (response_redoc.headers['Content-Type'] ==
+                        'text/html; charset=utf-8')
+            if (app.config.get('OPENAPI_SWAGGER_UI_PATH') is None or
+                    app.config.get('OPENAPI_SWAGGER_UI_VERSION') is None):
+                assert response_swagger_ui.status_code == 404
+            else:
+                assert response_swagger_ui.status_code == 200
+                assert (response_swagger_ui.headers['Content-Type'] ==
                         'text/html; charset=utf-8')
 
     @pytest.mark.parametrize(

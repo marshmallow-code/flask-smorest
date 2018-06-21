@@ -63,6 +63,15 @@ class APISpec(apispec.APISpec):
                     _add_leading_slash(redoc_path),
                     endpoint='openapi_redoc',
                     view_func=self._openapi_redoc)
+            # Serve Swagger UI only if path and version specified
+            swagger_ui_path = app.config.get('OPENAPI_SWAGGER_UI_PATH', None)
+            swagger_ui_version = app.config.get(
+                'OPENAPI_SWAGGER_UI_VERSION', None)
+            if swagger_ui_path and swagger_ui_version:
+                blueprint.add_url_rule(
+                    _add_leading_slash(swagger_ui_path),
+                    endpoint='openapi_swagger_ui',
+                    view_func=self._openapi_swagger_ui)
             app.register_blueprint(blueprint)
 
     def _openapi_json(self):
@@ -76,10 +85,10 @@ class APISpec(apispec.APISpec):
     def _openapi_redoc(self):
         """Expose OpenAPI spec with ReDoc
 
-        The ReDoc script URL can be specified using OPENAPI_REDOC_URL.
+        The ReDoc script URL can be specified as OPENAPI_REDOC_URL.
 
         Otherwise, a CDN script is used based on the ReDoc version. The
-        version can - and should - be specified using OPENAPI_REDOC_VERSION,
+        version can - and should - be specified as OPENAPI_REDOC_VERSION,
         otherwise, 'latest' is used.
 
         When using 1.x branch (i.e. when OPENAPI_REDOC_VERSION is "latest" or
@@ -107,6 +116,39 @@ class APISpec(apispec.APISpec):
                     '{}/bundles/redoc.standalone.js'.format(redoc_version))
         return flask.render_template(
             'redoc.html', title=self._app.name, redoc_url=redoc_url)
+
+    def _openapi_swagger_ui(self):
+        """Expose OpenAPI spec with Swagger UI
+
+        The Swagger UI scripts base URL can be specified as
+        OPENAPI_SWAGGER_UI_URL.
+
+        Otherwise, cdnjs is used. In this case, the Swagger UI version must be
+        specified as OPENAPI_SWAGGER_UI_VERSION. Versions older than 3.x branch
+        are not supported.
+
+        OPENAPI_SWAGGER_UI_VERSION is ignored when OPENAPI_SWAGGER_UI_URL is
+        passed.
+
+        OPENAPI_SWAGGER_UI_SUPPORTED_SUBMIT_METHODS specifes the methods for
+        which the 'Try it out!' feature is enabled.
+        """
+        swagger_ui_url = self._app.config.get('OPENAPI_REDOC_URL', None)
+        if swagger_ui_url is None:
+            swagger_ui_version = self._app.config.get(
+                'OPENAPI_SWAGGER_UI_VERSION', None)
+            if swagger_ui_version is not None:
+                swagger_ui_url = (
+                    'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/'
+                    '{}/'.format(swagger_ui_version))
+        swagger_ui_supported_submit_methods = self._app.config.get(
+            'OPENAPI_SWAGGER_UI_SUPPORTED_SUBMIT_METHODS', [])
+        return flask.render_template(
+            'swagger_ui.html', title=self._app.name,
+            swagger_ui_url=swagger_ui_url,
+            swagger_ui_supported_submit_methods=(
+                swagger_ui_supported_submit_methods)
+        )
 
     @staticmethod
     def register_converter(converter, conv_type, conv_format=None):
