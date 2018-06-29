@@ -129,14 +129,12 @@ class APISpec(apispec.APISpec):
         OPENAPI_SWAGGER_UI_SUPPORTED_SUBMIT_METHODS specifes the methods for
         which the 'Try it out!' feature is enabled.
         """
-        swagger_ui_url = self._app.config.get('OPENAPI_REDOC_URL', None)
+        swagger_ui_url = self._app.config.get('OPENAPI_SWAGGER_UI_URL', None)
         if swagger_ui_url is None:
-            swagger_ui_version = self._app.config.get(
-                'OPENAPI_SWAGGER_UI_VERSION', None)
-            if swagger_ui_version is not None:
-                swagger_ui_url = (
-                    'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/'
-                    '{}/'.format(swagger_ui_version))
+            swagger_ui_version = self._app.config['OPENAPI_SWAGGER_UI_VERSION']
+            swagger_ui_url = (
+                'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/'
+                '{}/'.format(swagger_ui_version))
         swagger_ui_supported_submit_methods = self._app.config.get(
             'OPENAPI_SWAGGER_UI_SUPPORTED_SUBMIT_METHODS', [])
         return flask.render_template(

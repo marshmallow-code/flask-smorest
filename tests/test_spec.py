@@ -81,6 +81,8 @@ class TestAPISpecServeDocs():
                 OPENAPI_REDOC_PATH = redoc_path
             if swagger_ui_path:
                 OPENAPI_SWAGGER_UI_PATH = swagger_ui_path
+            if swagger_ui_version:
+                OPENAPI_SWAGGER_UI_VERSION = swagger_ui_version
 
         app.config.from_object(NewAppConfig)
         Api(app)
