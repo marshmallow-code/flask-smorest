@@ -1,6 +1,14 @@
 Changelog
 ---------
 
+0.6.1 (2018-06-29)
+++++++++++++++++++
+
+Bugfixes:
+
+- Swagger UI integration: respect ``OPENAPI_SWAGGER_UI_URL`` configuration paramater.
+- ``Api.register_field``: use ``APISpec.register_field`` rather than access ``self.spec.ma_plugin`` directly.
+
 0.6.0 (2018-06-29)
 ++++++++++++++++++
 
