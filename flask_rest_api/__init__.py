@@ -19,15 +19,18 @@ class Api:
     Provides helpers to build a REST API using Flask.
 
     :param Flask app: Flask application
+    :param list|tuple spec_plugins: apispec BasePlugin instances
+
+    Extra apispec plugins can be passed to the internal APISpec instance.
     """
 
-    def __init__(self, app=None):
+    def __init__(self, app=None, *, spec_plugins=None):
         self._app = app
         self.spec = None
         if app is not None:
-            self.init_app(app)
+            self.init_app(app, spec_plugins=spec_plugins)
 
-    def init_app(self, app):
+    def init_app(self, app, *, spec_plugins=None):
         """Initialize Api with application"""
 
         self._app = app
@@ -38,7 +41,7 @@ class Api:
         ext['ext_obj'] = self
 
         # Initialize spec
-        self.spec = APISpec(app)
+        self.spec = APISpec(app, plugins=spec_plugins)
 
         # Can't register a handler for HTTPException, so let's register
         # default handler for each code explicitly.

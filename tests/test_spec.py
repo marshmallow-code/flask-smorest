@@ -8,6 +8,7 @@ from flask import jsonify
 from flask.views import MethodView
 from werkzeug.routing import BaseConverter
 import marshmallow as ma
+from apispec import BasePlugin
 
 from flask_rest_api import Api, Blueprint
 
@@ -114,6 +115,46 @@ class TestAPISpec():
                 [{'in': 'body', 'required': True, 'name': 'body',
                   'schema': {'properties': properties, 'type': 'object'}, }])
 
+    def test_apispec_extra_spec_plugins(self, app, schemas):
+        """Test extra plugins can be passed to internal APISpec instance"""
+
+        class MyPlugin(BasePlugin):
+            def definition_helper(self, name, definition, **kwargs):
+                return {'dummy': 'whatever'}
+
+        api = Api(app, spec_plugins=(MyPlugin(), ))
+        api.definition('Pet')(schemas.DocSchema)
+        spec = api.spec.to_dict()
+        assert spec['definitions']['Pet']['dummy'] == 'whatever'
+
+    def test_apipec_path_response_schema_many(self, app, schemas):
+        """Check that plural response is documented as array in the spec"""
+        api = Api(app)
+        blp = Blueprint('test', 'test', url_prefix='/test')
+
+        @blp.route('/schema_many_false')
+        @blp.response(schemas.DocSchema(many=False))
+        def many_false():
+            pass
+
+        @blp.route('/schema_many_true')
+        @blp.response(schemas.DocSchema(many=True))
+        def many_true():
+            pass
+
+        api.register_blueprint(blp)
+
+        paths = api.spec.to_dict()['paths']
+
+        schema_many_false = paths[
+            '/test/schema_many_false']['get']['responses'][200]['schema']
+        assert schema_many_false['type'] == 'object'
+        assert 'items' not in schema_many_false
+
+        schema_many_true = paths[
+            '/test/schema_many_true']['get']['responses'][200]['schema']
+        assert schema_many_true['type'] == 'array'
+        assert schema_many_true['items']['type'] == 'object'
 
 class TestAPISpecServeDocs():
     """Test APISpec class docs serving features"""
@@ -210,36 +251,3 @@ class TestAPISpecServeDocs():
         response_json_docs = client.get('/api-docs/openapi.json')
         assert response_json_docs.status_code == 200
         assert response_json_docs.json['paths'] == paths
-
-
-class TestAPISpecPlugin():
-    """Test apispec plugin"""
-
-    def test_apipec_path_response_schema_many(self, app, schemas):
-        """Check that plural response is documented as array in the spec"""
-        api = Api(app)
-        blp = Blueprint('test', 'test', url_prefix='/test')
-
-        @blp.route('/schema_many_false')
-        @blp.response(schemas.DocSchema(many=False))
-        def many_false():
-            pass
-
-        @blp.route('/schema_many_true')
-        @blp.response(schemas.DocSchema(many=True))
-        def many_true():
-            pass
-
-        api.register_blueprint(blp)
-
-        paths = api.spec.to_dict()['paths']
-
-        schema_many_false = paths[
-            '/test/schema_many_false']['get']['responses'][200]['schema']
-        assert schema_many_false['type'] == 'object'
-        assert 'items' not in schema_many_false
-
-        schema_many_true = paths[
-            '/test/schema_many_true']['get']['responses'][200]['schema']
-        assert schema_many_true['type'] == 'array'
-        assert schema_many_true['items']['type'] == 'object'

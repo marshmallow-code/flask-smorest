@@ -18,14 +18,17 @@ class APISpec(apispec.APISpec):
     """API specification class
 
     :param Flask app: Flask application
+    :param list|tuple plugins: apispec BasePlugin instances
     """
-    def __init__(self, app):
+    def __init__(self, app, *, plugins=None):
+        plugins = list(plugins) if plugins is not None else []
         self.flask_plugin = FlaskPlugin()
         self.ma_plugin = MarshmallowPlugin()
+        plugins.extend((self.flask_plugin, self.ma_plugin, ))
         super().__init__(
             title=app.name,
             version=app.config.get('API_VERSION', '1'),
-            plugins=(self.flask_plugin, self.ma_plugin, ),
+            plugins=plugins,
             openapi_version=app.config.get('OPENAPI_VERSION', '2.0')
         )
         self._app = app
