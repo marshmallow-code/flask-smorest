@@ -1,6 +1,16 @@
 Changelog
 ---------
 
+0.6.0 (2018-06-29)
+++++++++++++++++++
+
+Features:
+
+- *Backwards-incompatible*: Use apispec 0.39.0 plugin class interface.
+- *Backwards-incompatible*: Expose APISpec's ``register_field`` and ``register_converter methods`` from ``Api`` object. ``Api.register_converter`` signature is modified to make ``name`` parameter optional.
+- Pass extra apispec plugins to internal APISpec instance.
+- *Backwards-incompatible*: Drop officiel support for Python 3.4.
+
 0.5.2 (2018-06-21)
 ++++++++++++++++++
 
