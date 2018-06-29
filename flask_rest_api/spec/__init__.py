@@ -153,19 +153,6 @@ class APISpec(apispec.APISpec):
             Subclass of werkzeug's BaseConverter
         :param str conv_type: Parameter type
         :param str conv_format: Parameter format (optional)
-
-        Example: ::
-
-            app.url_map.converters['uuid'] = UUIDConverter
-            api.spec.register_converter(UUIDConverter, 'string', 'UUID')
-
-            @blp.route('/pets/{uuid:pet_id}')
-            ...
-
-            api.register_blueprint(blp)
-
-        Once the converter is registered, all paths using it will have their
-        path parameter documented with the right type and format.
         """
         self.flask_plugin.register_converter(converter, conv_type, conv_format)
 
@@ -181,16 +168,5 @@ class APISpec(apispec.APISpec):
 
         - a pair of the form ``(type, format)`` to map to
         - a core marshmallow field type (then that type's mapping is used)
-
-        Examples: ::
-
-            # Map to ('string, 'UUID')
-            api.spec.register_field(UUIDField, 'string', 'UUID')
-
-            # Map to ('integer, 'int32')
-            api.spec.register_field(CustomIntegerField, ma.fields.Integer)
-
-        In the first case, if the second element of the tuple is None, it does
-        not appear in the spec.
         """
         self.ma_plugin.map_to_openapi_type(*args)(field)

@@ -85,18 +85,21 @@ class Api:
             return schema_cls
         return decorator
 
-    def register_converter(self, name, converter, conv_type, conv_format=None):
+    def register_converter(self, converter, conv_type, conv_format=None,
+                           *, name=None):
         """Register custom path parameter converter
 
-        :param str name: Name of the converter, used in route declarations
         :param BaseConverter converter: Converter
             Subclass of werkzeug's BaseConverter
         :param str conv_type: Parameter type
         :param str conv_format: Parameter format (optional)
+        :param str name: Name of the converter. If not None, this name is used
+            to register the converter in the Flask app.
 
             Example: ::
 
-                api.register_converter('uuid', UUIDConverter, 'string', 'UUID')
+                api.register_converter(
+                    UUIDConverter, 'string', 'UUID', name='uuid')
 
                 @blp.route('/pets/{uuid:pet_id}')
                 ...
@@ -104,14 +107,41 @@ class Api:
                 api.register_blueprint(blp)
 
         This registers the converter in the Flask app and in the internal
-        APISpec instance. The call in the example above is equivalent to ::
+        APISpec instance.
 
-            app.url_map.converters['uuid'] = UUIDConverter
-            api.spec.register_converter(UUIDConverter, 'string', 'UUID')
+        Once the converter is registered, all paths using it will have
+        corresponding path parameter documented with the right type and format.
 
-        Call api.spec.register_converter() directly if the converter is
-        already registered in the app, for instance if it comes from a Flask
-        extension that already registers it in the app.
+        The `name` parameter need not be passed if the converter is already
+        registered in the app, for instance if it belongs to a Flask extension
+        that already registers it in the app.
         """
-        self._app.url_map.converters[name] = converter
+        if name:
+            self._app.url_map.converters[name] = converter
         self.spec.register_converter(converter, conv_type, conv_format)
+
+    def register_field(self, field, *args):
+        """Register custom Marshmallow field
+
+        Registering the Field class allows the Schema parser to set the proper
+        type and format when documenting parameters from Schema fields.
+
+        :param Field field: Marshmallow Field class
+
+        ``*args`` can be:
+
+        - a pair of the form ``(type, format)`` to map to
+        - a core marshmallow field type (then that type's mapping is used)
+
+        Examples: ::
+
+            # Map to ('string', 'UUID')
+            api.register_field(UUIDField, 'string', 'UUID')
+
+            # Map to ('string')
+            api.register_field(URLField, 'string', None)
+
+            # Map to ('integer, 'int32')
+            api.register_field(CustomIntegerField, ma.fields.Integer)
+        """
+        self.spec.ma_plugin.map_to_openapi_type(*args)(field)

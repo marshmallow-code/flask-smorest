@@ -4,12 +4,6 @@ from collections import OrderedDict
 
 import pytest
 
-from flask import jsonify
-from flask.views import MethodView
-from werkzeug.routing import BaseConverter
-import marshmallow as ma
-from apispec import BasePlugin
-
 from flask_rest_api import Api, Blueprint
 
 from .conftest import AppConfig
@@ -34,98 +28,6 @@ class TestAPISpec():
             assert spec['swagger'] == '2.0'
         else:
             assert spec['openapi'] == '3.0.1'
-
-    @pytest.mark.parametrize('view_type', ['function', 'method'])
-    @pytest.mark.parametrize('custom_format', ['custom', None])
-    def test_apispec_register_converter(self, app, view_type, custom_format):
-        api = Api(app)
-        blp = Blueprint('test', 'test', url_prefix='/test')
-
-        class CustomConverter(BaseConverter):
-            pass
-
-        app.url_map.converters['custom_str'] = CustomConverter
-        api.spec.register_converter(
-            CustomConverter, 'custom string', custom_format)
-
-        if view_type == 'function':
-            @blp.route('/<custom_str:val>')
-            def test_func(val):
-                return jsonify(val)
-        else:
-            @blp.route('/<custom_str:val>')
-            class TestMethod(MethodView):
-                def get(self, val):
-                    return jsonify(val)
-
-        api.register_blueprint(blp)
-        spec = api.spec.to_dict()
-
-        # If custom_format is None (default), it does not appear in the spec
-        if custom_format is not None:
-            parameters = [{'in': 'path', 'name': 'val', 'required': True,
-                           'type': 'custom string', 'format': 'custom'}]
-        else:
-            parameters = [{'in': 'path', 'name': 'val', 'required': True,
-                           'type': 'custom string'}]
-        assert spec['paths']['/test/{val}']['get']['parameters'] == parameters
-
-    @pytest.mark.parametrize('view_type', ['function', 'method'])
-    @pytest.mark.parametrize('mapping', [
-        ('custom string', 'custom'),
-        ('custom string', None),
-        (ma.fields.Integer, ),
-    ])
-    def test_apispec_register_field(self, app, view_type, mapping):
-        api = Api(app)
-        blp = Blueprint('test', 'test', url_prefix='/test')
-
-        class CustomField(ma.fields.Field):
-            pass
-
-        api.spec.register_field(CustomField, *mapping)
-
-        class Document(ma.Schema):
-            field = CustomField()
-
-        if view_type == 'function':
-            @blp.route('/')
-            @blp.arguments(Document)
-            def test_func(args):
-                return jsonify(None)
-        else:
-            @blp.route('/')
-            class TestMethod(MethodView):
-                @blp.arguments(Document)
-                def get(self, args):
-                    return jsonify(None)
-
-        api.register_blueprint(blp)
-        spec = api.spec.to_dict()
-
-        if len(mapping) == 2:
-            properties = {'field': {'type': 'custom string'}}
-            # If mapping format is None, it does not appear in the spec
-            if mapping[1] is not None:
-                properties['field']['format'] = mapping[1]
-        else:
-            properties = {'field': {'type': 'integer', 'format': 'int32'}}
-
-        assert (spec['paths']['/test/']['get']['parameters'] ==
-                [{'in': 'body', 'required': True, 'name': 'body',
-                  'schema': {'properties': properties, 'type': 'object'}, }])
-
-    def test_apispec_extra_spec_plugins(self, app, schemas):
-        """Test extra plugins can be passed to internal APISpec instance"""
-
-        class MyPlugin(BasePlugin):
-            def definition_helper(self, name, definition, **kwargs):
-                return {'dummy': 'whatever'}
-
-        api = Api(app, spec_plugins=(MyPlugin(), ))
-        api.definition('Pet')(schemas.DocSchema)
-        spec = api.spec.to_dict()
-        assert spec['definitions']['Pet']['dummy'] == 'whatever'
 
     def test_apipec_path_response_schema_many(self, app, schemas):
         """Check that plural response is documented as array in the spec"""
@@ -155,6 +57,7 @@ class TestAPISpec():
             '/test/schema_many_true']['get']['responses'][200]['schema']
         assert schema_many_true['type'] == 'array'
         assert schema_many_true['items']['type'] == 'object'
+
 
 class TestAPISpecServeDocs():
     """Test APISpec class docs serving features"""
