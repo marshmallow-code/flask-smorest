@@ -10,7 +10,7 @@ from .pagination import Page, set_item_count  # noqa
 from .error_handler import handle_http_exception
 
 
-__version__ = '0.6.0'
+__version__ = '0.6.1'
 
 
 class Api:
