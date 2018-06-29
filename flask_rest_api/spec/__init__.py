@@ -5,17 +5,8 @@ import json
 import flask
 from flask import current_app
 import apispec
-from apispec.ext.marshmallow.swagger import map_to_swagger_type
 
-from .plugin import CONVERTER_MAPPING
-
-
-PLUGINS = (
-    'flask_rest_api.spec.plugin',
-    # XXX: Ideally, we shouldn't register schema_path_helper but it's
-    # hard to extract only what we want from apispec.ext.marshmallow
-    'apispec.ext.marshmallow',
-)
+from .plugins import FlaskPlugin, MarshmallowPlugin
 
 
 def _add_leading_slash(string):
@@ -29,10 +20,12 @@ class APISpec(apispec.APISpec):
     :param Flask app: Flask application
     """
     def __init__(self, app):
+        self.flask_plugin = FlaskPlugin()
+        self.ma_plugin = MarshmallowPlugin()
         super().__init__(
             title=app.name,
             version=app.config.get('API_VERSION', '1'),
-            plugins=PLUGINS,
+            plugins=(self.flask_plugin, self.ma_plugin, ),
             openapi_version=app.config.get('OPENAPI_VERSION', '2.0')
         )
         self._app = app
@@ -150,8 +143,7 @@ class APISpec(apispec.APISpec):
                 swagger_ui_supported_submit_methods)
         )
 
-    @staticmethod
-    def register_converter(converter, conv_type, conv_format=None):
+    def register_converter(self, converter, conv_type, conv_format=None):
         """Register custom path parameter converter
 
         :param BaseConverter converter: Converter.
@@ -172,10 +164,9 @@ class APISpec(apispec.APISpec):
         Once the converter is registered, all paths using it will have their
         path parameter documented with the right type and format.
         """
-        CONVERTER_MAPPING[converter] = (conv_type, conv_format)
+        self.flask_plugin.register_converter(converter, conv_type, conv_format)
 
-    @staticmethod
-    def register_field(field, *args):
+    def register_field(self, field, *args):
         """Register custom Marshmallow field
 
         Registering the Field class allows the Schema parser to set the proper
@@ -199,4 +190,4 @@ class APISpec(apispec.APISpec):
         In the first case, if the second element of the tuple is None, it does
         not appear in the spec.
         """
-        map_to_swagger_type(*args)(field)
+        self.ma_plugin.map_to_openapi_type(*args)(field)

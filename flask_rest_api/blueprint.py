@@ -32,7 +32,7 @@ from copy import deepcopy
 from flask import Blueprint as FlaskBlueprint
 from flask.views import MethodViewType
 
-from apispec.ext.marshmallow.swagger import __location_map__
+from apispec.ext.marshmallow.openapi import __location_map__
 
 from .utils import deepupdate
 from .args_parser import parser
