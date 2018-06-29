@@ -33,7 +33,7 @@ Install
 
     pip install flask-rest-api
 
-flask-rest-api supports Python >= 3.4.
+flask-rest-api supports Python >= 3.5.
 
 License
 =======
