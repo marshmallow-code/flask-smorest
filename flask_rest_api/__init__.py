@@ -144,4 +144,4 @@ class Api:
             # Map to ('integer, 'int32')
             api.register_field(CustomIntegerField, ma.fields.Integer)
         """
-        self.spec.ma_plugin.map_to_openapi_type(*args)(field)
+        self.spec.register_field(field, *args)
