@@ -153,6 +153,8 @@ def explicit_data_no_schema_etag_blueprint(collection, schemas):
         @blp.paginate()
         def get(self, first_item, last_item):
             set_item_count(len(collection.items))
+            # It is better to rely on automatic ETag here, as it includes
+            # pagination metadata.
             return collection.items[first_item: last_item + 1]
 
         @blp.arguments(DocSchema)

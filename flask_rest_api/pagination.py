@@ -136,21 +136,7 @@ class Page:
     """Pager for simple types such as lists.
 
     Can be subclassed to provide a pager for a specific data object.
-
-    Example pager for Pymongo cursor:
-
-    class PymongoCursorWrapper():
-        def __init__(self, obj):
-            self.obj = obj
-        def __getitem__(self, range):
-            return self.obj[range]
-        def __len__(self):
-            return self.obj.count()
-
-    class PymongoCursorPage(Page):
-        _wrapper_class = PymongoCursorWrapper
     """
-
     _wrapper_class = None
 
     def __init__(self, collection, page_params):
@@ -188,7 +174,7 @@ def _get_pagination_ctx():
 def set_item_count(item_count):
     """Set total number of items when paginating
 
-    When paginating in resource, this should be called from resource code
+    When paginating in resource, this must be called from resource code
     """
     _get_pagination_ctx()['item_count'] = item_count
 
@@ -201,7 +187,7 @@ def _set_pagination_header(page_params):
     try:
         item_count = _get_pagination_ctx()['item_count']
     except KeyError:
-        # item_count is not set, this is a issue in the app. Pass and warn.
+        # item_count is not set, this is an issue in the app. Pass and warn.
         current_app.logger.warning(
             'item_count not set in endpoint {}'.format(request.endpoint))
         return

@@ -47,7 +47,7 @@ class APISpec(apispec.APISpec):
                 template_folder='./templates',
             )
             # Serve json spec at 'url_prefix/openapi.json' by default
-            json_path = app.config.get('OPENAPI_JSON_PATH', '/openapi.json')
+            json_path = app.config.get('OPENAPI_JSON_PATH', 'openapi.json')
             blueprint.add_url_rule(
                 _add_leading_slash(json_path),
                 endpoint='openapi_json',

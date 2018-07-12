@@ -102,7 +102,7 @@ class Api:
                     UUIDConverter, 'string', 'UUID', name='uuid')
 
                 @blp.route('/pets/{uuid:pet_id}')
-                ...
+                    ...
 
                 api.register_blueprint(blp)
 

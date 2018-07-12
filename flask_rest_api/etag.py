@@ -90,7 +90,7 @@ def check_precondition():
 def check_etag(etag_data, etag_schema=None):
     """Compare If-Match header with computed ETag
 
-    Raise 412 if If-Match-Header does not match
+    Raise 412 if If-Match-Header does not match.
 
     Must be called from resource code to check ETag.
 
@@ -112,7 +112,8 @@ def verify_check_etag():
     Log a warning if ETag is enabled but check_etag was not called in
     resource code in a PUT, PATCH or DELETE method.
 
-    This is meant to warn the developer about an issue in his ETag management.
+    This is called automatically. It is meant to warn the developer about an
+    issue in his ETag management.
     """
     if (is_etag_enabled_for_request() and
             request.method in METHODS_NEEDING_CHECK_ETAG):

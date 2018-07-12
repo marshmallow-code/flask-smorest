@@ -165,8 +165,9 @@ class Blueprint(FlaskBlueprint):
             Example: ::
 
                 @blp.doc("description": "Return pets based on ID",
-                        "summary": "Find pets by ID")
+                         "summary": "Find pets by ID")
                 def get(...):
+                    ...
         """
         def decorator(func):
             func._apidoc = deepupdate(getattr(func, '_apidoc', {}), kwargs)
@@ -246,6 +247,7 @@ class Blueprint(FlaskBlueprint):
         :param schema: :class:`Schema <marshmallow.Schema>` class or instance.
             If not None, will be used to serialize response data.
         :param int code: HTTP status code (defaults to 200).
+        :param str descripton: Description of the response.
         :param etag_schema: :class:`Schema <marshmallow.Schema>` class
             or instance. If not None, will be used to serialize etag data.
         :param bool disable_etag: Disable ETag feature locally even if enabled
