@@ -27,8 +27,8 @@ Features
 
 - Serialization, deserialization and validation using marshmallow ``Schema``.
 - OpenAPI (Swagger) specification automatically generated, and exposed with `ReDoc <https://github.com/Rebilly/ReDoc>`_ or `Swagger UI <https://swagger.io/tools/swagger-ui/>`_.
-- ETag.
 - Pagination.
+- ETag.
 
 Install
 =======
@@ -38,6 +38,11 @@ Install
     pip install flask-rest-api
 
 flask-rest-api supports Python >= 3.5.
+
+Documentation
+=============
+
+Full documentation is available at http://flask-rest-api.readthedocs.io/.
 
 License
 =======
