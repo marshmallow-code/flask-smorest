@@ -17,6 +17,8 @@
 
 # -- Project information -----------------------------------------------------
 
+from collections import OrderedDict
+
 import flask_rest_api
 
 project = 'flask-rest-api'
@@ -77,28 +79,19 @@ pygments_style = 'sphinx'
 
 # -- Options for HTML output -------------------------------------------------
 
-# The theme to use for HTML and HTML Help pages.  See the documentation for
-# a list of builtin themes.
-#
 html_theme = 'alabaster'
 
-# Theme options are theme-specific and customize the look and feel of a theme
-# further.  For a list of options available for each theme, see the
-# documentation.
-#
-# html_theme_options = {}
-
-# Add any paths that contain custom static files (such as style sheets) here,
-# relative to this directory. They are copied after the builtin static files,
-# so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
-
-# Custom sidebar templates, must be a dictionary that maps document names
-# to template names.
-#
-# The default sidebars (for documents that don't match any pattern) are
-# defined by theme itself.  Builtin themes are using these templates by
-# default: ``['localtoc.html', 'relations.html', 'sourcelink.html',
-# 'searchbox.html']``.
-#
-# html_sidebars = {}
+html_theme_options = {
+    'description': 'Build a REST API on Flask using Marshmallow',
+    'description_font_style': 'italic',
+    'github_user': 'Nobatek',
+    'github_repo': 'flask-rest-api',
+    'github_button': False,
+    'github_banner': True,
+    'travis_button': True,
+    'code_font_size': '0.8em',
+    'extra_nav_links': OrderedDict([
+        ('flask-rest-api@PyPI', 'http://pypi.python.org/pypi/flask-rest-api'),
+        ('flask-rest-api@GitHub', 'http://github.com/Nobatek/flask-rest-api'),
+    ]),
+}
