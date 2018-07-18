@@ -14,6 +14,10 @@ flask-rest-api
         :target: https://www.codacy.com/app/lafrech/flask-rest-api
         :alt: Code health
 
+.. image:: https://readthedocs.org/projects/flask-rest-api/badge/
+        :target: http://flask-rest-api.readthedocs.io/
+        :alt: Documentation
+
 Build a REST API with Flask and marshmallow.
 
 **flask-rest-api** relies on `marshmallow <https://github.com/marshmallow-code/marshmallow>`_, `webargs <https://github.com/sloria/webargs>`_ and `apispec <https://github.com/marshmallow-code/apispec/>`_ to provide a complete REST API framework.
