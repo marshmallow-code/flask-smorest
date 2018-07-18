@@ -2,21 +2,33 @@
 flask-rest-api
 ==============
 
+.. image:: https://img.shields.io/pypi/v/flask-rest-api.svg
+    :target: https://pypi.org/project/flask-rest-api/
+    :alt: Latest version
+
+.. image:: https://img.shields.io/pypi/pyversions/flask-rest-api.svg
+    :target: https://pypi.org/project/flask-rest-api/
+    :alt: Python versions
+
+.. image:: https://img.shields.io/pypi/l/flask-rest-api.svg
+    :target: https://flask-rest-api.readthedocs.io/en/latest/license.html
+    :alt: License
+
 .. image:: https://img.shields.io/travis/Nobatek/flask-rest-api/master.svg
-        :target: https://travis-ci.org/Nobatek/flask-rest-api
-        :alt: Build status
+    :target: https://travis-ci.org/Nobatek/flask-rest-api
+    :alt: Build status
 
 .. image:: https://coveralls.io/repos/github/Nobatek/flask-rest-api/badge.svg?branch=master
-        :target: https://coveralls.io/github/Nobatek/flask-rest-api/?branch=master
-        :alt: Code coverage
+    :target: https://coveralls.io/github/Nobatek/flask-rest-api/?branch=master
+    :alt: Code coverage
 
 .. image:: https://api.codacy.com/project/badge/Grade/463485aeeac048f08cb4f40ebeb61160
-        :target: https://www.codacy.com/app/lafrech/flask-rest-api
-        :alt: Code health
+    :target: https://www.codacy.com/app/lafrech/flask-rest-api
+    :alt: Code health
 
 .. image:: https://readthedocs.org/projects/flask-rest-api/badge/
-        :target: http://flask-rest-api.readthedocs.io/
-        :alt: Documentation
+    :target: http://flask-rest-api.readthedocs.io/
+    :alt: Documentation
 
 Build a REST API with Flask and marshmallow.
 
