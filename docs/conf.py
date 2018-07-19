@@ -43,10 +43,11 @@ extensions = [
 ]
 
 intersphinx_mapping = {
-    'python': ('http://python.readthedocs.io/en/latest/', None),
     'marshmallow': ('http://marshmallow.readthedocs.io/en/latest/', None),
     'webargs': ('http://webargs.readthedocs.io/en/latest/', None),
     'flask': ('http://flask.readthedocs.io/en/latest/', None),
+    'sqlalchemy': ('http://docs.sqlalchemy.org/en/latest/', None),
+    'mongoengine': ('http://docs.mongoengine.org/', None),
 }
 
 # Add any paths that contain templates here, relative to this directory.

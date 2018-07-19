@@ -45,7 +45,7 @@ This is the mode to use when the data is returned as a lazy database cursor.
 The view function does not need to know the pagination parameters. It just
 returns the cursor.
 
-This mode is also used if the view function returns the complete ``list`` at no
+This mode is also used if the view function returns the complete list at no
 extra cost and there is no interest in specifying the pagination parameters to
 avoid fetching unneeded data. For instance, if the whole list is already in
 memory.
@@ -53,28 +53,28 @@ memory.
 This mode makes the view look nicer because everything happens in the decorator
 and the lazy cursor.
 
+Cursor Pager
+^^^^^^^^^^^^
+
 In this case, :meth:`Blueprint.paginate <Blueprint.paginate>` must be passed a
-cursor pager to take care of the pagination. `flask-rest-api` provides a pager
-for `list`-like objects: :class:`Page <pagination.Page>`. When dealing with a
-lazy database cursor, a custom cursor pager can be defined using a cursor
-wrapper.
+pager class to take care of the pagination. `flask-rest-api` provides a pager
+for `list`-like objects: :class:`Page <Page>`. For other types, a custom pager
+may have to be defined.
+
+For instance, the following custom pager works with cursor classes that support
+slicing and provide a ``count`` method returning the total number of element.
+This include SQLAlchemy's :class:`Query <sqlalchemy.orm.query.Query>`,
+Mongoengine's :class:`QuerySet <mongoengine.queryset.QuerySet>`,...
 
 
 .. code-block:: python
-    :emphasize-lines: 18
 
     from flask_rest_api import Page
 
-    class CursorWrapper():
-        def __init__(self, obj):
-            self.obj = obj
-        def __getitem__(self, key):
-            return self.obj[key]
-        def __len__(self):
-            return self.obj.count()
-
     class CursorPage(Page):
-        _wrapper_class = CursorWrapper
+        @property
+        def item_count(self):
+            return self.collection.count()
 
     @blp.route('/')
     class Pets(MethodView):
@@ -83,10 +83,6 @@ wrapper.
         @blp.paginate(CursorPage)
         def get(self):
             return Pet.get()
-
-The custom wrapper defined in the example above works for SQLAlchemy or PyMongo
-cursors.
-
 
 Pagination Parameters
 ---------------------
