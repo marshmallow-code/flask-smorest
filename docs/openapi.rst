@@ -190,9 +190,9 @@ number.
    List of methods for which the '*Try it out!*' feature is enabled. Should be a
    list of lowercase HTTP methods.
 
-   Eg: ["get", "put", "post", "delete", "options", "head", "patch", "trace"]
+   Passing an empty list disables the feature globally.
 
-   Default: ``[]``
+   Default: ``['get', 'put', 'post', 'delete', 'options', 'head', 'patch', 'trace']``
 
 .. warning:: The version strings are not checked by `flask-rest-api`. They are
    used as is to build the URL pointing to the UI script. Typos won't be caught.
