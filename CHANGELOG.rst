@@ -1,6 +1,16 @@
 Changelog
 ---------
 
+0.7.0 (2018-07-19)
+++++++++++++++++++
+
+Other changes:
+
+- *Backwards-incompatible*: Remove _wrapper_class from Page. Creating a custom
+  pager is easier by just overriding ``Page`` methods.
+- *Backwards-incompatible*: Let ``OPENAPI_SWAGGER_UI_SUPPORTED_SUBMIT_METHODS``
+  default to "all methods" list.
+
 0.6.1 (2018-06-29)
 ++++++++++++++++++
 
