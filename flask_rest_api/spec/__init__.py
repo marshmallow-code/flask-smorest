@@ -136,7 +136,9 @@ class APISpec(apispec.APISpec):
                 'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/'
                 '{}/'.format(swagger_ui_version))
         swagger_ui_supported_submit_methods = self._app.config.get(
-            'OPENAPI_SWAGGER_UI_SUPPORTED_SUBMIT_METHODS', [])
+            'OPENAPI_SWAGGER_UI_SUPPORTED_SUBMIT_METHODS',
+            ['get', 'put', 'post', 'delete', 'options',
+             'head', 'patch', 'trace'])
         return flask.render_template(
             'swagger_ui.html', title=self._app.name,
             swagger_ui_url=swagger_ui_url,
