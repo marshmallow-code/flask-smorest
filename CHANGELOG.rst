@@ -6,8 +6,8 @@ Changelog
 
 Other changes:
 
-- *Backwards-incompatible*: Remove _wrapper_class from Page. Creating a custom
-  pager is easier by just overriding ``Page`` methods.
+- *Backwards-incompatible*: Remove ``_wrapper_class`` from ``Page``. Creating a
+  custom pager is easier by just overriding ``Page`` methods.
 - *Backwards-incompatible*: Let ``OPENAPI_SWAGGER_UI_SUPPORTED_SUBMIT_METHODS``
   default to "all methods" list.
 
