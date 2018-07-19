@@ -131,23 +131,17 @@ class PaginationMetadataSchema(ma.Schema):
     next_page = ma.fields.Integer()
 
 
-# Inspired from Pylons/paginate: https://github.com/Pylons/paginate
 class Page:
     """Pager for simple types such as lists.
 
     Can be subclassed to provide a pager for a specific data object.
     """
-    _wrapper_class = None
-
     def __init__(self, collection, page_params):
         """Create a Page instance
 
         :param sequence collection: Collection of items to page through
         :page PaginationParameters page_params: Pagination parameters
         """
-        if self._wrapper_class is not None:
-            # Custom wrapper class used to access collection elements
-            collection = self._wrapper_class(collection)
         self.collection = collection
         self.page_params = page_params
 
