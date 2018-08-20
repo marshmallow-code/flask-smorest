@@ -164,8 +164,9 @@ class Blueprint(FlaskBlueprint):
 
             Example: ::
 
-                @blp.doc("description": "Return pets based on ID",
-                         "summary": "Find pets by ID")
+                @blp.doc(description="Return pets based on ID",
+                         summary="Find pets by ID"
+                )
                 def get(...):
                     ...
         """
