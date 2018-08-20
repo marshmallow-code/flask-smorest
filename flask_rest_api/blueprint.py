@@ -71,6 +71,8 @@ class Blueprint(FlaskBlueprint):
 
         def store_method_docs(method, function):
             doc = getattr(function, '_apidoc', {})
+            if function.__doc__ and 'summary' not in doc:
+                doc['summary'] = function.__doc__
             # Add function doc to table for later registration
             method_l = method.lower()
             # Check another doc was not already registed for endpoint/method
