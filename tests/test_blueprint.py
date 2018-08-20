@@ -167,16 +167,43 @@ class TestBlueprint():
         assert parameters[3]['name'] == 'arg2'
         assert parameters[3]['in'] == 'query'
 
-    def test_blueprint_doc(self):
+    def test_blueprint_doc_function(self, app):
+        api = Api(app)
         blp = Blueprint('test', __name__, url_prefix='/test')
 
+        @blp.route('/', methods=('PUT', 'PATCH', ))
+        @blp.doc(summary='Dummy func', description='Do dummy stuff')
         def view_func():
             pass
 
-        res = blp.doc(summary='Dummy func', description='Do dummy stuff')(
-            view_func)
-        assert res._apidoc['summary'] == 'Dummy func'
-        assert res._apidoc['description'] == 'Do dummy stuff'
+        api.register_blueprint(blp)
+        spec = api.spec.to_dict()
+        path = spec['paths']['/test/']
+        for method in ('put', 'patch', ):
+            assert path[method]['summary'] == 'Dummy func'
+            assert path[method]['description'] == 'Do dummy stuff'
+
+    def test_blueprint_doc_method_view(self, app):
+        api = Api(app)
+        blp = Blueprint('test', __name__, url_prefix='/test')
+
+        @blp.route('/')
+        class Resource(MethodView):
+
+            @blp.doc(summary='Dummy put', description='Do dummy put')
+            def put(self):
+                pass
+
+            @blp.doc(summary='Dummy patch', description='Do dummy patch')
+            def patch(self):
+                pass
+
+        api.register_blueprint(blp)
+        spec = api.spec.to_dict()
+        path = spec['paths']['/test/']
+        for method in ('put', 'patch', ):
+            assert path[method]['summary'] == 'Dummy {}'.format(method)
+            assert path[method]['description'] == 'Do dummy {}'.format(method)
 
     def test_blueprint_enforce_method_order(self, app):
         api = Api(app)
