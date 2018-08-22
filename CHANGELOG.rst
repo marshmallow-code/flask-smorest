@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+0.8.0 (unreleased)
+++++++++++++++++++
+
+Features:
+
+- *Backwards-incompatible*: Get `summary` and `description` from docstrings.
+
 0.7.0 (2018-07-19)
 ++++++++++++++++++
 
