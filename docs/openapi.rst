@@ -33,6 +33,31 @@ specified as Flask application parameters:
 
    Default: ``'2.0'``
 
+Documenting Top-level Components
+------------------------------------------------------
+
+To add objects within the top-level components object, specify them in the
+API_SPEC_OPTIONS Flask application parameter:
+
+.. describe:: API_SPEC_OPTIONS
+
+   A dict to include in the top level components object of the Open API
+   definition. It is copied verbatim in the documentation.
+
+Here is an example on how to includes a Security Scheme Object:
+
+.. code-block:: python
+
+    app.config['API_SPEC_OPTIONS'] = {
+        'securityDefinitions': {
+            'MyToken': {
+                'type': 'apiKey',
+                'in': 'header',
+                'name': 'Authorization'
+            }
+        }
+    }
+
 Adding Documentation Information to the View Functions
 ------------------------------------------------------
 
@@ -97,15 +122,15 @@ for instance if it is provided by another Flask extension.)
 
 .. code-block:: python
 
-    # UUIDConverter is already known to the flask app as it is imported
+    # UUIDConverter is already known to the flask app as it is imported
     # from an extension that registers it.
     api.register_converter(UUIDConverter, 'string', 'UUID')
 
     @blp.route('/pets/{uuid:pet_id}')
         ...
 
-    # CustomConverter is defined in our application and must be registered
-    # in the Flask app. A name must be passed.
+    # CustomConverter is defined in our application and must be registered
+    # in the Flask app. A name must be passed.
     api.register_converter(CustomConverter, 'string', 'Custom',
                            name='custom')
 

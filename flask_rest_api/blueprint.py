@@ -52,6 +52,7 @@ class Blueprint(FlaskBlueprint):
     def __init__(self, *args, **kwargs):
 
         self.description = kwargs.pop('description', '')
+        self.security = kwargs.pop('security', '')
 
         super().__init__(*args, **kwargs)
 
@@ -82,6 +83,8 @@ class Blueprint(FlaskBlueprint):
                     "Another doc is already registered for endpoint '{}' "
                     "method {}".format(endpoint, method_l.upper()))
             endpoint_doc[method_l] = doc
+            if self.security:
+                endpoint_doc[method_l]['security'] = self.security
 
         # MethodView (class)
         if isinstance(obj, MethodViewType):

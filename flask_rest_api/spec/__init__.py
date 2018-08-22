@@ -29,7 +29,8 @@ class APISpec(apispec.APISpec):
             title=app.name,
             version=app.config.get('API_VERSION', '1'),
             plugins=plugins,
-            openapi_version=app.config.get('OPENAPI_VERSION', '2.0')
+            openapi_version=app.config.get('OPENAPI_VERSION', '2.0'),
+            **app.config.get('API_SPEC_OPTIONS', {})
         )
         self._app = app
 
