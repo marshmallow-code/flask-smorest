@@ -33,18 +33,59 @@ specified as Flask application parameters:
 
    Default: ``'2.0'``
 
-Adding Documentation Information to the View Functions
-------------------------------------------------------
+Add Documentation Information to the View Functions
+---------------------------------------------------
 
-Description attributes for a view function can be passed to the docs with the
-:meth:`Blueprint.doc <Blueprint.doc>` method.
+`flask-rest-api` uses view functions docstrings to fill the `summary` and
+`description` attributes of an `operation object`.
 
 .. code-block:: python
 
-    @blp.doc("description": "Return pets based on ID",
-             "summary": "Find pets by ID")
     def get(...):
+        """Find pets by ID
+
+        Return pets based on ID.
+        ---
+        Internal comment not meant to be exposed.
+        """
+
+The part of the docstring following the ``'---'`` line is ignored.
+
+The part before the ``'---'`` line is used as `summary` and `description`. The
+first lines are used as `summary`. If an empty line is met, all following lines
+are used as `description`.
+
+The example above produces the following documentation attributes:
+
+.. code-block:: python
+
+    {
+        'get': {
+            'summary': 'Find pets by ID',
+            'description': 'Return pets based on ID',
+        }
+    }
+
+Any description attribute for a view function can be passed to the docs with
+the :meth:`Blueprint.doc <Blueprint.doc>` decorator. The following example
+illustrates how to pass `summary` and `description` using that decorator.
+
+.. code-block:: python
+
+    @blp.doc('description': 'Return pets based on ID',
+             'summary': 'Find pets by ID')
+    def get(...):
+        """This get methods is used to find pets by ID"""
         ...
+
+`summary` and `description` passed using the
+:meth:`Blueprint.doc <Blueprint.doc>` decorator override the ones from the
+docstring.
+
+`flask-rest-api` aims at providing all useful attributes automatically, so
+this decorator should not need to be used for general use cases. However, it
+comes in handy if an OpenAPI feature is not supported.
+
 
 Register Definitions
 --------------------
