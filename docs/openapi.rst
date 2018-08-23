@@ -138,15 +138,15 @@ for instance if it is provided by another Flask extension.)
 
 .. code-block:: python
 
-    # UUIDConverter is already known to the flask app as it is imported
+    # UUIDConverter is already known to the flask app as it is imported
     # from an extension that registers it.
     api.register_converter(UUIDConverter, 'string', 'UUID')
 
     @blp.route('/pets/{uuid:pet_id}')
         ...
 
-    # CustomConverter is defined in our application and must be registered
-    # in the Flask app. A name must be passed.
+    # CustomConverter is defined in our application and must be registered
+    # in the Flask app. A name must be passed.
     api.register_converter(CustomConverter, 'string', 'Custom',
                            name='custom')
 
