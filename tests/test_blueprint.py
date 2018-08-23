@@ -205,6 +205,44 @@ class TestBlueprint():
             assert path[method]['summary'] == 'Dummy {}'.format(method)
             assert path[method]['description'] == 'Do dummy {}'.format(method)
 
+    def test_blueprint_doc_info_from_docstring(self, app):
+        api = Api(app)
+        blp = Blueprint('test', __name__, url_prefix='/test')
+
+        @blp.route('/')
+        class Resource(MethodView):
+
+            def get(self):
+                """Docstring get summary"""
+
+            def put(self):
+                """Docstring put summary
+
+                Docstring put description
+                """
+
+            @blp.doc(
+                summary='Decorator patch summary',
+                description='Decorator patch description'
+            )
+            def patch(self):
+                """Docstring patch summary
+
+                Docstring patch description
+                """
+
+        api.register_blueprint(blp)
+        spec = api.spec.to_dict()
+        path = spec['paths']['/test/']
+
+        assert path['get']['summary'] == 'Docstring get summary'
+        assert 'description' not in path['get']
+        assert path['put']['summary'] == 'Docstring put summary'
+        assert path['put']['description'] == 'Docstring put description'
+        # @doc decorator overrides docstring
+        assert path['patch']['summary'] == 'Decorator patch summary'
+        assert path['patch']['description'] == 'Decorator patch description'
+
     def test_blueprint_enforce_method_order(self, app):
         api = Api(app)
         blp = Blueprint('test', __name__, url_prefix='/test')

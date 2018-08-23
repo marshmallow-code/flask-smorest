@@ -1,4 +1,4 @@
-from flask_rest_api.utils import deepupdate
+from flask_rest_api.utils import deepupdate, load_info_from_docstring
 
 
 class TestUtils():
@@ -29,4 +29,29 @@ class TestUtils():
                 'color': 'blue',
                 'tail': True
             }
+        }
+
+    def test_load_info_from_docstring(self):
+        assert (load_info_from_docstring('')) == {}
+
+        docstring = """
+        """
+        assert (load_info_from_docstring(docstring)) == {}
+
+        docstring = """Summary"""
+        assert (load_info_from_docstring(docstring)) == {
+            'summary': 'Summary',
+        }
+
+        docstring = """Summary
+        Two-line summary is possible.
+
+        Long description
+        Really long description
+        ---
+        Ignore this.
+        """
+        assert load_info_from_docstring(docstring) == {
+            'summary': 'Summary\nTwo-line summary is possible.',
+            'description': 'Long description\nReally long description'
         }

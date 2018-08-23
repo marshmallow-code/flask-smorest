@@ -34,7 +34,7 @@ from flask.views import MethodViewType
 
 from apispec.ext.marshmallow.openapi import __location_map__
 
-from .utils import deepupdate
+from .utils import deepupdate, load_info_from_docstring
 from .args_parser import parser
 from .response import response
 from .pagination import paginate, pagination_parameters_schema_factory
@@ -70,7 +70,11 @@ class Blueprint(FlaskBlueprint):
         endpoint_doc = self._docs.setdefault(endpoint, OrderedDict())
 
         def store_method_docs(method, function):
-            doc = getattr(function, '_apidoc', {})
+            # Get summary/description from docstring
+            docstring = function.__doc__
+            doc = load_info_from_docstring(docstring) if docstring else {}
+            # Update doc with description from @doc decorator
+            doc.update(getattr(function, '_apidoc', {}))
             # Add function doc to table for later registration
             method_l = method.lower()
             # Check another doc was not already registed for endpoint/method
