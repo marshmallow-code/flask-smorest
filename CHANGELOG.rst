@@ -6,7 +6,13 @@ Changelog
 
 Features:
 
-- *Backwards-incompatible*: Get `summary` and `description` from docstrings.
+- *Backwards-incompatible*: Get `summary` and `description` from docstrings
+  (:pr:`5`).
+
+Bug fixes:
+
+- Document response schema correctly when using OpenAPI 3 (:issue:`8`). Thanks
+  :user:`ffarella` for reporting.
 
 0.7.0 (2018-07-19)
 ++++++++++++++++++
@@ -21,7 +27,7 @@ Other changes:
 0.6.1 (2018-06-29)
 ++++++++++++++++++
 
-Bugfixes:
+Bug fixes:
 
 - Swagger UI integration: respect ``OPENAPI_SWAGGER_UI_URL`` configuration paramater.
 - ``Api.register_field``: use ``APISpec.register_field`` rather than access ``self.spec.ma_plugin`` directly.
@@ -64,7 +70,7 @@ Features:
 0.4.2 (2018-04-27)
 ++++++++++++++++++
 
-Bugfixes:
+Bug fixes:
 
 - Pagination: don't crash if ``item_count`` is not set, just log a warning and set no pagination header.
 - API spec: Fix leading/trailing slash issues in api-docs Blueprint. Fixes compatibility with Flask 1.0.
@@ -91,7 +97,7 @@ Features:
   - Methods in a method view are printed in this order: ['OPTIONS', 'HEAD', 'GET', 'POST', 'PUT', 'PATCH', 'DELETE']
   - Paths are added in declaration order
 
-Bugfixes:
+Bug fixes:
 
 - Document response as array when using paginate_with.
 
@@ -103,7 +109,7 @@ Features:
 - App leading and trailing ``/`` to OPENAPI_URL_PREFIX if missing.
 - *Backwards-incompatible*: Change default URL path for OpenAPI JSON to ``'openapi.json'``.
 
-Bugfixes:
+Bug fixes:
 
 - Fix OpenAPI docs URL paths.
 - *Backwards-incompatible*: ``Blueprint.route(self, rule, **options)`` matches ``flask``'s ``Blueprint`` signature.
