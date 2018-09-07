@@ -40,6 +40,7 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.intersphinx',
     'sphinx.ext.viewcode',
+    'sphinx_issues',
 ]
 
 intersphinx_mapping = {
@@ -49,6 +50,8 @@ intersphinx_mapping = {
     'sqlalchemy': ('http://docs.sqlalchemy.org/en/latest/', None),
     'mongoengine': ('http://docs.mongoengine.org/', None),
 }
+
+issues_github_path = 'Nobatek/flask-rest-api'
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
