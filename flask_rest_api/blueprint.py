@@ -108,6 +108,16 @@ class Blueprint(FlaskBlueprint):
 
         "schema":{"$ref": "#/definitions/MySchema"}
         """
+        # This method uses the documentation information associated with the
+        # endpoint (in self._docs) to provide documentation for the route to
+        # the spec object.
+        #
+        # Note: the decorators store all documentation information in a dict
+        # structure that is close to OpenAPI doc structure, so this information
+        # could _almost_ be copied as is. Yet, some adjustemnts may have to be
+        # performed, especially if the spec structure differs between OpenAPI
+        # versions, since the OpenAPI version is not known when the decorators
+        # are applied but only now, at registration time.
         for endpoint, doc in self._docs.items():
             # doc is a dict of documentation per method for the endpoint
             # {'get': documentation, 'post': documentation,...}
@@ -115,9 +125,18 @@ class Blueprint(FlaskBlueprint):
             # Prepend Blueprint name to endpoint
             endpoint = '.'.join((self.name, endpoint))
 
-            # Tag each operation with Blueprint name
+            # Rework operations documentation
             for operation in doc.values():
-                operation.update({'tags': [self.name]})
+                # Tag each operation with Blueprint name
+                operation['tags'] = [self.name]
+                # Set response content
+                if spec.openapi_version.major >= 3:
+                    if 'responses' in operation:
+                        for resp in operation['responses'].values():
+                            if 'schema' in resp:
+                                resp['content'] = {
+                                    'application/json': {
+                                        'schema': resp.pop('schema')}}
 
             # TODO: Do we support multiple rules per endpoint?
             # https://github.com/marshmallow-code/apispec/issues/181

@@ -29,10 +29,19 @@ class TestAPISpec():
         else:
             assert spec['openapi'] == '3.0.1'
 
-    def test_apipec_path_response_schema_many(self, app, schemas):
-        """Check that plural response is documented as array in the spec"""
+    @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.1'])
+    def test_apipec_path_response_schema(self, app, openapi_version, schemas):
+        """Check response schema is correctly documented.
+
+        More specifically, check that:
+        - plural response is documented as array in the spec
+        - schema is document in the right place w.r.t. OpenAPI version
+        """
+        app.config['OPENAPI_VERSION'] = openapi_version
         api = Api(app)
         blp = Blueprint('test', 'test', url_prefix='/test')
+
+        api.definition('Doc')(schemas.DocSchema)
 
         @blp.route('/schema_many_false')
         @blp.response(schemas.DocSchema(many=False))
@@ -48,15 +57,23 @@ class TestAPISpec():
 
         paths = api.spec.to_dict()['paths']
 
-        schema_many_false = paths[
-            '/test/schema_many_false']['get']['responses'][200]['schema']
-        assert schema_many_false['type'] == 'object'
-        assert 'items' not in schema_many_false
+        response = paths['/test/schema_many_false']['get']['responses'][200]
+        if openapi_version == '2.0':
+            schema = response['schema']
+            assert schema == {'$ref': '#/definitions/Doc'}
+        else:
+            schema = (
+                response['content']['application/json']['schema'])
+            assert schema == {'$ref': '#/components/schemas/Doc'}
 
-        schema_many_true = paths[
-            '/test/schema_many_true']['get']['responses'][200]['schema']
-        assert schema_many_true['type'] == 'array'
-        assert schema_many_true['items']['type'] == 'object'
+        response = paths['/test/schema_many_true']['get']['responses'][200]
+        if openapi_version == '2.0':
+            schema = response['schema']['items']
+            assert schema == {'$ref': '#/definitions/Doc'}
+        else:
+            schema = (
+                response['content']['application/json']['schema']['items'])
+            assert schema == {'$ref': '#/components/schemas/Doc'}
 
 
 class TestAPISpecServeDocs():
