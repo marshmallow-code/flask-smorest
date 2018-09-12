@@ -6,7 +6,12 @@ import flask
 from flask import current_app
 import apispec
 
-from .plugins import FlaskPlugin, MarshmallowPlugin
+from .plugins import FlaskPlugin
+from flask_rest_api.compat import APISPEC_VERSION_MAJOR
+if APISPEC_VERSION_MAJOR == 0:
+    from .plugins import MarshmallowPlugin
+else:
+    from apispec.ext.marshmallow import MarshmallowPlugin
 
 
 def _add_leading_slash(string):

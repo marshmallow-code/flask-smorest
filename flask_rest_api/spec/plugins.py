@@ -3,15 +3,22 @@
 Heavily copied from apispec
 """
 
+import re
 from urllib.parse import urljoin
 
 import werkzeug.routing
 
-from apispec import Path
+from apispec import BasePlugin
 from apispec.exceptions import PluginMethodNotImplementedError
-from apispec.ext import flask as aef
-from apispec.ext import marshmallow as aem
 
+from flask_rest_api.compat import APISPEC_VERSION_MAJOR
+if APISPEC_VERSION_MAJOR == 0:
+    from apispec import Path
+    from apispec.ext import marshmallow as aem
+
+
+# from flask-restplus
+RE_URL = re.compile(r'<(?:[^:<>]+:)?([^<>]+)>')
 
 # From flask-apispec
 DEFAULT_CONVERTER_MAPPING = {
@@ -22,12 +29,21 @@ DEFAULT_CONVERTER_MAPPING = {
 DEFAULT_TYPE = ('string', None)
 
 
-class FlaskPlugin(aef.FlaskPlugin):
+class FlaskPlugin(BasePlugin):
     """Plugin to create OpenAPI paths from Flask rules"""
 
     def __init__(self):
         super().__init__()
         self.converter_mapping = dict(DEFAULT_CONVERTER_MAPPING)
+
+    # From apispec
+    @staticmethod
+    def flaskpath2openapi(path):
+        """Convert a Flask URL rule to an OpenAPI-compliant path.
+
+        :param str path: Flask path template.
+        """
+        return RE_URL.sub(r'{\1}', path)
 
     def register_converter(self, converter, conv_type, conv_format=None):
         """Register custom path parameter converter
@@ -59,7 +75,7 @@ class FlaskPlugin(aef.FlaskPlugin):
 
     # Greatly inspired by apispec
     def path_helper(self, app, rule, operations=None, **kwargs):
-        """Make Path from flask Rule"""
+        """Get path from flask Rule and set path parameters in operations"""
         path = self.flaskpath2openapi(rule.rule)
         app_root = app.config['APPLICATION_ROOT'] or '/'
         path = urljoin(app_root.rstrip('/') + '/', path.lstrip('/'))
@@ -74,15 +90,19 @@ class FlaskPlugin(aef.FlaskPlugin):
                     for path_p in path_parameters:
                         parameters.append(path_p)
 
-        return Path(path=path, operations=operations)
+        if APISPEC_VERSION_MAJOR == 0:
+            return Path(path=path, operations=operations)
+        return path
 
 
-class MarshmallowPlugin(aem.MarshmallowPlugin):
-    """Plugin introspecting marshmallow schemas"""
+if APISPEC_VERSION_MAJOR == 0:
+    # This is not needed in apispec 1.0.0
+    class MarshmallowPlugin(aem.MarshmallowPlugin):
+        """Plugin introspecting marshmallow schemas"""
 
-    def path_helper(self, *args, **kwargs):
-        """No-op path helper
+        def path_helper(self, *args, **kwargs):
+            """No-op path helper
 
-        apispec's path helper parses YAML docstring. We don't need this.
-        """
-        raise PluginMethodNotImplementedError
+            apispec's path helper parses YAML docstring. We don't need this.
+            """
+            raise PluginMethodNotImplementedError
