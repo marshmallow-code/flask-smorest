@@ -5,14 +5,17 @@ python:
   - '3.6'
 
 env:
-  - MARSHMALLOW_VERSION=2
-  - MARSHMALLOW_VERSION=3
+  matrix:
+    - MARSHMALLOW_VERSION=2  APISPEC_VERSION=0
+    - MARSHMALLOW_VERSION=2  APISPEC_VERSION=1
+    - MARSHMALLOW_VERSION=3  APISPEC_VERSION=0
+    - MARSHMALLOW_VERSION=3  APISPEC_VERSION=1
 
 install:
   - pip install tox
   - pip install coveralls
 
-script: tox -e $(echo py$TRAVIS_PYTHON_VERSION | tr -d .)-ma$MARSHMALLOW_VERSION
+script: tox -e $(echo py$TRAVIS_PYTHON_VERSION | tr -d .)-ma$MARSHMALLOW_VERSION-apispec$APISPEC_VERSION
 
 after_success:
   - coveralls --verbose
