@@ -8,6 +8,8 @@ Features:
 
 - *Backwards-incompatible*: Get `summary` and `description` from docstrings
   (:pr:`5`).
+- Add support for marshmallow 3.0.0b13. 2.x and 3b are now supported.
+- Add support for apispec 1.0.0b2. 0.x and 1b are now supported.
 
 Bug fixes:
 
