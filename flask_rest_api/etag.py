@@ -6,6 +6,7 @@ from flask import request, current_app, json
 
 from .exceptions import PreconditionRequired, PreconditionFailed, NotModified
 from .utils import get_appcontext
+from .compat import MARSHMALLOW_VERSION_MAJOR
 
 
 METHODS_NEEDING_CHECK_ETAG = ['PUT', 'PATCH', 'DELETE']
@@ -63,7 +64,9 @@ def _generate_etag(etag_data, etag_schema=None, extra_data=None):
     else:
         if isinstance(etag_schema, type):
             etag_schema = etag_schema()
-        raw_data = etag_schema.dump(etag_data)[0]
+        raw_data = etag_schema.dump(etag_data)
+        if MARSHMALLOW_VERSION_MAJOR < 3:
+            raw_data = raw_data[0]
     if extra_data:
         raw_data = (raw_data, extra_data)
     # flask's json.dumps is needed here

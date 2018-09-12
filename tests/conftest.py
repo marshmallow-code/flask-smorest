@@ -6,6 +6,8 @@ from marshmallow import Schema, fields, post_load, post_dump
 
 from flask import Flask
 
+from flask_rest_api.compat import MARSHMALLOW_VERSION_MAJOR
+
 from .mocks import DatabaseMock
 from .utils import JSONResponse
 
@@ -48,32 +50,37 @@ class CounterSchema(Schema):
         cls.dump_count = 0
 
     @post_load(pass_many=True)
-    def increment_load_count(self, *_):
+    def increment_load_count(self, data, _):
         self.__class__.load_count += 1
+        return data
 
     @post_dump(pass_many=True)
-    def increment_dump_count(self, *_):
+    def increment_dump_count(self, data, _):
         self.__class__.dump_count += 1
+        return data
 
 
 @pytest.fixture
 def schemas():
 
     class DocSchema(CounterSchema):
-        class Meta:
-            strict = True
+        if MARSHMALLOW_VERSION_MAJOR < 3:
+            class Meta:
+                strict = True
         item_id = fields.Int(dump_only=True)
         field = fields.Int(attribute='db_field')
 
     class DocEtagSchema(CounterSchema):
-        class Meta:
-            strict = True
+        if MARSHMALLOW_VERSION_MAJOR < 3:
+            class Meta:
+                strict = True
         field = fields.Int(attribute='db_field')
 
     class QueryArgsSchema(Schema):
         class Meta:
-            strict = True
             ordered = True
+            if MARSHMALLOW_VERSION_MAJOR < 3:
+                strict = True
         arg1 = fields.String()
         arg2 = fields.Integer()
 

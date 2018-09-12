@@ -18,6 +18,7 @@ from flask_rest_api.etag import (
 from flask_rest_api.exceptions import (
     NotModified, PreconditionRequired, PreconditionFailed)
 from flask_rest_api.blueprint import HTTP_METHODS
+from flask_rest_api.compat import MARSHMALLOW_VERSION_MAJOR
 
 from .mocks import ItemNotFound
 from .conftest import AppConfig
@@ -173,7 +174,9 @@ class TestEtag():
     def test_etag_generate_etag(self, schemas, extra_data):
         etag_schema = schemas.DocEtagSchema
         item = {'item_id': 1, 'db_field': 0}
-        item_schema_dump = etag_schema().dump(item)[0]
+        item_schema_dump = etag_schema().dump(item)
+        if MARSHMALLOW_VERSION_MAJOR < 3:
+            item_schema_dump = item_schema_dump[0]
         if extra_data is None or extra_data == {}:
             data = item
             data_dump = item_schema_dump

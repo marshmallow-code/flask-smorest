@@ -8,6 +8,7 @@ from .etag import (
     disable_etag_for_request, check_precondition, verify_check_etag,
     set_etag_schema, set_etag_in_response)
 from .utils import get_appcontext
+from .compat import MARSHMALLOW_VERSION_MAJOR
 
 
 def response(schema=None, *, code=200, etag_schema=None, disable_etag=False):
@@ -40,8 +41,12 @@ def response(schema=None, *, code=200, etag_schema=None, disable_etag=False):
             verify_check_etag()
 
             # Dump result with schema if specified
-            result_dump = (schema.dump(result)[0] if schema is not None
-                           else result)
+            if schema is None:
+                result_dump = result
+            else:
+                result_dump = schema.dump(result)
+                if MARSHMALLOW_VERSION_MAJOR < 3:
+                    result_dump = result_dump[0]
 
             # Build response
             resp = jsonify(result_dump)
