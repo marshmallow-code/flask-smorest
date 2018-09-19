@@ -49,7 +49,10 @@ class Api(DocBlueprintMixin):
             app.name,
             app.config.get('API_VERSION', '1'),
             openapi_version=app.config.get('OPENAPI_VERSION', '2.0'),
-            **spec_kwargs or {},
+            **{
+                **(spec_kwargs or {}),
+                **app.config.get('API_SPEC_OPTIONS', {})
+            },
         )
         # Initialize blueprint serving spec
         self.register_doc_blueprint()

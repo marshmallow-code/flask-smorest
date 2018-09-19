@@ -112,10 +112,13 @@ class TestApi():
                   'schema': {'properties': properties, 'type': 'object'}, }])
 
     def test_api_extra_spec_kwargs(self, app):
-        """Test kwargs can be passed to internal APISpec instance"""
-        api = Api(app, spec_kwargs={'basePath': '/v1'})
+        """Test APISpec kwargs can be passed in Api init or app config"""
+        app.config['API_SPEC_OPTIONS'] = {'basePath': '/v2'}
+        api = Api(app, spec_kwargs={'basePath': '/v1', 'host': 'example.com'})
         spec = api.spec.to_dict()
-        assert spec['basePath'] == '/v1'
+        assert spec['host'] == 'example.com'
+        # app config overrides Api spec_kwargs parameters
+        assert spec['basePath'] == '/v2'
 
     def test_api_extra_spec_plugins(self, app, schemas):
         """Test extra plugins can be passed to internal APISpec instance"""
