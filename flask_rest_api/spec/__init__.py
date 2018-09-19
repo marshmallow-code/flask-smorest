@@ -14,32 +14,66 @@ else:
     from apispec.ext.marshmallow import MarshmallowPlugin
 
 
+class APISpec(apispec.APISpec):
+    """API specification class
+
+    This class subclasses original APISpec. The parameters are the same.
+
+    It adds a FlaskPlugin and a MarshmallowPlugin to the list of plugins. And
+    it defines methods to register stuff in those plugins.
+    """
+    def __init__(self, title, version, plugins=(), info=None,
+                 openapi_version='2.0', **options):
+        self.flask_plugin = FlaskPlugin()
+        self.ma_plugin = MarshmallowPlugin()
+        plugins = [self.flask_plugin, self.ma_plugin] + list(plugins)
+        super().__init__(
+            title=title,
+            version=version,
+            plugins=plugins,
+            info=info,
+            openapi_version=openapi_version,
+            **options,
+        )
+
+    def register_converter(self, converter, conv_type, conv_format=None):
+        """Register custom path parameter converter
+
+        :param BaseConverter converter: Converter.
+            Subclass of werkzeug's BaseConverter
+        :param str conv_type: Parameter type
+        :param str conv_format: Parameter format (optional)
+        """
+        self.flask_plugin.register_converter(converter, conv_type, conv_format)
+
+    def register_field(self, field, *args):
+        """Register custom Marshmallow field
+
+        Registering the Field class allows the Schema parser to set the proper
+        type and format when documenting parameters from Schema fields.
+
+        :param Field field: Marshmallow Field class
+
+        ``*args`` can be:
+
+        - a pair of the form ``(type, format)`` to map to
+        - a core marshmallow field type (then that type's mapping is used)
+        """
+        self.ma_plugin.map_to_openapi_type(*args)(field)
+
+
 def _add_leading_slash(string):
     """Add leading slash to a string if there is None"""
     return string if string[0] == '/' else '/' + string
 
 
-class APISpec(apispec.APISpec):
-    """API specification class
+class DocBlueprintMixin:
+    """Extend Api to serve the spec in a dedicated blueprint."""
 
-    :param Flask app: Flask application
-    :param list|tuple plugins: apispec BasePlugin instances
-    """
-    def __init__(self, app, *, plugins=None):
-        plugins = list(plugins) if plugins is not None else []
-        self.flask_plugin = FlaskPlugin()
-        self.ma_plugin = MarshmallowPlugin()
-        plugins.extend((self.flask_plugin, self.ma_plugin, ))
-        super().__init__(
-            title=app.name,
-            version=app.config.get('API_VERSION', '1'),
-            plugins=plugins,
-            openapi_version=app.config.get('OPENAPI_VERSION', '2.0')
-        )
-        self._app = app
-
+    def register_doc_blueprint(self):
+        """Register a blueprint in the application to expose the spec"""
         # Add routes to json spec file and spec UI (ReDoc)
-        api_url = app.config.get('OPENAPI_URL_PREFIX', None)
+        api_url = self._app.config.get('OPENAPI_URL_PREFIX', None)
         if api_url:
             # TODO: Remove this when dropping Flask < 1.0 compatibility
             # Strip single trailing slash (flask.Blueprint does it from v1.0)
@@ -52,35 +86,37 @@ class APISpec(apispec.APISpec):
                 template_folder='./templates',
             )
             # Serve json spec at 'url_prefix/openapi.json' by default
-            json_path = app.config.get('OPENAPI_JSON_PATH', 'openapi.json')
+            json_path = self._app.config.get(
+                'OPENAPI_JSON_PATH', 'openapi.json')
             blueprint.add_url_rule(
                 _add_leading_slash(json_path),
                 endpoint='openapi_json',
                 view_func=self._openapi_json)
             # Serve ReDoc only if path specified
-            redoc_path = app.config.get('OPENAPI_REDOC_PATH', None)
+            redoc_path = self._app.config.get('OPENAPI_REDOC_PATH', None)
             if redoc_path:
                 blueprint.add_url_rule(
                     _add_leading_slash(redoc_path),
                     endpoint='openapi_redoc',
                     view_func=self._openapi_redoc)
             # Serve Swagger UI only if path and version specified
-            swagger_ui_path = app.config.get('OPENAPI_SWAGGER_UI_PATH', None)
-            swagger_ui_version = app.config.get(
+            swagger_ui_path = self._app.config.get(
+                'OPENAPI_SWAGGER_UI_PATH', None)
+            swagger_ui_version = self._app.config.get(
                 'OPENAPI_SWAGGER_UI_VERSION', None)
             if swagger_ui_path and swagger_ui_version:
                 blueprint.add_url_rule(
                     _add_leading_slash(swagger_ui_path),
                     endpoint='openapi_swagger_ui',
                     view_func=self._openapi_swagger_ui)
-            app.register_blueprint(blueprint)
+            self._app.register_blueprint(blueprint)
 
     def _openapi_json(self):
         """Serve JSON spec file"""
         # We don't use Flask.jsonify here as it would sort the keys
         # alphabetically while we want to preserve the order.
         return current_app.response_class(
-            json.dumps(self.to_dict(), indent=2),
+            json.dumps(self.spec.to_dict(), indent=2),
             mimetype='application/json')
 
     def _openapi_redoc(self):
@@ -150,28 +186,3 @@ class APISpec(apispec.APISpec):
             swagger_ui_supported_submit_methods=(
                 swagger_ui_supported_submit_methods)
         )
-
-    def register_converter(self, converter, conv_type, conv_format=None):
-        """Register custom path parameter converter
-
-        :param BaseConverter converter: Converter.
-            Subclass of werkzeug's BaseConverter
-        :param str conv_type: Parameter type
-        :param str conv_format: Parameter format (optional)
-        """
-        self.flask_plugin.register_converter(converter, conv_type, conv_format)
-
-    def register_field(self, field, *args):
-        """Register custom Marshmallow field
-
-        Registering the Field class allows the Schema parser to set the proper
-        type and format when documenting parameters from Schema fields.
-
-        :param Field field: Marshmallow Field class
-
-        ``*args`` can be:
-
-        - a pair of the form ``(type, format)`` to map to
-        - a core marshmallow field type (then that type's mapping is used)
-        """
-        self.ma_plugin.map_to_openapi_type(*args)(field)

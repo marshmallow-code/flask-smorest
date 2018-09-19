@@ -122,3 +122,15 @@ class TestApi():
         api.definition('Pet')(schemas.DocSchema)
         spec = api.spec.to_dict()
         assert spec['definitions']['Pet']['dummy'] == 'whatever'
+
+    def test_api_extra_spec_info(self, app):
+        """Test info can be passed to internal APISpec instance"""
+        api = Api(app, spec_info={'description': 'Great API'})
+        spec = api.spec.to_dict()
+        assert spec['info']['description'] == 'Great API'
+
+    def test_api_extra_spec_options(self, app):
+        """Test options can be passed to internal APISpec instance"""
+        api = Api(app, spec_options={'basePath': '/v1'})
+        spec = api.spec.to_dict()
+        assert spec['basePath'] == '/v1'

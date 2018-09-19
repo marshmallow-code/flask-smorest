@@ -2,7 +2,7 @@
 
 from werkzeug.exceptions import default_exceptions
 
-from .spec import APISpec
+from .spec import APISpec, DocBlueprintMixin
 from .blueprint import Blueprint  # noqa
 from .args_parser import abort  # noqa
 from .etag import is_etag_enabled, check_etag, set_etag  # noqa
@@ -13,24 +13,30 @@ from .error_handler import handle_http_exception
 __version__ = '0.7.0'
 
 
-class Api:
+class Api(DocBlueprintMixin):
     """Main class
 
     Provides helpers to build a REST API using Flask.
 
     :param Flask app: Flask application
-    :param list|tuple spec_plugins: apispec BasePlugin instances
 
-    Extra apispec plugins can be passed to the internal APISpec instance.
+    Optional keyword parameters prefixed with ``spec_`` are passed to APISpec.
+
+    :param list|tuple spec_plugins: apispec.BasePlugin instances appended to
+        the default list of plugins (FlaskPlugin and MarshmallowPlugin)
+    :param dict spec_info: info
+    :param dict spec_options: extra kwargs
     """
-
-    def __init__(self, app=None, *, spec_plugins=None):
+    def __init__(self, app=None, *,
+                 spec_plugins=None, spec_info=None, spec_options=None):
         self._app = app
         self.spec = None
         if app is not None:
-            self.init_app(app, spec_plugins=spec_plugins)
+            self.init_app(app, spec_plugins=spec_plugins,
+                          spec_info=spec_info, spec_options=spec_options)
 
-    def init_app(self, app, *, spec_plugins=None):
+    def init_app(self, app, *,
+                 spec_plugins=None, spec_info=None, spec_options=None):
         """Initialize Api with application"""
 
         self._app = app
@@ -41,7 +47,16 @@ class Api:
         ext['ext_obj'] = self
 
         # Initialize spec
-        self.spec = APISpec(app, plugins=spec_plugins)
+        self.spec = APISpec(
+            app.name,
+            version=app.config.get('API_VERSION', '1'),
+            plugins=spec_plugins or [],
+            info=spec_info,
+            openapi_version=app.config.get('OPENAPI_VERSION', '2.0'),
+            **(spec_options or {}),
+        )
+        # Initialize blueprint serving spec
+        self.register_doc_blueprint()
 
         # Can't register a handler for HTTPException, so let's register
         # default handler for each code explicitly.
