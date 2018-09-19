@@ -6,6 +6,9 @@ Changelog
 
 Features:
 
+- *Backwards-incompatible*: ``Api`` accepts a ``spec_kargs`` parameter, passed
+  as kwargs to the internal ``APISpec`` instance. ``spec_plugins`` is removed,
+  plugins shall be passed as ``spec_kwargs={'plugins': [...]}``.
 - *Backwards-incompatible*: Get `summary` and `description` from docstrings
   (:pr:`5`).
 - Add support for marshmallow 3.0.0b13. 2.x and 3b are now supported.
