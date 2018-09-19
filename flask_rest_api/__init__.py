@@ -19,24 +19,22 @@ class Api(DocBlueprintMixin):
     Provides helpers to build a REST API using Flask.
 
     :param Flask app: Flask application
+    :param dict spec_kwargs: kwargs to pass to APISpec
 
-    Optional keyword parameters prefixed with ``spec_`` are passed to APISpec.
-
-    :param list|tuple spec_plugins: apispec.BasePlugin instances appended to
-        the default list of plugins (FlaskPlugin and MarshmallowPlugin)
-    :param dict spec_info: info
-    :param dict spec_options: extra kwargs
+    The spec_kwargs dictionary is passed as kwargs to the internal APISpec
+    instance. See :class:`apispec.APISpec <apispec.APISpec>` documentation for
+    the list of available parameters. If ``plugins`` are passed, they are
+    appended to the default plugins: ``[FlaskPlugin(), MarshmallowPlugin()]``.
+    `title`, `version` and `openapi_version` can't be passed here, they are set
+    according to the app configuration.
     """
-    def __init__(self, app=None, *,
-                 spec_plugins=None, spec_info=None, spec_options=None):
+    def __init__(self, app=None, *, spec_kwargs=None):
         self._app = app
         self.spec = None
         if app is not None:
-            self.init_app(app, spec_plugins=spec_plugins,
-                          spec_info=spec_info, spec_options=spec_options)
+            self.init_app(app, spec_kwargs=spec_kwargs)
 
-    def init_app(self, app, *,
-                 spec_plugins=None, spec_info=None, spec_options=None):
+    def init_app(self, app, *, spec_kwargs=None):
         """Initialize Api with application"""
 
         self._app = app
@@ -49,11 +47,9 @@ class Api(DocBlueprintMixin):
         # Initialize spec
         self.spec = APISpec(
             app.name,
-            version=app.config.get('API_VERSION', '1'),
-            plugins=spec_plugins or [],
-            info=spec_info,
+            app.config.get('API_VERSION', '1'),
             openapi_version=app.config.get('OPENAPI_VERSION', '2.0'),
-            **(spec_options or {}),
+            **spec_kwargs or {},
         )
         # Initialize blueprint serving spec
         self.register_doc_blueprint()

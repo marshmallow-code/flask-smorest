@@ -111,6 +111,12 @@ class TestApi():
                 [{'in': 'body', 'required': True, 'name': 'body',
                   'schema': {'properties': properties, 'type': 'object'}, }])
 
+    def test_api_extra_spec_kwargs(self, app):
+        """Test kwargs can be passed to internal APISpec instance"""
+        api = Api(app, spec_kwargs={'basePath': '/v1'})
+        spec = api.spec.to_dict()
+        assert spec['basePath'] == '/v1'
+
     def test_api_extra_spec_plugins(self, app, schemas):
         """Test extra plugins can be passed to internal APISpec instance"""
 
@@ -118,19 +124,7 @@ class TestApi():
             def definition_helper(self, name, definition, **kwargs):
                 return {'dummy': 'whatever'}
 
-        api = Api(app, spec_plugins=(MyPlugin(), ))
+        api = Api(app, spec_kwargs={'plugins': (MyPlugin(), )})
         api.definition('Pet')(schemas.DocSchema)
         spec = api.spec.to_dict()
         assert spec['definitions']['Pet']['dummy'] == 'whatever'
-
-    def test_api_extra_spec_info(self, app):
-        """Test info can be passed to internal APISpec instance"""
-        api = Api(app, spec_info={'description': 'Great API'})
-        spec = api.spec.to_dict()
-        assert spec['info']['description'] == 'Great API'
-
-    def test_api_extra_spec_options(self, app):
-        """Test options can be passed to internal APISpec instance"""
-        api = Api(app, spec_options={'basePath': '/v1'})
-        spec = api.spec.to_dict()
-        assert spec['basePath'] == '/v1'
