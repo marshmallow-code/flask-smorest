@@ -87,6 +87,24 @@ this decorator should not need to be used for general use cases. However, it
 comes in handy if an OpenAPI feature is not supported.
 
 
+Populating the root document object
+-----------------------------------
+
+Additional root document attributes can be passed either in the code, as
+``Api`` parameter ``spec_kwargs``, or as Flask app configuration parameters.
+
+.. code-block:: python
+
+    app.config['API_SPEC_OPTIONS'] = {'basePath': '/v2'}
+
+    api = Api(app, spec_kwargs={'basePath': '/v1', 'host': 'example.com'})
+
+Note that ``app.config`` overrides ``spec_kwargs``. The example above produces
+
+.. code-block:: python
+
+    {'basePath': '/v2', 'host': 'example.com',...}
+
 Register Definitions
 --------------------
 
