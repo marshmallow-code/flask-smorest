@@ -1,11 +1,13 @@
 Changelog
 ---------
 
-0.8.0 (unreleased)
+0.8.0 (2018-09-20)
 ++++++++++++++++++
 
 Features:
 
+- Add ``API_SPEC_OPTIONS`` app config parameter. Thanks :user:`xalioth` for the
+  suggestion.
 - *Backwards-incompatible*: ``Api`` accepts a ``spec_kargs`` parameter, passed
   as kwargs to the internal ``APISpec`` instance. ``spec_plugins`` is removed,
   plugins shall be passed as ``spec_kwargs={'plugins': [...]}``.
