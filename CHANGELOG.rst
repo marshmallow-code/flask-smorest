@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+0.8.1 (unreleased)
+++++++++++++++++++
+
+Features:
+
+- Add `page` (page number) to pagination metadata.
+
 0.8.0 (2018-09-20)
 ++++++++++++++++++
 
