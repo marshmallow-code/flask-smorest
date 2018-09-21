@@ -244,7 +244,7 @@ class TestFullExample():
             list_etag = response.headers['ETag']
             assert len(response.json) == 0
             assert json.loads(response.headers['X-Pagination']) == {
-                'total': 0, 'total_pages': 0}
+                'total': 0, 'total_pages': 0, 'page': 1}
 
         # GET collection with correct ETag: Not modified
         with assert_counters(0, 1, 0, 1 if bp_schema == 'ETag schema' else 0):
@@ -276,7 +276,8 @@ class TestFullExample():
         assert len(response.json) == 1
         assert response.json[0] == {'field': 0, 'item_id': 1}
         assert json.loads(response.headers['X-Pagination']) == {
-            'total': 1, 'total_pages': 1, 'first_page': 1, 'last_page': 1}
+            'total': 1, 'total_pages': 1, 'page': 1,
+            'first_page': 1, 'last_page': 1}
 
         # GET by ID without ETag: OK
         with assert_counters(0, 1, 0, 1 if bp_schema == 'ETag schema' else 0):
@@ -347,7 +348,8 @@ class TestFullExample():
         assert len(response.json) == 1
         assert response.json[0] == {'field': 1, 'item_id': 1}
         assert json.loads(response.headers['X-Pagination']) == {
-            'total': 1, 'total_pages': 1, 'first_page': 1, 'last_page': 1}
+            'total': 1, 'total_pages': 1, 'page': 1,
+            'first_page': 1, 'last_page': 1}
 
         # POST item_2
         item_2_data = {'field': 1}
@@ -373,8 +375,8 @@ class TestFullExample():
         assert len(response.json) == 1
         assert response.json[0] == {'field': 1, 'item_id': 1}
         assert json.loads(response.headers['X-Pagination']) == {
-            'total': 2, 'total_pages': 2, 'first_page': 1, 'last_page': 2,
-            'next_page': 2}
+            'total': 2, 'total_pages': 2, 'page': 1,
+            'first_page': 1, 'last_page': 2, 'next_page': 2}
 
         # DELETE without ETag: Precondition required error
         with assert_counters(0, 0, 0, 0):

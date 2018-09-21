@@ -155,7 +155,7 @@ class TestPagination():
         assert data[4] == {'field': 9, 'item_id': 10}
         assert json.loads(headers['X-Pagination']) == {
             'total': 1000, 'total_pages': 200,
-            'first_page': 1, 'last_page': 200,
+            'page': 2, 'first_page': 1, 'last_page': 200,
             'previous_page': 1, 'next_page': 3,
         }
         # page = 334, page_size = 3
@@ -168,7 +168,7 @@ class TestPagination():
         assert len(data) == 1
         assert json.loads(headers['X-Pagination']) == {
             'total': 1000, 'total_pages': 334,
-            'first_page': 1, 'last_page': 334,
+            'page': 334, 'first_page': 1, 'last_page': 334,
             'previous_page': 333,
         }
 
@@ -186,7 +186,7 @@ class TestPagination():
             assert data[9] == {'field': 9, 'item_id': 10}
             assert json.loads(headers['X-Pagination']) == {
                 'total': 1000, 'total_pages': 100,
-                'first_page': 1, 'last_page': 100,
+                'page': 1, 'first_page': 1, 'last_page': 100,
                 'next_page': 2,
             }
         else:
@@ -195,7 +195,7 @@ class TestPagination():
             assert data[4] == {'field': 9, 'item_id': 10}
             assert json.loads(headers['X-Pagination']) == {
                 'total': 1000, 'total_pages': 200,
-                'first_page': 1, 'last_page': 200,
+                'page': 2, 'first_page': 1, 'last_page': 200,
                 'previous_page': 1, 'next_page': 3,
             }
 

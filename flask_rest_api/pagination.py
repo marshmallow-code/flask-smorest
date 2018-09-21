@@ -127,6 +127,7 @@ class PaginationMetadataSchema(ma.Schema):
     total_pages = ma.fields.Integer(
         attribute='page_count'
     )
+    page = ma.fields.Integer()
     first_page = ma.fields.Integer()
     last_page = ma.fields.Integer()
     previous_page = ma.fields.Integer()
