@@ -8,6 +8,10 @@ Features:
 
 - Add `page` (page number) to pagination metadata.
 
+Bug fixes:
+
+- Document body parameter correctly when using OpenAPI 3.
+
 0.8.0 (2018-09-20)
 ++++++++++++++++++
 
