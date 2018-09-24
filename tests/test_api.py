@@ -131,3 +131,16 @@ class TestApi():
         api.definition('Pet')(schemas.DocSchema)
         spec = api.spec.to_dict()
         assert spec['definitions']['Pet']['dummy'] == 'whatever'
+
+    @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.1'])
+    def test_api_gets_apispec_parameters_from_app(self, app, openapi_version):
+        app.config['API_VERSION'] = 'v42'
+        app.config['OPENAPI_VERSION'] = openapi_version
+        api = Api(app)
+        spec = api.spec.to_dict()
+
+        assert spec['info'] == {'title': 'API Test', 'version': 'v42'}
+        if openapi_version == '2.0':
+            assert spec['swagger'] == '2.0'
+        else:
+            assert spec['openapi'] == '3.0.1'
