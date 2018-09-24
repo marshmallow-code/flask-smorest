@@ -7,6 +7,7 @@ Changelog
 Features:
 
 - Add `page` (page number) to pagination metadata.
+- Set `produces` and `consumes` root document attributes when using OpenAPI v2.
 
 Bug fixes:
 
