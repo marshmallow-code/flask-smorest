@@ -10,7 +10,7 @@ from .pagination import Page, set_item_count  # noqa
 from .error_handler import handle_http_exception
 
 
-__version__ = '0.8.0'
+__version__ = '0.8.1'
 
 
 class Api(DocBlueprintMixin):
