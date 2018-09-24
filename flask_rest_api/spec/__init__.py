@@ -27,6 +27,10 @@ class APISpec(apispec.APISpec):
         self.flask_plugin = FlaskPlugin()
         self.ma_plugin = MarshmallowPlugin()
         plugins = [self.flask_plugin, self.ma_plugin] + list(plugins)
+        openapi_major_version = int(openapi_version.split('.')[0])
+        if openapi_major_version < 3:
+            options.setdefault('produces', ['application/json', ])
+            options.setdefault('consumes', ['application/json', ])
         super().__init__(
             title=title,
             version=version,

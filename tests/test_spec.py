@@ -9,6 +9,23 @@ from flask_rest_api import Api
 from .conftest import AppConfig
 
 
+class TestAPISpec():
+    """Test APISpec class"""
+
+    @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.1'])
+    def test_apispec_sets_produces_consumes(self, app, openapi_version):
+        app.config['OPENAPI_VERSION'] = openapi_version
+        api = Api(app)
+        spec = api.spec.to_dict()
+
+        if openapi_version == '2.0':
+            assert spec['produces'] == ['application/json', ]
+            assert spec['consumes'] == ['application/json', ]
+        else:
+            assert 'produces' not in spec
+            assert 'consumes' not in spec
+
+
 class TestAPISpecServeDocs():
     """Test APISpec class docs serving features"""
 
