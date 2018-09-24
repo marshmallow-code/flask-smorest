@@ -4,7 +4,7 @@ from collections import OrderedDict
 
 import pytest
 
-from flask_rest_api import Api, Blueprint
+from flask_rest_api import Api
 
 from .conftest import AppConfig
 
@@ -28,52 +28,6 @@ class TestAPISpec():
             assert spec['swagger'] == '2.0'
         else:
             assert spec['openapi'] == '3.0.1'
-
-    @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.1'])
-    def test_apipec_path_response_schema(self, app, openapi_version, schemas):
-        """Check response schema is correctly documented.
-
-        More specifically, check that:
-        - plural response is documented as array in the spec
-        - schema is document in the right place w.r.t. OpenAPI version
-        """
-        app.config['OPENAPI_VERSION'] = openapi_version
-        api = Api(app)
-        blp = Blueprint('test', 'test', url_prefix='/test')
-
-        api.definition('Doc')(schemas.DocSchema)
-
-        @blp.route('/schema_many_false')
-        @blp.response(schemas.DocSchema(many=False))
-        def many_false():
-            pass
-
-        @blp.route('/schema_many_true')
-        @blp.response(schemas.DocSchema(many=True))
-        def many_true():
-            pass
-
-        api.register_blueprint(blp)
-
-        paths = api.spec.to_dict()['paths']
-
-        response = paths['/test/schema_many_false']['get']['responses'][200]
-        if openapi_version == '2.0':
-            schema = response['schema']
-            assert schema == {'$ref': '#/definitions/Doc'}
-        else:
-            schema = (
-                response['content']['application/json']['schema'])
-            assert schema == {'$ref': '#/components/schemas/Doc'}
-
-        response = paths['/test/schema_many_true']['get']['responses'][200]
-        if openapi_version == '2.0':
-            schema = response['schema']['items']
-            assert schema == {'$ref': '#/definitions/Doc'}
-        else:
-            schema = (
-                response['content']['application/json']['schema']['items'])
-            assert schema == {'$ref': '#/components/schemas/Doc'}
 
 
 class TestAPISpecServeDocs():
