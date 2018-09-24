@@ -64,6 +64,39 @@ class Blueprint(FlaskBlueprint):
         # }
         self._docs = OrderedDict()
 
+    def route(self, rule, **options):
+        """Decorator to register url rule in application
+
+        Also stores doc info for later registration
+
+        Use this to decorate a MethodView or a resource function
+        """
+        def decorator(func):
+
+            # By default, endpoint name is function name
+            endpoint = options.pop('endpoint', func.__name__)
+
+            # MethodView (class)
+            if isinstance(func, MethodViewType):
+                # This decorator may be called multiple times on the same
+                # MethodView, but Flask will complain if different views are
+                # mapped to the same endpoint, so we should call 'as_view' only
+                # once and keep the result in MethodView._view_func
+                if not getattr(func, '_view_func', None):
+                    func._view_func = func.as_view(endpoint)
+                view_func = func._view_func
+            # Function
+            else:
+                view_func = func
+
+            # Add URL rule in Flask and store endpoint documentation
+            self.add_url_rule(rule, view_func=view_func, **options)
+            self._store_endpoint_docs(endpoint, func, **options)
+
+            return func
+
+        return decorator
+
     def _store_endpoint_docs(self, endpoint, obj, **kwargs):
         """Store view or function doc info"""
 
@@ -179,39 +212,6 @@ class Blueprint(FlaskBlueprint):
                     operation['parameters'] = parameters
                 else:
                     del operation['parameters']
-
-    def route(self, rule, **options):
-        """Decorator to register url rule in application
-
-        Also stores doc info for later registration
-
-        Use this to decorate a MethodView or a resource function
-        """
-        def decorator(func):
-
-            # By default, endpoint name is function name
-            endpoint = options.pop('endpoint', func.__name__)
-
-            # MethodView (class)
-            if isinstance(func, MethodViewType):
-                # This decorator may be called multiple times on the same
-                # MethodView, but Flask will complain if different views are
-                # mapped to the same endpoint, so we should call 'as_view' only
-                # once and keep the result in MethodView._view_func
-                if not getattr(func, '_view_func', None):
-                    func._view_func = func.as_view(endpoint)
-                view_func = func._view_func
-            # Function
-            else:
-                view_func = func
-
-            # Add URL rule in Flask and store endpoint documentation
-            self.add_url_rule(rule, view_func=view_func, **options)
-            self._store_endpoint_docs(endpoint, func, **options)
-
-            return func
-
-        return decorator
 
     @staticmethod
     def doc(**kwargs):
