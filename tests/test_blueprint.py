@@ -24,10 +24,13 @@ LOCATIONS_MAPPING = (
 class TestBlueprint():
     """Test Blueprint class"""
 
+    @pytest.mark.parametrize('openapi_version', ('2.0', '3.0.1'))
     @pytest.mark.parametrize(
         # Also test 'json/body' is default
         'location_map', LOCATIONS_MAPPING + ((None, 'body'),))
-    def test_blueprint_arguments_location(self, app, schemas, location_map):
+    def test_blueprint_arguments_location(
+            self, app, schemas, location_map, openapi_version):
+        app.config['OPENAPI_VERSION'] = openapi_version
         api = Api(app)
         blp = Blueprint('test', __name__, url_prefix='/test')
         location, openapi_location = location_map
@@ -45,18 +48,27 @@ class TestBlueprint():
 
         api.register_blueprint(blp)
         spec = api.spec.to_dict()
-        loc = spec['paths']['/test/']['get']['parameters'][0]['in']
-        assert loc == openapi_location
+        get = spec['paths']['/test/']['get']
+        if openapi_location != 'body' or openapi_version == '2.0':
+            loc = get['parameters'][0]['in']
+            assert loc == openapi_location
+            assert 'requestBody' not in get
+        else:
+            # In OpenAPI v3, 'body' parameter is in 'requestBody'
+            assert 'parameters' not in get
+            assert 'requestBody' in get
 
     def test_blueprint_arguments_location_invalid(self, app, schemas):
         blp = Blueprint('test', __name__, url_prefix='/test')
         with pytest.raises(InvalidLocation):
             blp.arguments(schemas.DocSchema, location='invalid')
 
+    @pytest.mark.parametrize('openapi_version', ('2.0', '3.0.1'))
     @pytest.mark.parametrize('location_map', LOCATIONS_MAPPING)
     @pytest.mark.parametrize('required', (True, False, None))
     def test_blueprint_arguments_required(
-            self, app, schemas, required, location_map):
+            self, app, schemas, required, location_map, openapi_version):
+        app.config['OPENAPI_VERSION'] = openapi_version
         api = Api(app)
         blp = Blueprint('test', __name__, url_prefix='/test')
         location, _ = location_map
@@ -74,22 +86,35 @@ class TestBlueprint():
                 pass
 
         api.register_blueprint(blp)
-        parameters = api.spec.to_dict()['paths']['/test/']['get']['parameters']
+        get = api.spec.to_dict()['paths']['/test/']['get']
         if location == 'json':
-            # One parameter: the schema
-            assert len(parameters) == 1
-            assert 'schema' in parameters[0]
-            # Check required defaults to True
-            assert parameters[0]['required'] == (required is not False)
+            if openapi_version == '2.0':
+                parameters = get['parameters']
+                # One parameter: the schema
+                assert len(parameters) == 1
+                assert 'schema' in parameters[0]
+                assert 'requestBody' not in get
+                # Check required defaults to True
+                assert parameters[0]['required'] == (required is not False)
+            else:
+                # Body parameter in 'requestBody'
+                assert 'requestBody' in get
+                # Check required defaults to True
+                assert get['requestBody']['required'] == (
+                    required is not False)
         else:
+            parameters = get['parameters']
             # One parameter: the 'field' field in DocSchema
             assert len(parameters) == 1
             assert parameters[0]['name'] == 'field'
+            assert 'requestBody' not in get
             # Check the required parameter has no impact.
             # Only the required attribute of the field matters
             assert parameters[0]['required'] is False
 
-    def test_blueprint_arguments_multiple(self, app, schemas):
+    @pytest.mark.parametrize('openapi_version', ('2.0', '3.0.1'))
+    def test_blueprint_arguments_multiple(self, app, schemas, openapi_version):
+        app.config['OPENAPI_VERSION'] = openapi_version
         api = Api(app)
         blp = Blueprint('test', __name__, url_prefix='/test')
         client = app.test_client()
@@ -112,8 +137,15 @@ class TestBlueprint():
         assert parameters[0]['in'] == 'query'
         assert parameters[1]['name'] == 'arg2'
         assert parameters[1]['in'] == 'query'
-        assert parameters[2]['in'] == 'body'
-        assert 'field' in parameters[2]['schema']['properties']
+
+        if openapi_version == '2.0':
+            assert len(parameters) == 3
+            assert parameters[2]['in'] == 'body'
+            assert 'field' in parameters[2]['schema']['properties']
+        else:
+            assert len(parameters) == 2
+            assert 'field' in spec['paths']['/test/']['post']['requestBody'][
+                'content']['application/json']['schema']['properties']
 
         # Check parameters are passed as arguments to view function
         item_data = {'field': 12}
@@ -135,7 +167,6 @@ class TestBlueprint():
 
         @blp.route('/')
         @blp.arguments(schemas.QueryArgsSchema, location='query')
-        @blp.response(schemas.DocSchema)
         @blp.paginate()
         def func():
             """Dummy view func"""
