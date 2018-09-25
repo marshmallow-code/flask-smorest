@@ -1,77 +1,105 @@
 """Exception handler"""
 
+from werkzeug.exceptions import (
+    default_exceptions, HTTPException, InternalServerError)
 from flask import jsonify, current_app
-from werkzeug.exceptions import HTTPException, InternalServerError
 
 
-def handle_http_exception(error):
-    """Return error description and details in response body
+class ErrorHandlerMixin:
+    """Extend Api to manage error handling."""
 
-    This function is registered at init to handle HTTPException.
-    When abort is called in the code, this triggers a HTTPException, and Flask
-    calls this handler to generate a better response.
+    def _register_error_handlers(self):
+        """Register error handlers in Flask app
 
-    Also, when an Exception is not caught in a view, Flask automatically
-    calls the 500 error handler.
+        This method registers an error handler for every exception code.
+        """
+        # On Flask versions older than 1.0, it is not possible to register a
+        # handler for all HTTPException at once, so we register the handler
+        # for each code explicitly.
+        # https://github.com/pallets/flask/issues/941#issuecomment-118975275
+        # This workaround can be dropped when dropping Flask<1.0 compatibility.
+        for code in default_exceptions:
+            self._app.register_error_handler(code, self._handle_http_exception)
 
-    flask_rest_api republishes webarg's abort override. This abort allows the
-    caller to pass kwargs and stores those kwargs in exception.data.
+    def _handle_http_exception(self, error):
+        """Return error description and details in response body
 
-    This handler uses this extra information to populate the response.
+        This method is registered at init to handle `HTTPException`.
 
-    Extra information considered by this handler:
-    - message: a comment (string)
-    - errors: a dict of errors, typically validation issues on a form
-    - headers: a dict of additional headers
+        - When `abort` is called in the code, this triggers a `HTTPException`,
+          and Flask calls this handler to generate a better response.
 
-    When the error was triggered with 'abort', it is logged with INFO level.
-    """
+        - Also, when an exception is not caught in a view, Flask automatically
+          calls the 500 error handler.
 
-    # TODO: manage case where messages/errors is a list?
-    # TODO: use an error Schema
-    # TODO: make log optional?
+        flask_rest_api republishes webarg's `abort` override. This `abort`
+        allows the caller to pass kwargs and stores those kwargs in
+        `exception.data`.
 
-    log_info = True
+        This handler uses this extra information to populate the response.
 
-    # Flask redirects unhandled exceptions to error 500 handler
-    # If error is not a HTTPException, then it is an unhandled exception
-    # Return a 500 (InternalServerError)
-    if not isinstance(error, HTTPException):
-        error = InternalServerError()
-        # Flask logs uncaught exceptions as ERROR already, no need to log here
-        log_info = False
+        Extra information considered by this handler:
+        - `message`: a comment (string)
+        - `errors`: a dict of errors, typically validation issues on a form
+        - `headers`: a dict of additional headers
 
-    headers = {}
+        If the error is an `HTTPException` (typically if it was triggered by
+        `abort`), this handler logs it with `INF0` level. Otherwise, it is an
+        unhandled exception and it is already logged as `ERROR` by Flask.
+        """
+        # TODO: use an error Schema
+        # TODO: add a parameter to enable/disable logging?
 
-    payload = {
-        'status': str(error),
-    }
+        # If error is not a HTTPException, then it is an unhandled exception.
+        # Make it a 500 (InternalServerError) and don't log.
+        do_log = True
+        if not isinstance(error, HTTPException):
+            error = InternalServerError()
+            do_log = False
 
-    # Get additional info passed as kwargs when calling abort
-    # data may not exist if HTTPException was raised not using webargs abort
-    # or if not kwargs were passed (https://github.com/sloria/webargs/pull/184)
-    data = getattr(error, 'data', None)
-    if data:
-        # If we passed a custom message
-        if 'message' in data:
-            payload['message'] = data['message']
-        # If we passed "errors"
-        if 'errors' in data:
-            payload['errors'] = data['errors']
-        # If webargs added validation errors as "messages"
-        # (you should use 'errors' as it is more explicit)
-        elif 'messages' in data:
-            payload['errors'] = data['messages']
-        # If we passed additional headers
-        if 'headers' in data:
-            headers = data['headers']
+        payload, headers = self._prepare_error_reponse_content(error)
+        if do_log:
+            self._log_error(error, payload)
+        return self._make_error_response(error, payload, headers)
 
-    # Log error as INFO, including payload content
-    if log_info:
+    @staticmethod
+    def _prepare_error_reponse_content(error):
+        """Build payload and headers from error"""
+        headers = {}
+        payload = {'status': str(error), }
+
+        # Get additional info passed as kwargs when calling abort
+        # data may not exist if
+        # - HTTPException was raised not using webargs abort or
+        # - no kwargs were passed (https://github.com/sloria/webargs/pull/184)
+        #   and webargs<0.9.0
+        data = getattr(error, 'data', None)
+        if data:
+            # If we passed a custom message
+            if 'message' in data:
+                payload['message'] = data['message']
+            # If we passed "errors"
+            if 'errors' in data:
+                payload['errors'] = data['errors']
+            # If webargs added validation errors as "messages"
+            # (you should use 'errors' as it is more explicit)
+            elif 'messages' in data:
+                payload['errors'] = data['messages']
+            # If we passed additional headers
+            if 'headers' in data:
+                headers = data['headers']
+
+        return payload, headers
+
+    @staticmethod
+    def _log_error(error, payload):
+        """Log error as INFO, including payload content"""
         log_string_content = [str(error.code), ]
         for key in ('message', 'errors'):
             if key in payload:
                 log_string_content.append(str(payload[key]))
         current_app.logger.info(' '.join(log_string_content))
 
-    return jsonify(payload), error.code, headers
+    @staticmethod
+    def _make_error_response(error, payload, headers):
+        return jsonify(payload), error.code, headers

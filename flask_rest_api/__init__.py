@@ -1,19 +1,17 @@
 """Api extension initialization"""
 
-from werkzeug.exceptions import default_exceptions
-
 from .spec import APISpec, DocBlueprintMixin
 from .blueprint import Blueprint  # noqa
 from .args_parser import abort  # noqa
 from .etag import is_etag_enabled, check_etag, set_etag  # noqa
 from .pagination import Page, set_item_count  # noqa
-from .error_handler import handle_http_exception
+from .error_handler import ErrorHandlerMixin
 
 
 __version__ = '0.8.1'
 
 
-class Api(DocBlueprintMixin):
+class Api(DocBlueprintMixin, ErrorHandlerMixin):
     """Main class
 
     Provides helpers to build a REST API using Flask.
@@ -57,11 +55,8 @@ class Api(DocBlueprintMixin):
         # Initialize blueprint serving spec
         self._register_doc_blueprint()
 
-        # Can't register a handler for HTTPException, so let's register
-        # default handler for each code explicitly.
-        # https://github.com/pallets/flask/issues/941#issuecomment-118975275
-        for code in default_exceptions:
-            app.register_error_handler(code, handle_http_exception)
+        # Register error handlers
+        self._register_error_handlers()
 
     def register_blueprint(self, blp):
         """Register a blueprint in the application
