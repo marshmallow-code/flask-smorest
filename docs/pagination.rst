@@ -122,6 +122,6 @@ It contains the pagination information.
     print(headers['X-Pagination'])
     # {
     #     'total': 1000, 'total_pages': 200,
-    #     'first_page': 1, 'last_page': 200,
+    #     'page': 2, 'first_page': 1, 'last_page': 200,
     #     'previous_page': 1, 'next_page': 3,
     # }
