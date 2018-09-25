@@ -74,7 +74,7 @@ def _add_leading_slash(string):
 class DocBlueprintMixin:
     """Extend Api to serve the spec in a dedicated blueprint."""
 
-    def register_doc_blueprint(self):
+    def _register_doc_blueprint(self):
         """Register a blueprint in the application to expose the spec"""
         # Add routes to json spec file and spec UI (ReDoc)
         api_url = self._app.config.get('OPENAPI_URL_PREFIX', None)

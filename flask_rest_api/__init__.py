@@ -55,7 +55,7 @@ class Api(DocBlueprintMixin):
             },
         )
         # Initialize blueprint serving spec
-        self.register_doc_blueprint()
+        self._register_doc_blueprint()
 
         # Can't register a handler for HTTPException, so let's register
         # default handler for each code explicitly.
