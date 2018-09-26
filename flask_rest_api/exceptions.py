@@ -15,10 +15,6 @@ class InvalidLocation(FlaskRestApiError):
     """Parameter location is not a valid location"""
 
 
-class PageOutOfRangeError(FlaskRestApiError):
-    """Requested page number out of page range"""
-
-
 class NotModified(wexc.HTTPException, FlaskRestApiError):
     """Resource was not modified (Etag is unchanged)
 

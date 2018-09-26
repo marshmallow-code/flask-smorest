@@ -199,13 +199,27 @@ class TestPagination():
                 'previous_page': 1, 'next_page': 3,
             }
 
+    def test_pagination_empty_collection(self, app_fixture):
+        # empty collection -> 200 with empty list, partial pagination metadata
+        response = app_fixture.client.get('/test/')
+        assert response.status_code == 200
+        assert json.loads(response.headers['X-Pagination']) == {
+            'total': 0, 'total_pages': 0,
+        }
+        assert response.json == []
+
     @pytest.mark.parametrize('collection', [1000, ], indirect=True)
     def test_pagination_page_out_of_range(self, app_fixture):
-        # page = 120, page_size = 10: page out of range -> 404
+        # page = 120, page_size = 10
+        # page out of range -> 200 with empty list, partial pagination metadata
         response = app_fixture.client.get(
             '/test/', query_string={'page': 120, 'page_size': 10})
-        assert response.status_code == 404
-        assert 'errors' in response.json
+        assert response.status_code == 200
+        assert json.loads(response.headers['X-Pagination']) == {
+            'total': 1000, 'total_pages': 100,
+            'first_page': 1, 'last_page': 100,
+        }
+        assert response.json == []
 
     @pytest.mark.parametrize('collection', [1000, ], indirect=True)
     def test_pagination_min_page_page_size(self, app_fixture):

@@ -244,7 +244,7 @@ class TestFullExample():
             list_etag = response.headers['ETag']
             assert len(response.json) == 0
             assert json.loads(response.headers['X-Pagination']) == {
-                'total': 0, 'total_pages': 0, 'page': 1}
+                'total': 0, 'total_pages': 0}
 
         # GET collection with correct ETag: Not modified
         with assert_counters(0, 1, 0, 1 if bp_schema == 'ETag schema' else 0):
