@@ -36,7 +36,7 @@ from apispec.ext.marshmallow.openapi import __location_map__
 
 from .utils import deepupdate, load_info_from_docstring
 from .args_parser import parser
-from .response import response
+from .response import ResponseMixin
 from .pagination import paginate, pagination_parameters_schema_factory
 from .exceptions import EndpointMethodDocAlreadyRegisted, InvalidLocation
 
@@ -46,7 +46,7 @@ HTTP_METHODS = [
     'OPTIONS', 'HEAD', 'GET', 'POST', 'PUT', 'PATCH', 'DELETE']
 
 
-class Blueprint(FlaskBlueprint):
+class Blueprint(FlaskBlueprint, ResponseMixin):
     """Blueprint that registers info in API documentation"""
 
     def __init__(self, *args, **kwargs):
@@ -295,48 +295,6 @@ class Blueprint(FlaskBlueprint):
             # Call use_args (from webargs) to inject params in function
             return parser.use_args(
                 schema, locations=[location], **kwargs)(func)
-        return decorator
-
-    @staticmethod
-    def response(schema=None, *, code=200, description='',
-                 etag_schema=None, disable_etag=False):
-        """Decorator generating an endpoint response
-
-        :param schema: :class:`Schema <marshmallow.Schema>` class or instance.
-            If not None, will be used to serialize response data.
-        :param int code: HTTP status code (defaults to 200).
-        :param str descripton: Description of the response.
-        :param etag_schema: :class:`Schema <marshmallow.Schema>` class
-            or instance. If not None, will be used to serialize etag data.
-        :param bool disable_etag: Disable ETag feature locally even if enabled
-            globally.
-
-        If the resource returns many elements, pass a Schema instance with
-        "many" set to True.
-
-            Example: ::
-
-                @blp.response(MySchema(many=True), description: 'My objects')
-                def get(...)
-        """
-        if isinstance(schema, type):
-            schema = schema()
-        if isinstance(etag_schema, type):
-            etag_schema = etag_schema()
-
-        def decorator(func):
-
-            # Add schema as response in the API doc
-            doc = {'responses': {code: {'description': description}}}
-            if schema:
-                doc['responses'][code]['schema'] = schema
-            func._apidoc = deepupdate(getattr(func, '_apidoc', {}), doc)
-
-            return response(
-                schema=schema, code=code,
-                etag_schema=etag_schema, disable_etag=disable_etag
-            )(func)
-
         return decorator
 
     @staticmethod
