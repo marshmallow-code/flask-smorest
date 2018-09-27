@@ -20,18 +20,13 @@ from .utils import get_appcontext
 from .compat import MARSHMALLOW_VERSION_MAJOR
 
 
-# Global default pagination parameters
-# Can be mutated to provide custom defaults
-DEFAULT_PAGINATION_PARAMETERS = {
-    'page': 1, 'page_size': 10, 'max_page_size': 100}
-
-
 class PaginationParameters:
     """Holds pagination arguments"""
 
     def __init__(self, page, page_size):
         self.page = page
         self.page_size = page_size
+        self.item_count = None
 
     @property
     def first_item(self):
@@ -48,15 +43,9 @@ class PaginationParameters:
                 .format(self.__class__.__name__, self.page, self.page_size))
 
 
-def pagination_parameters_schema_factory(
-        def_page=None, def_page_size=None, def_max_page_size=None):
+def _pagination_parameters_schema_factory(
+        def_page, def_page_size, def_max_page_size):
     """Generate a PaginationParametersSchema"""
-    if def_page is None:
-        def_page = DEFAULT_PAGINATION_PARAMETERS['page']
-    if def_page_size is None:
-        def_page_size = DEFAULT_PAGINATION_PARAMETERS['page_size']
-    if def_max_page_size is None:
-        def_max_page_size = DEFAULT_PAGINATION_PARAMETERS['max_page_size']
 
     class PaginationParametersSchema(ma.Schema):
         """Deserializes pagination params into PaginationParameters"""
@@ -83,6 +72,7 @@ def pagination_parameters_schema_factory(
 
 
 class PaginationMetadata:
+    """Holds pagination metadata"""
 
     def __init__(self, page, page_size, item_count):
         self.page_size = page_size
@@ -115,12 +105,8 @@ class PaginationMetadataSchema(ma.Schema):
     class Meta:
         ordered = True
 
-    total = ma.fields.Integer(
-        attribute='item_count'
-    )
-    total_pages = ma.fields.Integer(
-        attribute='page_count'
-    )
+    total = ma.fields.Integer(attribute='item_count')
+    total_pages = ma.fields.Integer(attribute='page_count')
     page = ma.fields.Integer()
     first_page = ma.fields.Integer()
     last_page = ma.fields.Integer()
@@ -141,6 +127,7 @@ class Page:
         """
         self.collection = collection
         self.page_params = page_params
+        self.page_params.item_count = self.item_count
 
     @property
     def items(self):
@@ -157,70 +144,97 @@ class Page:
                         self.collection, self.page_params))
 
 
-def _get_pagination_ctx():
-    """Get pagination section of AppContext"""
-    return get_appcontext()['pagination']
+class PaginationMixin:
+    """Extend Blueprint to add Pagination feature"""
 
+    PAGINATION_HEADER_FIELD_NAME = 'X-Pagination'
 
-def set_item_count(item_count):
-    """Set total number of items when paginating
+    # Global default pagination parameters
+    # Can be overridden to provide custom defaults
+    DEFAULT_PAGINATION_PARAMETERS = {
+        'page': 1, 'page_size': 10, 'max_page_size': 100}
 
-    When paginating in resource, this must be called from resource code
-    """
-    _get_pagination_ctx()['item_count'] = item_count
+    def paginate(self, pager=None, *,
+                 page=None, page_size=None, max_page_size=None):
+        """Decorator adding pagination to the endpoint
 
+        :param Page pager: Page class used to paginate response data
+        :param int page: Default requested page number (default: 1)
+        :param int page_size: Default requested page size (default: 10)
+        :param int max_page_size: Maximum page size (default: 100)
 
-def _set_pagination_header(page_params):
-    """Get pagination metadata from AppContext and add it to headers
+        If a pager class is provided, it is used to paginate the data returned
+        by the view function, typically a lazy database cursor.
 
-    Abort with 404 status if requested page number is out of range
-    """
-    try:
-        item_count = _get_pagination_ctx()['item_count']
-    except KeyError:
-        # item_count is not set, this is an issue in the app. Pass and warn.
-        current_app.logger.warning(
-            'item_count not set in endpoint {}'.format(request.endpoint))
-        return
-    pagination_metadata = PaginationMetadata(
-        page_params.page, page_params.page_size, item_count)
-    page_header = PaginationMetadataSchema().dumps(pagination_metadata)
-    if MARSHMALLOW_VERSION_MAJOR < 3:
-        page_header = page_header[0]
-    get_appcontext()['headers']['X-Pagination'] = page_header
+        If no pager class is provided, pagination is handled in the view
+        function. The view function is passed a
+        :class:`pagination.PaginationParameters` <PaginationParameters>
+        instance as `pagination_parameters` keyword parameter.
+        This object provides pagination parameters as both `page`/`page_size`
+        and `first_item`/`last_item`. The view function is responsible for
+        storing the total number of items as `item_count` attribute of passed
+        `PaginationParameters` instance.
+        """
+        if page is None:
+            page = self.DEFAULT_PAGINATION_PARAMETERS['page']
+        if page_size is None:
+            page_size = self.DEFAULT_PAGINATION_PARAMETERS['page_size']
+        if max_page_size is None:
+            max_page_size = self.DEFAULT_PAGINATION_PARAMETERS['max_page_size']
+        page_params_schema = _pagination_parameters_schema_factory(
+            page, page_size, max_page_size)
 
+        parameters = {
+            'in': 'query',
+            'schema': page_params_schema,
+        }
 
-def paginate(pager, page_params_schema):
-    """Decorator that handles pagination"""
+        def decorator(func):
+            # Add pagination params to doc info in function object
+            func._apidoc = getattr(func, '_apidoc', {})
+            func._apidoc.setdefault('parameters', []).append(parameters)
 
-    def decorator(func):
+            @wraps(func)
+            def wrapper(*args, **kwargs):
 
-        @wraps(func)
-        def wrapper(*args, **kwargs):
+                page_params = parser.parse(page_params_schema, request)
 
-            page_params = parser.parse(page_params_schema, request)
+                # Pagination in resource code: inject page_params as kwargs
+                if pager is None:
+                    kwargs['pagination_parameters'] = page_params
 
-            # Pagination in resource code: inject first/last as kwargs
-            if pager is None:
-                kwargs.update({
-                    'first_item': page_params.first_item,
-                    'last_item': page_params.last_item,
-                })
+                # Execute decorated function
+                result = func(*args, **kwargs)
 
-            # Execute decorated function
-            result = func(*args, **kwargs)
+                # Post pagination: use pager class to paginate the result
+                if pager is not None:
+                    result = pager(result, page_params=page_params).items
 
-            # Post pagination: use pager class to paginate the result
-            if pager is not None:
-                page = pager(result, page_params=page_params)
-                result = page.items
-                set_item_count(page.item_count)
+                # Get item_count
+                item_count = page_params.item_count
+                if item_count is None:
+                    current_app.logger.warning(
+                        'item_count not set in endpoint {}'
+                        .format(request.endpoint))
+                else:
+                    # Add pagination metadata to headers
+                    pagination_metadata = PaginationMetadata(
+                        page_params.page, page_params.page_size, item_count)
+                    page_header = self._make_pagination_header(
+                        pagination_metadata)
+                    get_appcontext()['headers'][
+                        self.PAGINATION_HEADER_FIELD_NAME] = (page_header)
 
-            # Add pagination metadata to headers
-            _set_pagination_header(page_params)
+                return result
 
-            return result
+            return wrapper
 
-        return wrapper
+        return decorator
 
-    return decorator
+    @staticmethod
+    def _make_pagination_header(pagination_metadata):
+        """Build pagination header from page, page size and item count"""
+        page_header = PaginationMetadataSchema().dumps(pagination_metadata)
+        if MARSHMALLOW_VERSION_MAJOR < 3:
+            page_header = page_header[0]
+        return page_header

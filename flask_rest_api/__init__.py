@@ -4,7 +4,7 @@ from .spec import APISpec, DocBlueprintMixin
 from .blueprint import Blueprint  # noqa
 from .args_parser import abort  # noqa
 from .etag import is_etag_enabled, check_etag, set_etag  # noqa
-from .pagination import Page, set_item_count  # noqa
+from .pagination import Page  # noqa
 from .error_handler import ErrorHandlerMixin
 
 

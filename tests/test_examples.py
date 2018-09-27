@@ -7,8 +7,7 @@ import pytest
 
 from flask.views import MethodView
 
-from flask_rest_api import (
-    Api, Blueprint, abort, check_etag, set_etag, Page, set_item_count)
+from flask_rest_api import Api, Blueprint, abort, check_etag, set_etag, Page
 
 from .conftest import AppConfig
 from .mocks import ItemNotFound
@@ -92,9 +91,12 @@ def implicit_data_explicit_schema_etag_blueprint(collection, schemas):
             DocSchema(many=True), etag_schema=DocEtagSchema(many=True)
         )
         @blp.paginate()
-        def get(self, first_item, last_item):
-            set_item_count(len(collection.items))
-            return collection.items[first_item: last_item + 1]
+        def get(self, pagination_parameters):
+            pagination_parameters.item_count = len(collection.items)
+            return collection.items[
+                pagination_parameters.first_item:
+                pagination_parameters.last_item + 1
+            ]
 
         @blp.arguments(DocSchema)
         @blp.response(DocSchema, etag_schema=DocEtagSchema)
@@ -151,11 +153,14 @@ def explicit_data_no_schema_etag_blueprint(collection, schemas):
 
         @blp.response(DocSchema(many=True))
         @blp.paginate()
-        def get(self, first_item, last_item):
-            set_item_count(len(collection.items))
+        def get(self, pagination_parameters):
+            pagination_parameters.item_count = len(collection.items)
             # It is better to rely on automatic ETag here, as it includes
             # pagination metadata.
-            return collection.items[first_item: last_item + 1]
+            return collection.items[
+                pagination_parameters.first_item:
+                pagination_parameters.last_item + 1
+            ]
 
         @blp.arguments(DocSchema)
         @blp.response(DocSchema)

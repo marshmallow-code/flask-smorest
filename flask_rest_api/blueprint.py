@@ -37,7 +37,7 @@ from apispec.ext.marshmallow.openapi import __location_map__
 from .utils import deepupdate, load_info_from_docstring
 from .args_parser import parser
 from .response import ResponseMixin
-from .pagination import paginate, pagination_parameters_schema_factory
+from .pagination import PaginationMixin
 from .exceptions import EndpointMethodDocAlreadyRegisted, InvalidLocation
 
 
@@ -46,7 +46,7 @@ HTTP_METHODS = [
     'OPTIONS', 'HEAD', 'GET', 'POST', 'PUT', 'PATCH', 'DELETE']
 
 
-class Blueprint(FlaskBlueprint, ResponseMixin):
+class Blueprint(FlaskBlueprint, ResponseMixin, PaginationMixin):
     """Blueprint that registers info in API documentation"""
 
     def __init__(self, *args, **kwargs):
@@ -295,33 +295,4 @@ class Blueprint(FlaskBlueprint, ResponseMixin):
             # Call use_args (from webargs) to inject params in function
             return parser.use_args(
                 schema, locations=[location], **kwargs)(func)
-        return decorator
-
-    @staticmethod
-    def paginate(pager=None, *, page=None, page_size=None, max_page_size=None):
-        """Decorator adding pagination to the endpoint
-
-        :param Page pager: Page class used to paginate response data
-
-        If no pager class is provided, pagination is handled in the view
-        function. The view function is passed `first_item` and `last_item`
-        indexes and it must store the total number of items in the application
-        context using `pagination.set_item_count`.
-
-        If a pager class is provided, it is used to paginate the data returned
-        by the view function, typically a lazy database cursor.
-        """
-        page_params_schema = pagination_parameters_schema_factory(
-            page, page_size, max_page_size)
-
-        parameters = {
-            'in': 'query',
-            'schema': page_params_schema,
-        }
-
-        def decorator(func):
-            # Add pagination params to doc info in function object
-            func._apidoc = getattr(func, '_apidoc', {})
-            func._apidoc.setdefault('parameters', []).append(parameters)
-            return paginate(pager, page_params_schema)(func)
         return decorator

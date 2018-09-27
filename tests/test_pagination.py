@@ -9,7 +9,7 @@ import pytest
 
 from flask.views import MethodView
 
-from flask_rest_api import Api, Blueprint, Page, set_item_count
+from flask_rest_api import Api, Blueprint, Page
 from flask_rest_api.pagination import PaginationParameters, PaginationMetadata
 
 
@@ -34,17 +34,23 @@ def pagination_blueprint(collection, schemas, as_method_view, custom_params):
             @blp.response(DocSchema(many=True))
             @blp.paginate(
                 page=page, page_size=page_size, max_page_size=max_page_size)
-            def get(self, first_item, last_item):
-                set_item_count(len(collection.items))
-                return collection.items[first_item: last_item + 1]
+            def get(self, pagination_parameters):
+                pagination_parameters.item_count = len(collection.items)
+                return collection.items[
+                    pagination_parameters.first_item:
+                    pagination_parameters.last_item + 1
+                ]
     else:
         @blp.route('/')
         @blp.response(DocSchema(many=True))
         @blp.paginate(
             page=page, page_size=page_size, max_page_size=max_page_size)
-        def get_resources(first_item, last_item):
-            set_item_count(len(collection.items))
-            return collection.items[first_item: last_item + 1]
+        def get_resources(pagination_parameters):
+                pagination_parameters.item_count = len(collection.items)
+                return collection.items[
+                    pagination_parameters.first_item:
+                    pagination_parameters.last_item + 1
+                ]
 
     return blp
 
@@ -128,9 +134,9 @@ class TestPagination():
         @blp.route('/')
         @blp.response()
         @blp.paginate()
-        def func(first_item, last_item):
+        def func(pagination_parameters):
             # Here, we purposely forget to call set_item_count
-            # set_item_count(2)
+            # pagination_parameters.item_count = 2
             return [1, 2]
 
         api.register_blueprint(blp)
