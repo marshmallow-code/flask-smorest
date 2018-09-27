@@ -1,6 +1,18 @@
 Changelog
 ---------
 
+0.9.0 (unreleased)
+++++++++++++++++++
+
+Features:
+
+- *Backwards-incompatible*: When pagination parameters are out of range, the
+  API does not return a `404` error anymore. It returns a `200` code with an
+  empty list and pagination metadata (:pr:`10`).
+- *Backwards-incompatible*: Remove dependency on python-dateutil. This is an
+  optional marshmallow dependency. Whether it is needed to deserialize date,
+  time, or datetime strings depends on the application.
+
 0.8.1 (2018-09-24)
 ++++++++++++++++++
 
