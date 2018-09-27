@@ -15,9 +15,8 @@ from flask import request, current_app
 
 import marshmallow as ma
 
-from .args_parser import abort, parser
+from .args_parser import parser
 from .utils import get_appcontext
-from .exceptions import PageOutOfRangeError
 from .compat import MARSHMALLOW_VERSION_MAJOR
 
 
@@ -86,7 +85,6 @@ def pagination_parameters_schema_factory(
 class PaginationMetadata:
 
     def __init__(self, page, page_size, item_count):
-        self.page = page
         self.page_size = page_size
         self.item_count = item_count
 
@@ -97,17 +95,13 @@ class PaginationMetadata:
             self.first_page = 1
             self.page_count = ((self.item_count - 1) // self.page_size) + 1
             self.last_page = self.first_page + self.page_count - 1
-            # Check if requested page number is out of range
-            if (self.page < self.first_page) or (self.page > self.last_page):
-                raise PageOutOfRangeError(
-                    "Page {} out of [{}-{}] range.".format(
-                        self.page, self.first_page, self.last_page)
-                )
-            # Previous / next page
-            if self.page > self.first_page:
-                self.previous_page = self.page-1
-            if self.page < self.last_page:
-                self.next_page = self.page+1
+            # Page, previous / next page
+            if page <= self.last_page:
+                self.page = page
+                if page > self.first_page:
+                    self.previous_page = page - 1
+                if page < self.last_page:
+                    self.next_page = page + 1
 
     def __repr__(self):
         return ("{}(page={!r},page_size={!r},item_count={!r})"
@@ -188,11 +182,8 @@ def _set_pagination_header(page_params):
         current_app.logger.warning(
             'item_count not set in endpoint {}'.format(request.endpoint))
         return
-    try:
-        pagination_metadata = PaginationMetadata(
-            page_params.page, page_params.page_size, item_count)
-    except PageOutOfRangeError as exc:
-        abort(404, messages=str(exc), exc=exc)
+    pagination_metadata = PaginationMetadata(
+        page_params.page, page_params.page_size, item_count)
     page_header = PaginationMetadataSchema().dumps(pagination_metadata)
     if MARSHMALLOW_VERSION_MAJOR < 3:
         page_header = page_header[0]
