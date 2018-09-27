@@ -35,7 +35,7 @@ setup(
     install_requires=[
         'werkzeug>=0.11',
         'flask>=0.11',
-        'marshmallow>=2.6.0',
+        'marshmallow>=2.15.2',
         'webargs>=1.5.2',
         'apispec>=0.39.0',
     ],
