@@ -24,6 +24,10 @@ Features:
 - The pagination header name can be configured by overriding
   ``PAGINATION_HEADER_FIELD_NAME`` class attribute of ``Blueprint``. If set to
   ``None``, no pagination header is added to the response.
+- *Backwards-incompatible*: The ``paginate`` decorator doesn't use
+  ``NestedQueryFlaskParser`` by default. It is renamed as
+  ``NestedQueryArgsParser`` and it can be used by overriding
+  ``Blueprint.ARGUMENTS_PARSER``.
 
 0.8.1 (2018-09-24)
 ++++++++++++++++++
