@@ -15,16 +15,17 @@ Pagination in the View Function
 -------------------------------
 
 In this mode, :meth:`Blueprint.paginate <Blueprint.paginate>` injects the
-pagination parameters ``first_item`` and ``last_item`` as kwargs into the view
-function.
+pagination parameters into the view function as a
+:class:`PaginationParameters <pagination.PaginationParameters>` object passed
+as ``pagination_parameters`` keyword argument.
 
 It is the responsability of the view function to return only selected elements.
 
-The view function must also specify the total number of elements using
-:meth:`set_item_count <pagination.set_item_count>`.
+The view function must also specify the total number of elements by setting it
+as ``item_count`` attribute of the `PaginationParameters` object.
 
 .. code-block:: python
-    :emphasize-lines: 7,8,9,10
+    :emphasize-lines: 7,8,9,10,11,12
 
     from flask_rest_api import set_item_count
 
@@ -33,9 +34,11 @@ The view function must also specify the total number of elements using
 
         @blp.response(PetSchema(many=True))
         @blp.paginate()
-        def get(self, first_item, last_item):
-            set_item_count(Pet.size)
-            return Pet.get_elements(first_item=first_item, last_item=last_item)
+        def get(self, pagination_parameters):
+            pagination_parameters.item_count = Pet.size
+            return Pet.get_elements(
+                first_item=pagination_parameters.first_item,
+                last_item=pagination_parameters.last_item)
 
 
 Post-Pagination
@@ -98,15 +101,15 @@ specific range of data by passing query arguments:
 The view function gets default values for the pagination parameters, as well as
 a maximum value for ``page_size``.
 
-Those default values are defined globally as
+Those default values are defined as
 
 .. code-block:: python
 
     DEFAULT_PAGINATION_PARAMETERS = {
         'page': 1, 'page_size': 10, 'max_page_size': 100}
 
-They can be modified globally by mutating
-``flask_rest_api.pagination.DEFAULT_PAGINATION_PARAMETERS``, or overwritten in
+They can be modified globally by overriding ``DEFAULT_PAGINATION_PARAMETERS``
+class attribute of the :class:`Blueprint <Blueprint>` class or overridden in
 a specific view function by passing them as keyword arguments to
 :meth:`Blueprint.paginate <Blueprint.paginate>`.
 
@@ -125,3 +128,8 @@ It contains the pagination information.
     #     'page': 2, 'first_page': 1, 'last_page': 200,
     #     'previous_page': 1, 'next_page': 3,
     # }
+
+The name of the header can be changed by overriding
+``PAGINATION_HEADER_FIELD_NAME`` class attribute of the
+:class:`Blueprint <Blueprint>` class. When setting this attribute to ``None``,
+no pagination header is added to the response.

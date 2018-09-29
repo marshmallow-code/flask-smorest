@@ -1,10 +1,11 @@
-.. _parameters:
+.. _arguments:
 .. module:: flask_rest_api
 
-Parameters
-==========
+Arguments
+=========
 
-To inject parameters into a view function, use the :meth:`Blueprint.arguments <Blueprint.arguments>` decorator.
+To inject arguments into a view function, use the :meth:`Blueprint.arguments
+<Blueprint.arguments>` decorator.
 
 This method takes a :class:`Schema <marshmallow.Schema>` to deserialize and
 validate the parameters.

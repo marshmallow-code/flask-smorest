@@ -28,7 +28,7 @@ Guide
     :maxdepth: 1
 
     quickstart
-    parameters
+    arguments 
     response
     pagination
     etag

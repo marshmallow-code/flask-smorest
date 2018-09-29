@@ -34,6 +34,8 @@ class ResponseMixin:
 
                 @blp.response(MySchema(many=True), description: 'My objects')
                 def get(...)
+
+        See :doc:`Response <response>`.
         """
         if isinstance(schema, type):
             schema = schema()

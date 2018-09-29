@@ -59,10 +59,9 @@ class ArgumentsMixin:
 
         :param type|Schema schema: A marshmallow Schema class or instance.
         :param str location: The location of the parameter, in webargs terms.
-            https://webargs.readthedocs.io/en/latest/quickstart.html#request-locations
-            Allows values: 'query' or 'querystring', 'json', 'form', 'headers',
-            'cookies', 'files'.
-            Defaults to 'json', which means 'body'.
+            Full list available in `webargs documentation
+            <https://webargs.readthedocs.io/en/latest/quickstart.html#request-locations>`_.
+            Defaults to ``'json'``, which means `body`.
             Note that unlike webargs, flask-rest-api allows only one location
             for a parameter.
         :param bool required: Whether this set of arguments is required.
@@ -72,7 +71,9 @@ class ArgumentsMixin:
             For other locations, the schema is turned into an array of
             parameters and their required value is grabbed from their Field.
 
-        The kwargs are passed to webargs's Parser.use_args.
+        The kwargs are passed to the `use_args` method of the
+        :class:`webargs FlaskParser <webargs.flaskparser.FlaskParser>` used
+        internally to parse the arguments.
 
         Upon endpoint access, the parameters are deserialized into a dictionary
         that is injected as a positional argument to the view function.
@@ -89,6 +90,8 @@ class ArgumentsMixin:
 
         The order of the decorator calls matter as it determines the order in
         which the parameters are passed to the view function.
+
+        See :doc:`Arguments <arguments>`.
         """
         # TODO: This shouldn't be needed. I think I did this because apispec
         # worked better with instances, but this should have been solved since.

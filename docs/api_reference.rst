@@ -19,12 +19,17 @@ Blueprint
 .. autoclass:: flask_rest_api.Blueprint
     :members:
 
+    .. automethod:: arguments
+    .. automethod:: response
+    .. automethod:: paginate
+
 Pagination
 ==========
 
 .. autoclass:: flask_rest_api.Page
     :members:
-.. autofunction:: flask_rest_api.set_item_count
+.. autoclass:: flask_rest_api.pagination.PaginationParameters
+    :members:
 
 ETag
 ====
