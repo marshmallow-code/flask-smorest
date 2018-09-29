@@ -6,23 +6,31 @@ from flask import jsonify
 from flask.views import MethodView
 
 from flask_rest_api import Api, Blueprint
+from flask_rest_api.arguments import NestedQueryArgsParser
+from flask_rest_api.compat import MARSHMALLOW_VERSION_MAJOR
 
 
 class TestArgsParser():
 
     def test_args_parser_nested_query_arguments(self, app):
         api = Api(app)
-        blp = Blueprint('test', 'test', url_prefix='/test')
+
+        class CustomBlueprint(Blueprint):
+            ARGUMENTS_PARSER = NestedQueryArgsParser()
+
+        blp = CustomBlueprint('test', 'test', url_prefix='/test')
 
         class UserNameSchema(ma.Schema):
-            class Meta:
-                strict = True
+            if MARSHMALLOW_VERSION_MAJOR < 3:
+                class Meta:
+                    strict = True
             first_name = ma.fields.String()
             last_name = ma.fields.String()
 
         class UserSchema(ma.Schema):
-            class Meta:
-                strict = True
+            if MARSHMALLOW_VERSION_MAJOR < 3:
+                class Meta:
+                    strict = True
             user = ma.fields.Nested(UserNameSchema)
 
         @blp.route('/')
