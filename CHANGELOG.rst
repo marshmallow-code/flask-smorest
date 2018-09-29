@@ -12,6 +12,18 @@ Features:
 - *Backwards-incompatible*: Remove dependency on python-dateutil. This is an
   optional marshmallow dependency. Whether it is needed to deserialize date,
   time, or datetime strings depends on the application.
+- Rework internal features by using mixin classes. This makes the code cleaner
+  and adds customization possibilities (:issue:`9`).
+- *Backwards-incompatible*: ``DEFAULT_PAGINATION_PARAMETERS`` is a class
+  attribute of ``Blueprint``.
+- *Backwards-incompatible*: When no ``Page`` class is passed to ``pagination``,
+  (i.e. when doing pagination in view function), the pagination parameters are
+  passed as a ``PaginationParameters`` object. The item count must be passed by
+  setting it as ``item_count`` attribute of the ``PaginationParameters``
+  object. The ``set_item_count`` function is removed.
+- The pagination header name can be configured by overriding
+  ``PAGINATION_HEADER_FIELD_NAME`` class attribute of ``Blueprint``. If set to
+  ``None``, no pagination header is added to the response.
 
 0.8.1 (2018-09-24)
 ++++++++++++++++++
