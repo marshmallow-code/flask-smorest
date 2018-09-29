@@ -10,7 +10,7 @@ import pytest
 from flask.views import MethodView
 
 from flask_rest_api import Api, Blueprint, Page
-from flask_rest_api.pagination import PaginationParameters, PaginationMetadata
+from flask_rest_api.pagination import PaginationParameters
 
 
 CUSTOM_PAGINATION_PARAMS = (2, 5, 10)
@@ -116,20 +116,49 @@ class TestPagination():
         assert(repr(PaginationParameters(1, 10)) ==
                "PaginationParameters(page=1,page_size=10)")
 
-    def test_pagination_metadata_repr(self):
-        assert(repr(PaginationMetadata(1, 10, 12)) ==
-               "PaginationMetadata(page=1,page_size=10,item_count=12)")
-
     def test_page_repr(self):
         page_params = PaginationParameters(1, 2)
         assert (repr(Page([1, 2, 3, 4, 5], page_params)) ==
                 "Page(collection=[1, 2, 3, 4, 5],page_params={})"
                 .format(repr(page_params)))
 
-    def test_pagination_item_count_missing(self, app):
+    @pytest.mark.parametrize('header_name', ('X-Dummy-Name', None))
+    def test_pagination_custom_header_field_name(self, app, header_name):
+        """Test PAGINATION_HEADER_FIELD_NAME overriding"""
+        api = Api(app)
+
+        class CustomBlueprint(Blueprint):
+            PAGINATION_HEADER_FIELD_NAME = header_name
+
+        blp = CustomBlueprint('test', __name__, url_prefix='/test')
+
+        @blp.route('/')
+        @blp.response()
+        @blp.paginate()
+        def func(pagination_parameters):
+            pagination_parameters.item_count = 2
+            return [1, 2]
+
+        api.register_blueprint(blp)
+        client = app.test_client()
+        response = client.get('/test/')
+        assert response.status_code == 200
+        assert 'X-Pagination' not in response.headers
+        if header_name is not None:
+            assert response.headers[header_name] == (
+                '{"total": 2, "total_pages": 1, '
+                '"first_page": 1, "last_page": 1, "page": 1}'
+            )
+
+    @pytest.mark.parametrize('header_name', ('X-Pagination', None))
+    def test_pagination_item_count_missing(self, app, header_name):
         """If item_count was not set, pass and warn"""
         api = Api(app)
-        blp = Blueprint('test', __name__, url_prefix='/test')
+
+        class CustomBlueprint(Blueprint):
+            PAGINATION_HEADER_FIELD_NAME = header_name
+
+        blp = CustomBlueprint('test', __name__, url_prefix='/test')
 
         @blp.route('/')
         @blp.response()
@@ -146,7 +175,12 @@ class TestPagination():
             response = client.get('/test/')
             assert response.status_code == 200
             assert 'X-Pagination' not in response.headers
-            assert mock_warning.call_count == 1
+            if header_name is None:
+                assert mock_warning.call_count == 0
+            else:
+                assert mock_warning.call_count == 1
+                assert mock_warning.call_args == (
+                    ('item_count not set in endpoint test.func',), )
 
     @pytest.mark.parametrize('collection', [1000, ], indirect=True)
     def test_pagination_parameters(self, app_fixture):

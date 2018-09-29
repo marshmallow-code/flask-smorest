@@ -9,7 +9,9 @@ Two pagination modes are supported:
   a pager is provided to paginate the data and get the total number of items.
 """
 
+from collections import OrderedDict
 from functools import wraps
+import json
 
 from flask import request, current_app
 
@@ -71,49 +73,6 @@ def _pagination_parameters_schema_factory(
     return PaginationParametersSchema
 
 
-class PaginationMetadata:
-    """Holds pagination metadata"""
-
-    def __init__(self, page, page_size, item_count):
-        self.page_size = page_size
-        self.item_count = item_count
-
-        if self.item_count == 0:
-            self.page_count = 0
-        else:
-            # First / last page, page count
-            self.first_page = 1
-            self.page_count = ((self.item_count - 1) // self.page_size) + 1
-            self.last_page = self.first_page + self.page_count - 1
-            # Page, previous / next page
-            if page <= self.last_page:
-                self.page = page
-                if page > self.first_page:
-                    self.previous_page = page - 1
-                if page < self.last_page:
-                    self.next_page = page + 1
-
-    def __repr__(self):
-        return ("{}(page={!r},page_size={!r},item_count={!r})"
-                .format(self.__class__.__name__,
-                        self.page, self.page_size, self.item_count))
-
-
-class PaginationMetadataSchema(ma.Schema):
-    """Serializes pagination metadata"""
-
-    class Meta:
-        ordered = True
-
-    total = ma.fields.Integer(attribute='item_count')
-    total_pages = ma.fields.Integer(attribute='page_count')
-    page = ma.fields.Integer()
-    first_page = ma.fields.Integer()
-    last_page = ma.fields.Integer()
-    previous_page = ma.fields.Integer()
-    next_page = ma.fields.Integer()
-
-
 class Page:
     """Pager for simple types such as lists.
 
@@ -147,6 +106,8 @@ class Page:
 class PaginationMixin:
     """Extend Blueprint to add Pagination feature"""
 
+    # Name of field to use for pagination metadata response header
+    # Can be overridden. If None, no pagination header is returned.
     PAGINATION_HEADER_FIELD_NAME = 'X-Pagination'
 
     # Global default pagination parameters
@@ -210,20 +171,18 @@ class PaginationMixin:
                 if pager is not None:
                     result = pager(result, page_params=page_params).items
 
-                # Get item_count
-                item_count = page_params.item_count
-                if item_count is None:
-                    current_app.logger.warning(
-                        'item_count not set in endpoint {}'
-                        .format(request.endpoint))
-                else:
-                    # Add pagination metadata to headers
-                    pagination_metadata = PaginationMetadata(
-                        page_params.page, page_params.page_size, item_count)
-                    page_header = self._make_pagination_header(
-                        pagination_metadata)
-                    get_appcontext()['headers'][
-                        self.PAGINATION_HEADER_FIELD_NAME] = (page_header)
+                # Add pagination metadata to headers
+                if self.PAGINATION_HEADER_FIELD_NAME is not None:
+                    if page_params.item_count is None:
+                        current_app.logger.warning(
+                            'item_count not set in endpoint {}'
+                            .format(request.endpoint))
+                    else:
+                        page_header = self._make_pagination_header(
+                            page_params.page, page_params.page_size,
+                            page_params.item_count)
+                        get_appcontext()['headers'][
+                            self.PAGINATION_HEADER_FIELD_NAME] = page_header
 
                 return result
 
@@ -232,9 +191,29 @@ class PaginationMixin:
         return decorator
 
     @staticmethod
-    def _make_pagination_header(pagination_metadata):
-        """Build pagination header from page, page size and item count"""
-        page_header = PaginationMetadataSchema().dumps(pagination_metadata)
-        if MARSHMALLOW_VERSION_MAJOR < 3:
-            page_header = page_header[0]
-        return page_header
+    def _make_pagination_header(page, page_size, item_count):
+        """Build pagination header from page, page size and item count
+
+        This method returns a json representation of a default pagination
+        metadata structure. It can be overridden to use another structure.
+        """
+        page_header = OrderedDict()
+        page_header['total'] = item_count
+        if item_count == 0:
+            page_header['total_pages'] = 0
+        else:
+            # First / last page, page count
+            page_count = ((item_count - 1) // page_size) + 1
+            first_page = 1
+            last_page = page_count
+            page_header['total_pages'] = page_count
+            page_header['first_page'] = first_page
+            page_header['last_page'] = last_page
+            # Page, previous / next page
+            if page <= last_page:
+                page_header['page'] = page
+                if page > first_page:
+                    page_header['previous_page'] = page - 1
+                if page < last_page:
+                    page_header['next_page'] = page + 1
+        return json.dumps(page_header)
