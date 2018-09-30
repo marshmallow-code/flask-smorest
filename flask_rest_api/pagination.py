@@ -130,18 +130,10 @@ class PaginationMixin:
         :param int page_size: Default requested page size (default: 10)
         :param int max_page_size: Maximum page size (default: 100)
 
-        If a pager class is provided, it is used to paginate the data returned
-        by the view function, typically a lazy database cursor.
+        If a :class:`Page <Page>` class is provided, it is used to paginate the
+        data returned by the view function, typically a lazy database cursor.
 
-        If no pager class is provided, pagination is handled in the view
-        function. The view function is passed a
-        :class:`pagination.PaginationParameters
-        <pagination.PaginationParameters>`
-        instance as ``pagination_parameters`` keyword parameter.
-        This object provides pagination parameters as both
-        ``page``/``page_size`` and ``first_item``/``last_item``.
-        The view function is responsible for storing the total number of items
-        as ``item_count`` attribute of the ``PaginationParameters`` instance.
+        Otherwise, pagination is handled in the view function.
 
         See :doc:`Pagination <pagination>`.
         """

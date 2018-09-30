@@ -68,7 +68,8 @@ class Blueprint(
 
         Also stores doc info for later registration
 
-        Use this to decorate a MethodView or a resource function
+        Use this to decorate a :class:`MethodView <flask.views.MethodView>` or
+        a resource function
         """
         def decorator(func):
 

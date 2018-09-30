@@ -5,14 +5,16 @@ Pagination
 ==========
 
 When returning a list of objects, it is generally good practice to paginate the
-resource. This is when :meth:`Blueprint.paginate <Blueprint.paginate>` steps in.
+resource. This is where :meth:`Blueprint.paginate <Blueprint.paginate>` steps
+in.
 
 Pagination is more or less transparent to view function depending on the source
-of the data that is returned.
+of the data that is returned. Two modes are supported: pagination in view
+function and post-pagination.
 
 
-Pagination in the View Function
--------------------------------
+Pagination in View Function
+---------------------------
 
 In this mode, :meth:`Blueprint.paginate <Blueprint.paginate>` injects the
 pagination parameters into the view function as a

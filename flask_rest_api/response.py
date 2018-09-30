@@ -20,20 +20,12 @@ class ResponseMixin:
 
         :param schema: :class:`Schema <marshmallow.Schema>` class or instance.
             If not None, will be used to serialize response data.
-        :param int code: HTTP status code (defaults to 200).
+        :param int code: HTTP status code (default: 200).
         :param str descripton: Description of the response.
         :param etag_schema: :class:`Schema <marshmallow.Schema>` class
             or instance. If not None, will be used to serialize etag data.
         :param bool disable_etag: Disable ETag feature locally even if enabled
             globally.
-
-        If the resource returns many elements, pass a Schema instance with
-        "many" set to True.
-
-            Example: ::
-
-                @blp.response(MySchema(many=True), description: 'My objects')
-                def get(...)
 
         See :doc:`Response <response>`.
         """

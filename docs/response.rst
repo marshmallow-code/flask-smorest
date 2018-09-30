@@ -40,21 +40,20 @@ Here, the ``DELETE`` returns an empty response so no schema is specified.
         def delete(self, pet_id):
             Pet.delete(pet_id)
 
-If a view function returns a list of objects, the :class:`Schema <marshmallow.Schema>`
-must be instanciated with ``many=True``.
+If a view function returns a list of objects, the :class:`Schema
+<marshmallow.Schema>` must be instanciated with ``many=True``.
 
 .. code-block:: python
-    :emphasize-lines: 5
+    :emphasize-lines: 4
 
     @blp.route('/')
     class Pets(MethodView):
 
-        @blp.arguments(PetQueryArgsSchema, location='query')
         @blp.response(PetSchema(many=True))
         def get(self, args):
-            return Pet.get(filters=args)
+            return Pet.get()
 
 .. note:: Even if a view function returns an empty response with a default
    ``200`` code, decorating it with 
-   :meth:`Blueprint.response <Blueprint.response>` is useful anyway, to return a
-   proper Flask :class:`Response <flask.Response>` object.
+   :meth:`Blueprint.response <Blueprint.response>` is useful anyway, to return
+   a proper Flask :class:`Response <flask.Response>` object.

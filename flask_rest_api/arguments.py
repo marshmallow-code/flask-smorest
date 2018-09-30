@@ -16,39 +16,17 @@ class ArgumentsMixin:
     def arguments(self, schema, *, location='json', required=True, **kwargs):
         """Decorator specifying the schema used to deserialize parameters
 
-        :param type|Schema schema: A marshmallow Schema class or instance.
-        :param str location: The location of the parameter, in webargs terms.
-            Full list available in `webargs documentation
-            <https://webargs.readthedocs.io/en/latest/quickstart.html#request-locations>`_.
-            Defaults to ``'json'``, which means `body`.
-            Note that unlike webargs, flask-rest-api allows only one location
-            for a parameter.
-        :param bool required: Whether this set of arguments is required.
-            Defaults to True.
-            This only affects json/body arguments as, in this case, the docs
-            expose the whole schema as a required parameter.
+        :param type|Schema schema: Marshmallow ``Schema`` class or instance
+            used to deserialize and validate the argument.
+        :param str location: Location of the argument.
+        :param bool required: Whether argument is required (default: True).
+            This only affects `body` arguments as, in this case, the docs
+            expose the whole schema as a `required` parameter.
             For other locations, the schema is turned into an array of
-            parameters and their required value is grabbed from their Field.
-
-        The kwargs are passed to the `use_args` method of the
-        :class:`webargs FlaskParser <webargs.flaskparser.FlaskParser>` used
-        internally to parse the arguments.
-
-        Upon endpoint access, the parameters are deserialized into a dictionary
-        that is injected as a positional argument to the view function.
-
-        This decorator can be called several times on a resource function,
-        for instance to accept both body and query parameters.
-
-            Example: ::
-
-                @blp.route('/', methods=('POST', ))
-                @blp.arguments(DocSchema)
-                @blp.arguments(QueryArgsSchema, location='query')
-                def post(document, query_args):
-
-        The order of the decorator calls matter as it determines the order in
-        which the parameters are passed to the view function.
+            parameters and their required value is inferred from the schema.
+        :param dict kwargs: Keyword arguments passed to the webargs
+            :meth:`use_args <webargs.core.Parser.use_args>` decorator used
+            internally.
 
         See :doc:`Arguments <arguments>`.
         """
