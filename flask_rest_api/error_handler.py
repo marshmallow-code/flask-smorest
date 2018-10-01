@@ -60,7 +60,7 @@ class ErrorHandlerMixin:
         payload, headers = self._prepare_error_reponse_content(error)
         if do_log:
             self._log_error(error, payload)
-        return self._make_error_response(error, payload, headers)
+        return self._make_error_response(payload, error.code, headers)
 
     @staticmethod
     def _prepare_error_reponse_content(error):
@@ -101,5 +101,5 @@ class ErrorHandlerMixin:
         current_app.logger.info(' '.join(log_string_content))
 
     @staticmethod
-    def _make_error_response(error, payload, headers):
-        return jsonify(payload), error.code, headers
+    def _make_error_response(payload, code, headers):
+        return jsonify(payload), code, headers
