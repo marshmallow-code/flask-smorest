@@ -1,7 +1,7 @@
 Changelog
 ---------
 
-0.9.0 (unreleased)
+0.9.0 (2018-10-01)
 ++++++++++++++++++
 
 Features:
@@ -28,6 +28,10 @@ Features:
   ``NestedQueryFlaskParser`` by default. It is renamed as
   ``NestedQueryArgsParser`` and it can be used by overriding
   ``Blueprint.ARGUMENTS_PARSER``.
+- *Backwards-incompatible*: Drop Flask 0.x support. Flask>=1.0 is now required.
+- Default error handler is registered for generic ``HTTPException``. Other
+  extensions may register other handlers for specific exceptions or codes
+  (:pr:`12`).
 
 0.8.1 (2018-09-24)
 ++++++++++++++++++
@@ -87,7 +91,7 @@ Features:
 - *Backwards-incompatible*: Use apispec 0.39.0 plugin class interface.
 - *Backwards-incompatible*: Expose APISpec's ``register_field`` and ``register_converter methods`` from ``Api`` object. ``Api.register_converter`` signature is modified to make ``name`` parameter optional.
 - Pass extra apispec plugins to internal APISpec instance.
-- *Backwards-incompatible*: Drop officiel support for Python 3.4.
+- *Backwards-incompatible*: Drop official support for Python 3.4.
 
 0.5.2 (2018-06-21)
 ++++++++++++++++++
