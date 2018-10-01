@@ -66,7 +66,7 @@ class ErrorHandlerMixin:
         # data may not exist if
         # - HTTPException was raised not using webargs abort or
         # - no kwargs were passed (https://github.com/sloria/webargs/pull/184)
-        #   and webargs<0.9.0
+        #   and webargs<1.9.0
         data = getattr(error, 'data', None)
         if data:
             # If we passed a custom message
@@ -89,9 +89,8 @@ class ErrorHandlerMixin:
     def _log_error(error, payload):
         """Log error as INFO, including payload content"""
         log_string_content = [str(error.code), ]
-        for key in ('message', 'errors'):
-            if key in payload:
-                log_string_content.append(str(payload[key]))
+        log_string_content.extend([
+            str(payload[k]) for k in ('message', 'errors') if k in payload])
         current_app.logger.info(' '.join(log_string_content))
 
     @staticmethod
