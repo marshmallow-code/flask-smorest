@@ -1,7 +1,6 @@
 """Exception handler"""
 
-from werkzeug.exceptions import (
-    default_exceptions, HTTPException, InternalServerError)
+from werkzeug.exceptions import HTTPException, InternalServerError
 from flask import jsonify, current_app
 
 
@@ -11,15 +10,10 @@ class ErrorHandlerMixin:
     def _register_error_handlers(self):
         """Register error handlers in Flask app
 
-        This method registers an error handler for every exception code.
+        This method registers a default error handler for HTTPException.
         """
-        # On Flask versions older than 1.0, it is not possible to register a
-        # handler for all HTTPException at once, so we register the handler
-        # for each code explicitly.
-        # https://github.com/pallets/flask/issues/941#issuecomment-118975275
-        # This workaround can be dropped when dropping Flask<1.0 compatibility.
-        for code in default_exceptions:
-            self._app.register_error_handler(code, self.handle_http_exception)
+        self._app.register_error_handler(
+            HTTPException, self.handle_http_exception)
 
     def handle_http_exception(self, error):
         """Return error description and details in response body
