@@ -19,9 +19,9 @@ class ErrorHandlerMixin:
         # https://github.com/pallets/flask/issues/941#issuecomment-118975275
         # This workaround can be dropped when dropping Flask<1.0 compatibility.
         for code in default_exceptions:
-            self._app.register_error_handler(code, self._handle_http_exception)
+            self._app.register_error_handler(code, self.handle_http_exception)
 
-    def _handle_http_exception(self, error):
+    def handle_http_exception(self, error):
         """Return error description and details in response body
 
         This method is registered at init to handle `HTTPException`.
