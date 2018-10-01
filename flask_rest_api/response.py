@@ -105,8 +105,8 @@ class ResponseMixin:
         return schema
 
     @staticmethod
-    def _make_response(data):
-        """Override this to modify the data structure or format
+    def _prepare_response_content(data):
+        """Override this to modify the data structure
 
         This allows to insert the data in a wrapping structure.
 
@@ -116,7 +116,10 @@ class ResponseMixin:
                 def _make_response:
                     data = {'type': 'success', 'data': schema}
                     return jsonify(data)
-
-        It can also be used to render data in another format (XML, YAML,...)
         """
+        return data
+
+    @staticmethod
+    def _make_response(data):
+        """Override this to render data in another format (XML, YAML,...)"""
         return jsonify(data)
