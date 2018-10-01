@@ -70,7 +70,7 @@ class ResponseMixin:
                         result_dump = result_dump[0]
 
                 # Build response
-                resp = self._make_response(result_dump)
+                resp = jsonify(self._prepare_response_content(result_dump))
                 resp.headers.extend(get_appcontext()['headers'])
 
                 # Add etag value to response
@@ -113,13 +113,7 @@ class ResponseMixin:
             Example: ::
 
                 @staticmethod
-                def _make_response:
-                    data = {'type': 'success', 'data': schema}
-                    return jsonify(data)
+                def _prepare_response_content:
+                    return {'type': 'success', 'data': schema}
         """
         return data
-
-    @staticmethod
-    def _make_response(data):
-        """Override this to render data in another format (XML, YAML,...)"""
-        return jsonify(data)

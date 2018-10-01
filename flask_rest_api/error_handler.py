@@ -54,7 +54,7 @@ class ErrorHandlerMixin:
         payload, headers = self._prepare_error_reponse_content(error)
         if do_log:
             self._log_error(error, payload)
-        return self._make_error_response(payload), error.code, headers
+        return jsonify(payload), error.code, headers
 
     @staticmethod
     def _prepare_error_reponse_content(error):
@@ -84,11 +84,6 @@ class ErrorHandlerMixin:
                 headers = data['headers']
 
         return payload, headers
-
-    @staticmethod
-    def _make_error_response(payload):
-        """Override this to render error in another format (XML, YAML,...)"""
-        return jsonify(payload)
 
     @staticmethod
     def _log_error(error, payload):
