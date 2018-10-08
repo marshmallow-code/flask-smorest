@@ -22,8 +22,7 @@ class APISpec(apispec.APISpec):
     It adds a FlaskPlugin and a MarshmallowPlugin to the list of plugins. And
     it defines methods to register stuff in those plugins.
     """
-    def __init__(self, title, version, plugins=(), info=None,
-                 openapi_version='2.0', **options):
+    def __init__(self, title, version, openapi_version, plugins=(), **options):
         self.flask_plugin = FlaskPlugin()
         self.ma_plugin = MarshmallowPlugin()
         plugins = [self.flask_plugin, self.ma_plugin] + list(plugins)
@@ -34,9 +33,8 @@ class APISpec(apispec.APISpec):
         super().__init__(
             title=title,
             version=version,
-            plugins=plugins,
-            info=info,
             openapi_version=openapi_version,
+            plugins=plugins,
             **options,
         )
 
