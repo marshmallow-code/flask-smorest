@@ -90,7 +90,7 @@ class Blueprint(
                 view_func = func
 
             # Add URL rule in Flask and store endpoint documentation
-            self.add_url_rule(rule, view_func=view_func, **options)
+            self.add_url_rule(rule, endpoint, view_func, **options)
             self._store_endpoint_docs(endpoint, func, **options)
 
             return func
