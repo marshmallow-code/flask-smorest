@@ -77,10 +77,6 @@ class DocBlueprintMixin:
         # Add routes to json spec file and spec UI (ReDoc)
         api_url = self._app.config.get('OPENAPI_URL_PREFIX', None)
         if api_url:
-            # TODO: Remove this when dropping Flask < 1.0 compatibility
-            # Strip single trailing slash (flask.Blueprint does it from v1.0)
-            if api_url and api_url[-1] == '/':
-                api_url = api_url[:-1]
             blueprint = flask.Blueprint(
                 'api-docs',
                 __name__,
