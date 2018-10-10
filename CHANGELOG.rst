@@ -8,6 +8,11 @@ Features:
 
 - Support apispec 1.0.0b3.
 
+Bug fixes:
+
+- Fix crash when serving documentation at root of application. Thanks
+  :user:`fbergroth` for the suggestion.
+
 0.9.0 (2018-10-01)
 ++++++++++++++++++
 
