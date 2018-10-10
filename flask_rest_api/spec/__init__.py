@@ -66,7 +66,7 @@ class APISpec(apispec.APISpec):
 
 def _add_leading_slash(string):
     """Add leading slash to a string if there is None"""
-    return string if string[0] == '/' else '/' + string
+    return string if string.startswith('/') else '/' + string
 
 
 class DocBlueprintMixin:
