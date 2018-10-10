@@ -38,17 +38,18 @@ class TestAPISpecServeDocs():
     @pytest.mark.parametrize('swagger_ui_version', (None, '3.0.0'))
     def test_apipec_serve_spec(self, app, prefix, json_path, redoc_path,
                                swagger_ui_path, swagger_ui_version):
+        """Test default values and leading/trailing slashes issues"""
 
         class NewAppConfig(AppConfig):
-            if prefix:
+            if prefix is not None:
                 OPENAPI_URL_PREFIX = prefix
-            if json_path:
+            if json_path is not None:
                 OPENAPI_JSON_PATH = json_path
-            if redoc_path:
+            if redoc_path is not None:
                 OPENAPI_REDOC_PATH = redoc_path
-            if swagger_ui_path:
+            if swagger_ui_path is not None:
                 OPENAPI_SWAGGER_UI_PATH = swagger_ui_path
-            if swagger_ui_version:
+            if swagger_ui_version is not None:
                 OPENAPI_SWAGGER_UI_VERSION = swagger_ui_version
 
         app.config.from_object(NewAppConfig)
@@ -77,6 +78,46 @@ class TestAPISpecServeDocs():
                 assert response_swagger_ui.status_code == 200
                 assert (response_swagger_ui.headers['Content-Type'] ==
                         'text/html; charset=utf-8')
+
+    @pytest.mark.parametrize('prefix', ('', '/'))
+    @pytest.mark.parametrize('path', ('', '/'))
+    @pytest.mark.parametrize('tested', ('json', 'redoc', 'swagger-ui'))
+    def test_apipec_serve_spec_empty_path(self, app, prefix, path, tested):
+        """Test empty string or (equivalently) single slash as paths
+
+        Documentation can be served at root of application.
+        """
+
+        class NewAppConfig(AppConfig):
+            OPENAPI_URL_PREFIX = prefix
+            OPENAPI_SWAGGER_UI_VERSION = '3.0.0'
+
+        mapping = {
+            'json': 'OPENAPI_JSON_PATH',
+            'redoc': 'OPENAPI_REDOC_PATH',
+            'swagger-ui': 'OPENAPI_SWAGGER_UI_PATH',
+        }
+        setattr(NewAppConfig, mapping[tested], path)
+
+        app.config.from_object(NewAppConfig)
+        Api(app)
+        client = app.test_client()
+        if tested == 'json':
+            response_json_docs = client.get('/')
+        else:
+            response_json_docs = client.get('openapi.json')
+        assert response_json_docs.json['info'] == {
+            'version': '1', 'title': 'API Test'}
+        if 'tested' == 'redoc':
+            response_redoc = client.get('/')
+            assert response_redoc.status_code == 200
+            assert (response_redoc.headers['Content-Type'] ==
+                    'text/html; charset=utf-8')
+        elif 'tested' == 'swagger-ui':
+            response_swagger_ui = client.get('/')
+            assert response_swagger_ui.status_code == 200
+            assert (response_swagger_ui.headers['Content-Type'] ==
+                    'text/html; charset=utf-8')
 
     @pytest.mark.parametrize(
         'redoc_version',

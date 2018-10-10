@@ -66,7 +66,7 @@ class APISpec(apispec.APISpec):
 
 def _add_leading_slash(string):
     """Add leading slash to a string if there is None"""
-    return string if string[0] == '/' else '/' + string
+    return string if string.startswith('/') else '/' + string
 
 
 class DocBlueprintMixin:
@@ -76,7 +76,7 @@ class DocBlueprintMixin:
         """Register a blueprint in the application to expose the spec"""
         # Add routes to json spec file and spec UI (ReDoc)
         api_url = self._app.config.get('OPENAPI_URL_PREFIX', None)
-        if api_url:
+        if api_url is not None:
             blueprint = flask.Blueprint(
                 'api-docs',
                 __name__,
@@ -92,7 +92,7 @@ class DocBlueprintMixin:
                 view_func=self._openapi_json)
             # Serve ReDoc only if path specified
             redoc_path = self._app.config.get('OPENAPI_REDOC_PATH', None)
-            if redoc_path:
+            if redoc_path is not None:
                 blueprint.add_url_rule(
                     _add_leading_slash(redoc_path),
                     endpoint='openapi_redoc',
@@ -102,7 +102,7 @@ class DocBlueprintMixin:
                 'OPENAPI_SWAGGER_UI_PATH', None)
             swagger_ui_version = self._app.config.get(
                 'OPENAPI_SWAGGER_UI_VERSION', None)
-            if swagger_ui_path and swagger_ui_version:
+            if swagger_ui_path is not None and swagger_ui_version:
                 blueprint.add_url_rule(
                     _add_leading_slash(swagger_ui_path),
                     endpoint='openapi_swagger_ui',
