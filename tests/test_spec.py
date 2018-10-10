@@ -106,18 +106,12 @@ class TestAPISpecServeDocs():
             response_json_docs = client.get('/')
         else:
             response_json_docs = client.get('openapi.json')
+            response_doc_page = client.get('/')
+            assert response_doc_page.status_code == 200
+            assert (response_doc_page.headers['Content-Type'] ==
+                    'text/html; charset=utf-8')
         assert response_json_docs.json['info'] == {
             'version': '1', 'title': 'API Test'}
-        if 'tested' == 'redoc':
-            response_redoc = client.get('/')
-            assert response_redoc.status_code == 200
-            assert (response_redoc.headers['Content-Type'] ==
-                    'text/html; charset=utf-8')
-        elif 'tested' == 'swagger-ui':
-            response_swagger_ui = client.get('/')
-            assert response_swagger_ui.status_code == 200
-            assert (response_swagger_ui.headers['Content-Type'] ==
-                    'text/html; charset=utf-8')
 
     @pytest.mark.parametrize(
         'redoc_version',
