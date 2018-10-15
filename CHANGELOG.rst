@@ -1,6 +1,15 @@
 Changelog
 ---------
 
+0.9.2 (unreleased)
+++++++++++++++++++
+
+Features:
+
+- ``Api.register_blueprint`` passes ``**options`` keyword parameters to
+  ``app.register_blueprint`` to override ``Blueprint`` defaults. Thanks
+  :user:`dryobates` for the suggestion.
+
 0.9.1 (2018-10-11)
 ++++++++++++++++++
 
