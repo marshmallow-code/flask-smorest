@@ -1,0 +1,11 @@
+include *.rst LICENSE
+
+graft flask_rest_api
+
+graft docs
+prune docs/_build
+
+graft tests
+include dev-requirements.txt tox.ini
+
+global-exclude *.py[co]
