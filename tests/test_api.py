@@ -144,3 +144,24 @@ class TestApi():
             assert spec['swagger'] == '2.0'
         else:
             assert spec['openapi'] == '3.0.1'
+
+    def test_api_register_blueprint_options(self, app):
+        api = Api(app)
+        blp = Blueprint('test', 'test', url_prefix='/test1')
+
+        @blp.route('/')
+        def test_func():
+            return jsonify('OK')
+
+        api.register_blueprint(blp, url_prefix='/test2')
+
+        spec = api.spec.to_dict()
+        assert '/test1/' not in spec['paths']
+        assert '/test2/' in spec['paths']
+
+        client = app.test_client()
+        response = client.get('/test1/')
+        assert response.status_code == 404
+        response = client.get('/test2/')
+        assert response.status_code == 200
+        assert response.json == 'OK'

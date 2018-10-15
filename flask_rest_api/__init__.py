@@ -59,13 +59,16 @@ class Api(DocBlueprintMixin, ErrorHandlerMixin):
         # Register error handlers
         self._register_error_handlers()
 
-    def register_blueprint(self, blp):
+    def register_blueprint(self, blp, **options):
         """Register a blueprint in the application
 
         Also registers documentation for the blueprint/resource
+
+        :param Blueprint blp: Blueprint to register
+        :param dict options: Keyword arguments overriding Blueprint defaults
         """
 
-        self._app.register_blueprint(blp)
+        self._app.register_blueprint(blp, **options)
 
         # Register views in API documentation for this resource
         blp.register_views_in_doc(self._app, self.spec)
