@@ -4,7 +4,9 @@ import hashlib
 
 from flask import request, current_app, json
 
-from .exceptions import PreconditionRequired, PreconditionFailed, NotModified
+from .exceptions import (
+    CheckEtagNotCalledError,
+    PreconditionRequired, PreconditionFailed, NotModified)
 from .utils import get_appcontext
 from .compat import MARSHMALLOW_VERSION_MAJOR
 
@@ -115,15 +117,21 @@ def verify_check_etag():
     Log a warning if ETag is enabled but check_etag was not called in
     resource code in a PUT, PATCH or DELETE method.
 
+    Raise CheckEtagNotCalledError when in debug or testing mode.
+
     This is called automatically. It is meant to warn the developer about an
     issue in his ETag management.
     """
     if (is_etag_enabled_for_request() and
             request.method in METHODS_NEEDING_CHECK_ETAG):
         if not _get_etag_ctx().get('etag_checked'):
-            current_app.logger.warning(
+            message = (
                 'ETag enabled but not checked in endpoint {} on {} request.'
                 .format(request.endpoint, request.method))
+            app = current_app
+            app.logger.warning(message)
+            if app.debug or app.testing:
+                raise CheckEtagNotCalledError(message)
 
 
 def set_etag(etag_data, etag_schema=None):

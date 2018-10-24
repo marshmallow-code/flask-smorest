@@ -15,6 +15,10 @@ class InvalidLocation(FlaskRestApiError):
     """Parameter location is not a valid location"""
 
 
+class CheckEtagNotCalledError(FlaskRestApiError):
+    """ETag enabled on resource but check_etag not called"""
+
+
 class NotModified(wexc.HTTPException, FlaskRestApiError):
     """Resource was not modified (Etag is unchanged)
 

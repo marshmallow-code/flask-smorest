@@ -7,22 +7,7 @@ from werkzeug.exceptions import default_exceptions, InternalServerError
 from flask import Flask
 from flask_rest_api import Api, abort
 
-
-class NoLoggingContext:
-    """Context manager to disable logging temporarily
-
-    Those tests purposely trigger errors. We don't want to log them.
-    """
-
-    def __init__(self, app):
-        self.app = app
-
-    def __enter__(self):
-        self.logger_was_disabled = self.app.logger.disabled
-        self.app.logger.disabled = True
-
-    def __exit__(self, et, ev, tb):
-        self.app.logger.disabled = self.logger_was_disabled
+from .utils import NoLoggingContext
 
 
 class TestErrorHandler:

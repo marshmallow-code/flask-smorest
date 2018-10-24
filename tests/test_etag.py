@@ -16,12 +16,14 @@ from flask_rest_api.etag import (
     disable_etag_for_request, is_etag_enabled_for_request, _get_etag_ctx,
     check_precondition, set_etag_in_response, verify_check_etag)
 from flask_rest_api.exceptions import (
+    CheckEtagNotCalledError,
     NotModified, PreconditionRequired, PreconditionFailed)
 from flask_rest_api.blueprint import HTTP_METHODS
 from flask_rest_api.compat import MARSHMALLOW_VERSION_MAJOR
 
 from .mocks import ItemNotFound
 from .conftest import AppConfig
+from .utils import NoLoggingContext
 
 
 class AppConfigEtagEnabled(AppConfig):
@@ -257,7 +259,7 @@ class TestEtag():
     @pytest.mark.parametrize(
         'app', [AppConfig, AppConfigEtagEnabled], indirect=True)
     @pytest.mark.parametrize('method', HTTP_METHODS)
-    def test_etag_verify_check_etag(self, app, method):
+    def test_etag_verify_check_etag_warning(self, app, method):
 
         old_item = {'item_id': 1, 'db_field': 0}
         old_etag = _generate_etag(old_item)
@@ -281,6 +283,32 @@ class TestEtag():
                 check_etag(old_item)
                 verify_check_etag()
                 assert not mock_warning.called
+
+    @pytest.mark.parametrize(
+        'app', [AppConfig, AppConfigEtagEnabled], indirect=True)
+    @pytest.mark.parametrize('method', HTTP_METHODS)
+    @pytest.mark.parametrize('debug', (True, False))
+    @pytest.mark.parametrize('testing', (True, False))
+    def test_etag_verify_check_etag_exception(
+            self, app, method, debug, testing):
+
+        app.config['DEBUG'] = debug
+        app.config['TESTING'] = testing
+
+        with NoLoggingContext(app):
+            with app.test_request_context('/', method=method):
+                if (
+                        (debug or testing)
+                        and is_etag_enabled(app)
+                        and method in ['PUT', 'PATCH', 'DELETE']
+                ):
+                    with pytest.raises(
+                            CheckEtagNotCalledError,
+                            match='ETag enabled but not checked in endpoint'
+                    ):
+                        verify_check_etag()
+                else:
+                    verify_check_etag()
 
     @pytest.mark.parametrize(
         'app', [AppConfig, AppConfigEtagEnabled], indirect=True)
