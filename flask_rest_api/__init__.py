@@ -54,14 +54,12 @@ class Api(DocBlueprintMixin, ErrorHandlerMixin):
             # TODO: Remove this condition when the bug is fixed
             if base_path != '/':
                 spec_kwargs.setdefault('basePath', base_path)
+        spec_kwargs.update(app.config.get('API_SPEC_OPTIONS', {}))
         self.spec = APISpec(
             app.name,
             app.config.get('API_VERSION', '1'),
             openapi_version=openapi_version,
-            **{
-                **spec_kwargs,
-                **app.config.get('API_SPEC_OPTIONS', {})
-            },
+            **spec_kwargs,
         )
         # Initialize blueprint serving spec
         self._register_doc_blueprint()
