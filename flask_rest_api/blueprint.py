@@ -164,7 +164,7 @@ class Blueprint(
                 # We need to deepcopy operations here
                 # because it can be modified in add_path, which causes
                 # issues if there are multiple rules for the same endpoint
-                spec.add_path(app=app, rule=rule, operations=deepcopy(doc))
+                spec.add_path(rule=rule, operations=deepcopy(doc))
 
     @staticmethod
     def _prepare_doc(operation, openapi_version):

@@ -4,7 +4,6 @@ Heavily copied from apispec
 """
 
 import re
-from urllib.parse import urljoin
 
 import werkzeug.routing
 
@@ -74,11 +73,9 @@ class FlaskPlugin(BasePlugin):
         return params
 
     # Greatly inspired by apispec
-    def path_helper(self, app, rule, operations=None, **kwargs):
+    def path_helper(self, rule, operations=None, **kwargs):
         """Get path from flask Rule and set path parameters in operations"""
         path = self.flaskpath2openapi(rule.rule)
-        app_root = app.config['APPLICATION_ROOT'] or '/'
-        path = urljoin(app_root.rstrip('/') + '/', path.lstrip('/'))
 
         if operations:
             # Get path parameters
