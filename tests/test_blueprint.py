@@ -8,7 +8,7 @@ from flask.views import MethodView
 
 from flask_rest_api import Api
 from flask_rest_api.blueprint import Blueprint, HTTP_METHODS
-from flask_rest_api.exceptions import InvalidLocation
+from flask_rest_api.exceptions import InvalidLocationError
 
 
 LOCATIONS_MAPPING = (
@@ -60,7 +60,7 @@ class TestBlueprint():
 
     def test_blueprint_arguments_location_invalid(self, app, schemas):
         blp = Blueprint('test', __name__, url_prefix='/test')
-        with pytest.raises(InvalidLocation):
+        with pytest.raises(InvalidLocationError):
             blp.arguments(schemas.DocSchema, location='invalid')
 
     @pytest.mark.parametrize('openapi_version', ('2.0', '3.0.1'))

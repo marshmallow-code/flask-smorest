@@ -5,7 +5,7 @@ from webargs import core
 from webargs.flaskparser import FlaskParser
 from apispec.ext.marshmallow.openapi import __location_map__
 
-from .exceptions import InvalidLocation
+from .exceptions import InvalidLocationError
 
 
 class ArgumentsMixin:
@@ -38,7 +38,7 @@ class ArgumentsMixin:
         try:
             openapi_location = __location_map__[location]
         except KeyError:
-            raise InvalidLocation(
+            raise InvalidLocationError(
                 "{} is not a valid location".format(location))
 
         # At this stage, put schema instance in doc dictionary. Il will be

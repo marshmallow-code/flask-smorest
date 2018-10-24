@@ -7,11 +7,11 @@ class FlaskRestApiError(Exception):
     """Generic flask-rest-api exception"""
 
 
-class EndpointMethodDocAlreadyRegisted(FlaskRestApiError):
+class EndpointMethodDocAlreadyRegistedError(FlaskRestApiError):
     """Documentation already registered for this endpoint/method couple"""
 
 
-class InvalidLocation(FlaskRestApiError):
+class InvalidLocationError(FlaskRestApiError):
     """Parameter location is not a valid location"""
 
 

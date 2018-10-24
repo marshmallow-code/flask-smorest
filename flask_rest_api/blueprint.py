@@ -36,7 +36,7 @@ from .utils import deepupdate, load_info_from_docstring
 from .arguments import ArgumentsMixin
 from .response import ResponseMixin
 from .pagination import PaginationMixin
-from .exceptions import EndpointMethodDocAlreadyRegisted
+from .exceptions import EndpointMethodDocAlreadyRegistedError
 
 
 # This is the order in which the methods are presented in the spec
@@ -115,7 +115,7 @@ class Blueprint(
                 # If multiple routes point to the same endpoint, the doc may
                 # be already registered.
                 # Only trigger exception if a different doc is passed.
-                raise EndpointMethodDocAlreadyRegisted(
+                raise EndpointMethodDocAlreadyRegistedError(
                     "Another doc is already registered for endpoint '{}' "
                     "method {}".format(endpoint, method_l.upper()))
             endpoint_doc[method_l] = doc
