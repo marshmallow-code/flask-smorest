@@ -95,15 +95,23 @@ Additional root document attributes can be passed either in the code, as
 
 .. code-block:: python
 
-    app.config['API_SPEC_OPTIONS'] = {'basePath': '/v2'}
+    app.config['API_SPEC_OPTIONS'] = {'x-internal-id': '2'}
 
-    api = Api(app, spec_kwargs={'basePath': '/v1', 'host': 'example.com'})
+    api = Api(app, spec_kwargs={'host': 'example.com', 'x-internal-id': 1})
 
 Note that ``app.config`` overrides ``spec_kwargs``. The example above produces
 
 .. code-block:: python
 
-    {'basePath': '/v2', 'host': 'example.com',...}
+    {'host': 'example.com', 'x-internal-id': 1, ...}
+
+.. note:: Again, flask-rest-api tries to provide as much information as
+   possible, but some values can only by provided by the user.
+
+   When using OpenAPI v2, `basePath` is automatically set from the value of the
+   flask parameter `APPLICATION_ROOT`. In OpenAPI v3, `basePath` is removed,
+   and the `servers` attribute can only be set by the user.
+
 
 Register Definitions
 --------------------
