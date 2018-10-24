@@ -1,6 +1,18 @@
 Changelog
 ---------
 
+0.10.0 (2018-10-24)
++++++++++++++++++++
+
+Features:
+
+- *Backwards-incompatible*: Don't prefix all routes in the spec with
+  `APPLICATION_ROOT`. If using OpenAPI v2, set `APPLICATION_ROOT` as
+  `basePath`. If using OpenAPI v3, the user should specify `servers` manually.
+- *Backwards-incompatible*: In testing and debug modes, `verify_check_etag` not
+  only logs a warning but also raises `CheckEtagNotCalledError` if `check_etag`
+  is not called in a resource that needs it.
+
 0.9.2 (2018-10-16)
 ++++++++++++++++++
 
