@@ -44,12 +44,22 @@ class Api(DocBlueprintMixin, ErrorHandlerMixin):
         ext['ext_obj'] = self
 
         # Initialize spec
+        spec_kwargs = spec_kwargs or {}
+        openapi_version = app.config.get('OPENAPI_VERSION', '2.0')
+        openapi_major_version = int(openapi_version.split('.')[0])
+        if openapi_major_version < 3:
+            base_path = app.config.get('APPLICATION_ROOT')
+            # Don't pass basePath if '/' to avoid a bug in apispec
+            # https://github.com/marshmallow-code/apispec/issues/78#issuecomment-431854606
+            # TODO: Remove this condition when the bug is fixed
+            if base_path != '/':
+                spec_kwargs.setdefault('basePath', base_path)
         self.spec = APISpec(
             app.name,
             app.config.get('API_VERSION', '1'),
-            openapi_version=app.config.get('OPENAPI_VERSION', '2.0'),
+            openapi_version=openapi_version,
             **{
-                **(spec_kwargs or {}),
+                **spec_kwargs,
                 **app.config.get('API_SPEC_OPTIONS', {})
             },
         )
