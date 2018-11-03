@@ -72,6 +72,7 @@ class ResponseMixin:
                 # Build response
                 resp = jsonify(self._prepare_response_content(result_dump))
                 resp.headers.extend(get_appcontext()['headers'])
+                resp.status_code = code
 
                 # Add etag value to response
                 # Pass data to use as ETag data if set_etag was not called
@@ -80,8 +81,7 @@ class ResponseMixin:
                 etag_data = result_dump if etag_schema is None else result
                 set_etag_in_response(resp, etag_data, etag_schema)
 
-                # Add status code
-                return resp, code
+                return resp
 
             return wrapper
 
