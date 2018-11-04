@@ -20,9 +20,9 @@ METHODS_ALLOWING_SET_ETAG = ['GET', 'HEAD', 'POST', 'PUT', 'PATCH']
 INCLUDE_HEADERS = ['X-Pagination']
 
 
-def is_etag_enabled(app=current_app):
+def _is_etag_enabled():
     """Return True if ETag feature enabled application-wise"""
-    return app.config.get('ETAG_ENABLED', False)
+    return current_app.config.get('ETAG_ENABLED', False)
 
 
 def _get_etag_ctx():
@@ -30,7 +30,7 @@ def _get_etag_ctx():
     return get_appcontext()['etag']
 
 
-def set_etag_schema(etag_schema):
+def _set_etag_schema(etag_schema):
     _get_etag_ctx()['etag_schema'] = etag_schema
 
 
@@ -64,7 +64,7 @@ def _generate_etag(etag_data, etag_schema=None, extra_data=None):
     return hashlib.sha1(bytes(data, 'utf-8')).hexdigest()
 
 
-def check_precondition():
+def _check_precondition():
     """Check If-Match header is there
 
     Raise 428 if If-Match header missing
@@ -73,9 +73,7 @@ def check_precondition():
     """
     # TODO: other methods?
     # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-Match
-    if (is_etag_enabled() and
-            request.method in METHODS_NEEDING_CHECK_ETAG and
-            not request.if_match):
+    if request.method in METHODS_NEEDING_CHECK_ETAG and not request.if_match:
         raise PreconditionRequired
 
 
@@ -90,7 +88,7 @@ def check_etag(etag_data, etag_schema=None):
     developer's responsability to do it. However, a warning is logged at
     runtime if this function was not called.
     """
-    if is_etag_enabled():
+    if _is_etag_enabled():
         etag_schema = etag_schema or _get_etag_schema()
         new_etag = _generate_etag(etag_data, etag_schema)
         _get_etag_ctx()['etag_checked'] = True
@@ -98,7 +96,7 @@ def check_etag(etag_data, etag_schema=None):
             raise PreconditionFailed
 
 
-def verify_check_etag():
+def _verify_check_etag():
     """Verify check_etag was called in resource code
 
     Log a warning if ETag is enabled but check_etag was not called in
@@ -109,8 +107,7 @@ def verify_check_etag():
     This is called automatically. It is meant to warn the developer about an
     issue in his ETag management.
     """
-    if (is_etag_enabled() and
-            request.method in METHODS_NEEDING_CHECK_ETAG):
+    if request.method in METHODS_NEEDING_CHECK_ETAG:
         if not _get_etag_ctx().get('etag_checked'):
             message = (
                 'ETag enabled but not checked in endpoint {} on {} request.'
@@ -134,7 +131,7 @@ def set_etag(etag_data, etag_schema=None):
     if request.method not in METHODS_ALLOWING_SET_ETAG:
         current_app.logger.warning(
             'ETag cannot be set on {} request.'.format(request.method))
-    if is_etag_enabled():
+    if _is_etag_enabled():
         etag_schema = etag_schema or _get_etag_schema()
         new_etag = _generate_etag(etag_data, etag_schema)
         if new_etag in request.if_none_match:
@@ -143,7 +140,7 @@ def set_etag(etag_data, etag_schema=None):
         _get_etag_ctx()['etag'] = new_etag
 
 
-def set_etag_in_response(response, etag_data, etag_schema):
+def _set_etag_in_response(response, etag_data, etag_schema):
     """Set ETag in response object
 
     Called automatically.
@@ -151,8 +148,7 @@ def set_etag_in_response(response, etag_data, etag_schema):
     If no ETag data was computed using set_etag, it is computed here from
     response data.
     """
-    if (is_etag_enabled() and
-            request.method in METHODS_ALLOWING_SET_ETAG):
+    if request.method in METHODS_ALLOWING_SET_ETAG:
         new_etag = _get_etag_ctx().get('etag')
         # If no ETag data was manually provided, use response content
         if new_etag is None:
@@ -181,26 +177,28 @@ class EtagMixin:
             @wraps(func)
             def wrapper(*args, **kwargs):
 
-                # Check etag precondition
-                check_precondition()
+                etag_enabled = _is_etag_enabled()
 
-                # Store etag_schema in AppContext
-                set_etag_schema(etag_schema)
+                if etag_enabled:
+                    # Check etag precondition
+                    _check_precondition()
+                    # Store etag_schema in AppContext
+                    _set_etag_schema(etag_schema)
 
                 # Execute decorated function
                 resp = func(*args, **kwargs)
 
-                # Verify that check_etag was called in resource code if needed
-                verify_check_etag()
-
-                # Add etag value to response
-                # Pass data to use as ETag data if set_etag was not called
-                # If etag_schema is provided, pass raw data rather than dump,
-                # as the dump needs to be done using etag_schema
-                etag_data = get_appcontext()[
-                    'result_dump' if etag_schema is None else 'result_raw'
-                ]
-                set_etag_in_response(resp, etag_data, etag_schema)
+                if etag_enabled:
+                    # Verify check_etag was called in resource code if needed
+                    _verify_check_etag()
+                    # Add etag value to response
+                    # Pass data to use as ETag data if set_etag was not called
+                    # If etag_schema is provided, pass raw result rather than
+                    # dump, as the dump needs to be done using etag_schema
+                    etag_data = get_appcontext()[
+                        'result_dump' if etag_schema is None else 'result_raw'
+                    ]
+                    _set_etag_in_response(resp, etag_data, etag_schema)
 
                 return resp
 

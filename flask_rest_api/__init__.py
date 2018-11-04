@@ -4,7 +4,7 @@ from webargs.flaskparser import abort  # noqa
 
 from .spec import APISpec, DocBlueprintMixin
 from .blueprint import Blueprint  # noqa
-from .etag import is_etag_enabled, check_etag, set_etag  # noqa
+from .etag import check_etag, set_etag  # noqa
 from .pagination import Page  # noqa
 from .error_handler import ErrorHandlerMixin
 from .compat import APISPEC_VERSION_MAJOR
