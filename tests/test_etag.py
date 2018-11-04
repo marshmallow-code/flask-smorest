@@ -7,13 +7,12 @@ from unittest import mock
 
 import pytest
 
-from flask import current_app, Response
+from flask import Response
 from flask.views import MethodView
 
 from flask_rest_api import Api, Blueprint, abort, check_etag, set_etag
 from flask_rest_api.etag import (
-    _generate_etag, is_etag_enabled,
-    disable_etag_for_request, is_etag_enabled_for_request, _get_etag_ctx,
+    _generate_etag, is_etag_enabled, _get_etag_ctx,
     check_precondition, set_etag_in_response, verify_check_etag)
 from flask_rest_api.exceptions import (
     CheckEtagNotCalledError,
@@ -207,16 +206,6 @@ class TestEtag():
 
     @pytest.mark.parametrize(
         'app', [AppConfig, AppConfigEtagEnabled], indirect=True)
-    def test_etag_is_etag_enabled_for_request(self, app):
-
-        with app.test_request_context('/'):
-            assert (
-                is_etag_enabled_for_request() == is_etag_enabled(current_app))
-            disable_etag_for_request()
-            assert not is_etag_enabled_for_request()
-
-    @pytest.mark.parametrize(
-        'app', [AppConfig, AppConfigEtagEnabled], indirect=True)
     @pytest.mark.parametrize('method', HTTP_METHODS)
     def test_etag_check_precondition(self, app, method):
 
@@ -226,8 +215,6 @@ class TestEtag():
                     check_precondition()
             else:
                 check_precondition()
-            disable_etag_for_request()
-            check_precondition()
 
     @pytest.mark.parametrize(
         'app', [AppConfig, AppConfigEtagEnabled], indirect=True)
@@ -247,9 +234,6 @@ class TestEtag():
                     check_etag(new_item)
             else:
                 check_etag(new_item)
-            disable_etag_for_request()
-            check_etag(old_item)
-            check_etag(new_item)
         with app.test_request_context(
                 '/', headers={'If-Match': old_etag_with_schema}):
             check_etag(old_item, etag_schema)
@@ -258,9 +242,6 @@ class TestEtag():
                     check_etag(new_item, etag_schema)
             else:
                 check_etag(new_item)
-            disable_etag_for_request()
-            check_etag(old_item)
-            check_etag(new_item)
 
     @pytest.mark.parametrize(
         'app', [AppConfig, AppConfigEtagEnabled], indirect=True)
@@ -280,12 +261,6 @@ class TestEtag():
                     mock_warning.reset_mock()
                 else:
                     assert not mock_warning.called
-                check_etag(old_item)
-                verify_check_etag()
-                assert not mock_warning.called
-                disable_etag_for_request()
-                verify_check_etag()
-                assert not mock_warning.called
                 check_etag(old_item)
                 verify_check_etag()
                 assert not mock_warning.called
@@ -333,9 +308,6 @@ class TestEtag():
                 del _get_etag_ctx()['etag']
             else:
                 assert 'etag' not in _get_etag_ctx()
-            disable_etag_for_request()
-            set_etag(item)
-            assert 'etag' not in _get_etag_ctx()
         with app.test_request_context(
                 '/', headers={'If-None-Match': etag}):
             if is_etag_enabled(app):
@@ -344,9 +316,6 @@ class TestEtag():
             else:
                 set_etag(item)
                 assert 'etag' not in _get_etag_ctx()
-            disable_etag_for_request()
-            set_etag(item)
-            assert 'etag' not in _get_etag_ctx()
         with app.test_request_context(
                 '/', headers={'If-None-Match': etag_with_schema}):
             if is_etag_enabled(app):
@@ -355,9 +324,6 @@ class TestEtag():
             else:
                 set_etag(item, etag_schema)
                 assert 'etag' not in _get_etag_ctx()
-            disable_etag_for_request()
-            set_etag(item, etag_schema)
-            assert 'etag' not in _get_etag_ctx()
         with app.test_request_context(
                 '/', headers={'If-None-Match': 'dummy'}):
             if is_etag_enabled(app):
@@ -372,11 +338,6 @@ class TestEtag():
                 assert 'etag' not in _get_etag_ctx()
                 set_etag(item, etag_schema)
                 assert 'etag' not in _get_etag_ctx()
-            disable_etag_for_request()
-            set_etag(item)
-            assert 'etag' not in _get_etag_ctx()
-            set_etag(item, etag_schema)
-            assert 'etag' not in _get_etag_ctx()
 
     @pytest.mark.parametrize(
         'app', [AppConfig, AppConfigEtagEnabled], indirect=True)
@@ -417,12 +378,6 @@ class TestEtag():
                 assert resp.get_etag() == (None, None)
                 set_etag_in_response(resp, item, etag_schema)
                 assert resp.get_etag() == (None, None)
-            disable_etag_for_request()
-            resp = Response()
-            set_etag_in_response(resp, item, None)
-            assert resp.get_etag() == (None, None)
-            set_etag_in_response(resp, item, etag_schema)
-            assert resp.get_etag() == (None, None)
 
     @pytest.mark.parametrize('app', [AppConfigEtagEnabled], indirect=True)
     def test_etag_operations_etag_enabled(self, app_with_etag):

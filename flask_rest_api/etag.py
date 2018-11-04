@@ -20,7 +20,7 @@ METHODS_ALLOWING_SET_ETAG = ['GET', 'HEAD', 'POST', 'PUT', 'PATCH']
 INCLUDE_HEADERS = ['X-Pagination']
 
 
-def is_etag_enabled(app):
+def is_etag_enabled(app=current_app):
     """Return True if ETag feature enabled application-wise"""
     return app.config.get('ETAG_ENABLED', False)
 
@@ -28,21 +28,6 @@ def is_etag_enabled(app):
 def _get_etag_ctx():
     """Get ETag section of AppContext"""
     return get_appcontext()['etag']
-
-
-def disable_etag_for_request():
-    _get_etag_ctx()['disabled'] = True
-
-
-def is_etag_enabled_for_request():
-    """Return True if ETag feature enabled for this request
-
-    It is enabled if
-    - the feature is enabled application-wise and
-    - it is not disabled for this route
-    """
-    return (is_etag_enabled(current_app) and
-            not _get_etag_ctx().get('disabled', False))
 
 
 def set_etag_schema(etag_schema):
@@ -88,7 +73,7 @@ def check_precondition():
     """
     # TODO: other methods?
     # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-Match
-    if (is_etag_enabled_for_request() and
+    if (is_etag_enabled() and
             request.method in METHODS_NEEDING_CHECK_ETAG and
             not request.if_match):
         raise PreconditionRequired
@@ -105,7 +90,7 @@ def check_etag(etag_data, etag_schema=None):
     developer's responsability to do it. However, a warning is logged at
     runtime if this function was not called.
     """
-    if is_etag_enabled_for_request():
+    if is_etag_enabled():
         etag_schema = etag_schema or _get_etag_schema()
         new_etag = _generate_etag(etag_data, etag_schema)
         _get_etag_ctx()['etag_checked'] = True
@@ -124,7 +109,7 @@ def verify_check_etag():
     This is called automatically. It is meant to warn the developer about an
     issue in his ETag management.
     """
-    if (is_etag_enabled_for_request() and
+    if (is_etag_enabled() and
             request.method in METHODS_NEEDING_CHECK_ETAG):
         if not _get_etag_ctx().get('etag_checked'):
             message = (
@@ -149,7 +134,7 @@ def set_etag(etag_data, etag_schema=None):
     if request.method not in METHODS_ALLOWING_SET_ETAG:
         current_app.logger.warning(
             'ETag cannot be set on {} request.'.format(request.method))
-    if is_etag_enabled_for_request():
+    if is_etag_enabled():
         etag_schema = etag_schema or _get_etag_schema()
         new_etag = _generate_etag(etag_data, etag_schema)
         if new_etag in request.if_none_match:
@@ -166,7 +151,7 @@ def set_etag_in_response(response, etag_data, etag_schema):
     If no ETag data was computed using set_etag, it is computed here from
     response data.
     """
-    if (is_etag_enabled_for_request() and
+    if (is_etag_enabled() and
             request.method in METHODS_ALLOWING_SET_ETAG):
         new_etag = _get_etag_ctx().get('etag')
         # If no ETag data was manually provided, use response content
