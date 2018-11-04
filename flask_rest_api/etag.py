@@ -4,6 +4,7 @@ from functools import wraps
 
 import hashlib
 
+from marshmallow import Schema
 from flask import request, current_app, json
 
 from .exceptions import (
@@ -168,9 +169,27 @@ class EtagMixin:
 
         :param etag_schema: :class:`Schema <marshmallow.Schema>` class
             or instance. If not None, will be used to serialize etag data.
+
+        Can be used as either a decorator or a decorator factory:
+
+            Example: ::
+
+                @blp.etag
+                def view_func(...):
+                    ...
+
+                @blp.etag(EtagSchema)
+                def view_func(...):
+                    ...
         """
-        if isinstance(etag_schema, type):
-            etag_schema = etag_schema()
+        if etag_schema is None or isinstance(etag_schema, (type, Schema)):
+            # Factory: @etag(), @etag(EtagSchema) or @etag(EtagSchema())
+            view_func = None
+            if isinstance(etag_schema, type):
+                etag_schema = etag_schema()
+        else:
+            # Decorator: @etag
+            view_func, etag_schema = etag_schema, None
 
         def decorator(func):
 
@@ -204,4 +223,6 @@ class EtagMixin:
 
             return wrapper
 
+        if view_func:
+            return decorator(view_func)
         return decorator

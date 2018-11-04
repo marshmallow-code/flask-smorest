@@ -32,13 +32,13 @@ def implicit_data_and_schema_etag_blueprint(collection, schemas):
     @blp.route('/')
     class Resource(MethodView):
 
-        @blp.etag()
+        @blp.etag
         @blp.response(DocSchema(many=True))
         @blp.paginate(Page)
         def get(self):
             return collection.items
 
-        @blp.etag()
+        @blp.etag
         @blp.arguments(DocSchema)
         @blp.response(DocSchema)
         def post(self, new_item):
@@ -53,12 +53,12 @@ def implicit_data_and_schema_etag_blueprint(collection, schemas):
             except ItemNotFound:
                 abort(404)
 
-        @blp.etag()
+        @blp.etag
         @blp.response(DocSchema)
         def get(self, item_id):
             return self._get_item(item_id)
 
-        @blp.etag()
+        @blp.etag
         @blp.arguments(DocSchema)
         @blp.response(DocSchema)
         def put(self, new_item, item_id):
@@ -67,7 +67,7 @@ def implicit_data_and_schema_etag_blueprint(collection, schemas):
             check_etag(item, DocSchema)
             return collection.put(item_id, new_item)
 
-        @blp.etag()
+        @blp.etag
         @blp.response(code=204)
         def delete(self, item_id):
             item = self._get_item(item_id)
@@ -159,7 +159,7 @@ def explicit_data_no_schema_etag_blueprint(collection, schemas):
     @blp.route('/')
     class Resource(MethodView):
 
-        @blp.etag()
+        @blp.etag
         @blp.response(DocSchema(many=True))
         @blp.paginate()
         def get(self, pagination_parameters):
@@ -171,7 +171,7 @@ def explicit_data_no_schema_etag_blueprint(collection, schemas):
                 pagination_parameters.last_item + 1
             ]
 
-        @blp.etag()
+        @blp.etag
         @blp.arguments(DocSchema)
         @blp.response(DocSchema)
         def post(self, new_item):
@@ -188,7 +188,7 @@ def explicit_data_no_schema_etag_blueprint(collection, schemas):
             except ItemNotFound:
                 abort(404)
 
-        @blp.etag()
+        @blp.etag
         @blp.response(DocSchema)
         def get(self, item_id):
             item = self._get_item(item_id)
@@ -196,7 +196,7 @@ def explicit_data_no_schema_etag_blueprint(collection, schemas):
             set_etag(item['db_field'])
             return item
 
-        @blp.etag()
+        @blp.etag
         @blp.arguments(DocSchema)
         @blp.response(DocSchema)
         def put(self, new_item, item_id):
@@ -208,7 +208,7 @@ def explicit_data_no_schema_etag_blueprint(collection, schemas):
             set_etag(new_item['db_field'])
             return new_item
 
-        @blp.etag()
+        @blp.etag
         @blp.response(code=204)
         def delete(self, item_id):
             item = self._get_item(item_id)
