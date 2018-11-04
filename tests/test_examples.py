@@ -7,7 +7,7 @@ import pytest
 
 from flask.views import MethodView
 
-from flask_rest_api import Api, Blueprint, abort, check_etag, set_etag, Page
+from flask_rest_api import Api, Blueprint, abort, Page
 
 from .conftest import AppConfig
 from .mocks import ItemNotFound
@@ -64,7 +64,7 @@ def implicit_data_and_schema_etag_blueprint(collection, schemas):
         def put(self, new_item, item_id):
             item = self._get_item(item_id)
             # Check ETag is a manual action and schema must be provided
-            check_etag(item, DocSchema)
+            blp.check_etag(item, DocSchema)
             return collection.put(item_id, new_item)
 
         @blp.etag
@@ -72,7 +72,7 @@ def implicit_data_and_schema_etag_blueprint(collection, schemas):
         def delete(self, item_id):
             item = self._get_item(item_id)
             # Check ETag is a manual action and schema must be provided
-            check_etag(item, DocSchema)
+            blp.check_etag(item, DocSchema)
             collection.delete(item_id)
 
     return blp
@@ -129,7 +129,7 @@ def implicit_data_explicit_schema_etag_blueprint(collection, schemas):
         def put(self, new_item, item_id):
             item = self._get_item(item_id)
             # Check ETag is a manual action, ETag schema is used
-            check_etag(item)
+            blp.check_etag(item)
             new_item = collection.put(item_id, new_item)
             return new_item
 
@@ -138,7 +138,7 @@ def implicit_data_explicit_schema_etag_blueprint(collection, schemas):
         def delete(self, item_id):
             item = self._get_item(item_id)
             # Check ETag is a manual action, ETag schema is used
-            check_etag(item)
+            blp.check_etag(item)
             collection.delete(item_id)
 
     return blp
@@ -176,7 +176,7 @@ def explicit_data_no_schema_etag_blueprint(collection, schemas):
         @blp.response(DocSchema)
         def post(self, new_item):
             # Compute ETag using arbitrary data and no schema
-            set_etag(new_item['db_field'])
+            blp.set_etag(new_item['db_field'])
             return collection.post(new_item)
 
     @blp.route('/<int:item_id>')
@@ -193,7 +193,7 @@ def explicit_data_no_schema_etag_blueprint(collection, schemas):
         def get(self, item_id):
             item = self._get_item(item_id)
             # Compute ETag using arbitrary data and no schema
-            set_etag(item['db_field'])
+            blp.set_etag(item['db_field'])
             return item
 
         @blp.etag
@@ -202,10 +202,10 @@ def explicit_data_no_schema_etag_blueprint(collection, schemas):
         def put(self, new_item, item_id):
             item = self._get_item(item_id)
             # Check ETag is a manual action, no shema used
-            check_etag(item['db_field'])
+            blp.check_etag(item['db_field'])
             new_item = collection.put(item_id, new_item)
             # Compute ETag using arbitrary data and no schema
-            set_etag(new_item['db_field'])
+            blp.set_etag(new_item['db_field'])
             return new_item
 
         @blp.etag
@@ -213,7 +213,7 @@ def explicit_data_no_schema_etag_blueprint(collection, schemas):
         def delete(self, item_id):
             item = self._get_item(item_id)
             # Check ETag is a manual action, no shema used
-            check_etag(item['db_field'])
+            blp.check_etag(item['db_field'])
             collection.delete(item_id)
 
     return blp
