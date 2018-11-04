@@ -44,13 +44,15 @@ def app_with_etag(request, collection, schemas, app):
         @blp.route('/')
         class Resource(MethodView):
 
+            @blp.etag(DocEtagSchema(many=True))
             @blp.response(
-                DocSchema(many=True), etag_schema=DocEtagSchema(many=True))
+                DocSchema(many=True))
             def get(self):
                 return collection.items
 
+            @blp.etag(DocEtagSchema)
             @blp.arguments(DocSchema)
-            @blp.response(DocSchema, code=201, etag_schema=DocEtagSchema)
+            @blp.response(DocSchema, code=201)
             def post(self, new_item):
                 return collection.post(new_item)
 
@@ -63,18 +65,21 @@ def app_with_etag(request, collection, schemas, app):
                 except ItemNotFound:
                     abort(404)
 
-            @blp.response(DocSchema, etag_schema=DocEtagSchema)
+            @blp.etag(DocEtagSchema)
+            @blp.response(DocSchema)
             def get(self, item_id):
                 return self._get_item(item_id)
 
+            @blp.etag(DocEtagSchema)
             @blp.arguments(DocSchema)
-            @blp.response(DocSchema, etag_schema=DocEtagSchema)
+            @blp.response(DocSchema)
             def put(self, new_item, item_id):
                 item = self._get_item(item_id)
                 check_etag(item, DocEtagSchema)
                 return collection.put(item_id, new_item)
 
-            @blp.response(code=204, etag_schema=DocEtagSchema)
+            @blp.etag(DocEtagSchema)
+            @blp.response(code=204)
             def delete(self, item_id):
                 item = self._get_item(item_id)
                 check_etag(item, DocEtagSchema)
@@ -82,14 +87,15 @@ def app_with_etag(request, collection, schemas, app):
 
     else:
         @blp.route('/')
-        @blp.response(
-            DocSchema(many=True), etag_schema=DocEtagSchema(many=True))
+        @blp.etag(DocEtagSchema(many=True))
+        @blp.response(DocSchema(many=True))
         def get_resources():
             return collection.items
 
         @blp.route('/', methods=('POST',))
+        @blp.etag(DocEtagSchema)
         @blp.arguments(DocSchema)
-        @blp.response(DocSchema, code=201, etag_schema=DocEtagSchema)
+        @blp.response(DocSchema, code=201)
         def post_resource(new_item):
             return collection.post(new_item)
 
@@ -100,23 +106,23 @@ def app_with_etag(request, collection, schemas, app):
                 abort(404)
 
         @blp.route('/<int:item_id>')
-        @blp.response(
-            DocSchema, etag_schema=DocEtagSchema)
+        @blp.etag(DocEtagSchema)
+        @blp.response(DocSchema)
         def get_resource(item_id):
             return _get_item(item_id)
 
         @blp.route('/<int:item_id>', methods=('PUT',))
+        @blp.etag(DocEtagSchema)
         @blp.arguments(DocSchema)
-        @blp.response(
-            DocSchema, etag_schema=DocEtagSchema)
+        @blp.response(DocSchema)
         def put_resource(new_item, item_id):
             item = _get_item(item_id)
             check_etag(item)
             return collection.put(item_id, new_item)
 
         @blp.route('/<int:item_id>', methods=('DELETE',))
-        @blp.response(
-            code=204, etag_schema=DocEtagSchema)
+        @blp.etag(DocEtagSchema)
+        @blp.response(code=204)
         def delete_resource(item_id):
             item = _get_item(item_id)
             check_etag(item)

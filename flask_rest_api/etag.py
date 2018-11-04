@@ -1,5 +1,7 @@
 """ETag feature"""
 
+from functools import wraps
+
 import hashlib
 
 from flask import request, current_app, json
@@ -175,3 +177,48 @@ def set_etag_in_response(response, etag_data, etag_schema):
             if new_etag in request.if_none_match:
                 raise NotModified
         response.set_etag(new_etag)
+
+
+class EtagMixin:
+    """Extend Blueprint to add ETag handling"""
+
+    def etag(self, etag_schema=None):
+        """Decorator generating an endpoint response
+
+        :param etag_schema: :class:`Schema <marshmallow.Schema>` class
+            or instance. If not None, will be used to serialize etag data.
+        """
+        if isinstance(etag_schema, type):
+            etag_schema = etag_schema()
+
+        def decorator(func):
+
+            @wraps(func)
+            def wrapper(*args, **kwargs):
+
+                # Check etag precondition
+                check_precondition()
+
+                # Store etag_schema in AppContext
+                set_etag_schema(etag_schema)
+
+                # Execute decorated function
+                resp = func(*args, **kwargs)
+
+                # Verify that check_etag was called in resource code if needed
+                verify_check_etag()
+
+                # Add etag value to response
+                # Pass data to use as ETag data if set_etag was not called
+                # If etag_schema is provided, pass raw data rather than dump,
+                # as the dump needs to be done using etag_schema
+                etag_data = get_appcontext()[
+                    'result_dump' if etag_schema is None else 'result_raw'
+                ]
+                set_etag_in_response(resp, etag_data, etag_schema)
+
+                return resp
+
+            return wrapper
+
+        return decorator
