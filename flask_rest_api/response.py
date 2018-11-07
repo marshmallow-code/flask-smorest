@@ -61,6 +61,11 @@ class ResponseMixin:
                 # Verify that check_etag was called in resource code if needed
                 verify_check_etag()
 
+                # we have ready reponse, just return it back
+                if isinstance(result, Response):
+                    set_etag_in_response(result, result.data, etag_schema)
+                    return result, result.status_code
+                
                 # Dump result with schema if specified
                 if schema is None:
                     result_dump = result
