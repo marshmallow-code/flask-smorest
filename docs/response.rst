@@ -57,3 +57,31 @@ If a view function returns a list of objects, the :class:`Schema
    ``200`` code, decorating it with 
    :meth:`Blueprint.response <Blueprint.response>` is useful anyway, to return
    a proper Flask :class:`Response <flask.Response>` object.
+   
+Response
+========
+
+
+Usually view should produce result that will be processed by schema 
+serialization, but in some cases custom :class:`Response <flask.Response>`
+required. You can do this by returning instance of the :class:`Response <flask.Response>`
+in view. Example code:
+
+.. code-block:: python
+    :emphasize-lines: 4
+    
+    from flask import jsonify
+
+    @blp.route('/<pet_id>')
+    class PetsById(MethodView):
+
+        @blp.response(code=204)
+        def delete(self, pet_id):
+            pet = Pet.get_by_id(pet_id)
+            if pet is None:
+                resp = jsonify({'error': 'Object not found'})  # jsonify create Response instance
+                resp.status_code = 404
+                return resp 
+                
+            Pet.delete(pet_id)
+
