@@ -102,11 +102,11 @@ class Api(DocBlueprintMixin, ErrorHandlerMixin):
                 class PetSchema(Schema):
                     ...
         """
-        def decorator(schema_cls, **kwargs):
+        def decorator(schema_cls):
             if APISPEC_VERSION_MAJOR < 1:
-                self.spec.definition(name, schema=schema_cls, **kwargs)
+                self.spec.definition(name, schema=schema_cls)
             else:
-                self.spec.components.schema(name, schema=schema_cls, **kwargs)
+                self.spec.components.schema(name, schema=schema_cls)
             return schema_cls
         return decorator
 
