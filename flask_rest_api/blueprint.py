@@ -37,6 +37,7 @@ from .arguments import ArgumentsMixin
 from .response import ResponseMixin
 from .pagination import PaginationMixin
 from .exceptions import EndpointMethodDocAlreadyRegistedError
+from .compat import APISPEC_VERSION_MAJOR
 
 
 # This is the order in which the methods are presented in the spec
@@ -162,9 +163,12 @@ class Blueprint(
             # https://github.com/marshmallow-code/apispec/issues/181
             for rule in app.url_map.iter_rules(endpoint):
                 # We need to deepcopy operations here
-                # because it can be modified in add_path, which causes
+                # because it can be modified in APISpec.path(), which causes
                 # issues if there are multiple rules for the same endpoint
-                spec.add_path(rule=rule, operations=deepcopy(doc))
+                if APISPEC_VERSION_MAJOR < 1:
+                    spec.add_path(rule=rule, operations=deepcopy(doc))
+                else:
+                    spec.path(rule=rule, operations=deepcopy(doc))
 
     @staticmethod
     def _prepare_doc(operation, openapi_version):
