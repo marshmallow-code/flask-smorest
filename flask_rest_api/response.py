@@ -2,7 +2,7 @@
 
 from functools import wraps
 
-from flask import jsonify
+from flask import jsonify, Response
 
 from .etag import (
     disable_etag_for_request, check_precondition, verify_check_etag,
