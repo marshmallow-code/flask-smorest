@@ -11,6 +11,7 @@ import marshmallow as ma
 import apispec
 
 from flask_rest_api import Api, Blueprint
+from flask_rest_api.compat import APISPEC_VERSION_MAJOR
 
 
 class TestApi():
@@ -19,8 +20,15 @@ class TestApi():
     def test_api_definition(self, app, schemas):
         DocSchema = schemas.DocSchema
         api = Api(app)
-        with mock.patch.object(apispec.APISpec, 'definition') as mock_def:
-            ret = api.definition('Document')(DocSchema)
+        if APISPEC_VERSION_MAJOR < 1:
+            with mock.patch.object(apispec.APISpec, 'definition') as mock_def:
+                ret = api.definition('Document')(DocSchema)
+        else:
+            with mock.patch.object(
+                    apispec.core.Components,
+                    'schema'
+            ) as mock_def:
+                ret = api.definition('Document')(DocSchema)
         assert ret is DocSchema
         mock_def.assert_called_once_with('Document', schema=DocSchema)
 
@@ -124,8 +132,12 @@ class TestApi():
         """Test extra plugins can be passed to internal APISpec instance"""
 
         class MyPlugin(apispec.BasePlugin):
-            def definition_helper(self, name, definition, **kwargs):
-                return {'dummy': 'whatever'}
+            if APISPEC_VERSION_MAJOR < 1:
+                def definition_helper(self, name, definition, **kwargs):
+                    return {'dummy': 'whatever'}
+            else:
+                def schema_helper(self, name, definition, **kwargs):
+                    return {'dummy': 'whatever'}
 
         api = Api(app, spec_kwargs={'plugins': (MyPlugin(), )})
         api.definition('Pet')(schemas.DocSchema)

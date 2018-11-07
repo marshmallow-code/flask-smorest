@@ -7,7 +7,7 @@ from .blueprint import Blueprint  # noqa
 from .etag import is_etag_enabled, check_etag, set_etag  # noqa
 from .pagination import Page  # noqa
 from .error_handler import ErrorHandlerMixin
-
+from .compat import APISPEC_VERSION_MAJOR
 
 __version__ = '0.10.0'
 
@@ -82,10 +82,11 @@ class Api(DocBlueprintMixin, ErrorHandlerMixin):
         blp.register_views_in_doc(self._app, self.spec)
 
         # Add tag relative to this resource to the global tag list
-        self.spec.add_tag({
-            'name': blp.name,
-            'description': blp.description,
-        })
+        tag = {'name': blp.name, 'description': blp.description}
+        if APISPEC_VERSION_MAJOR < 1:
+            self.spec.add_tag(tag)
+        else:
+            self.spec.tag(tag)
 
     def definition(self, name):
         """Decorator to register a Schema in the doc
@@ -101,8 +102,11 @@ class Api(DocBlueprintMixin, ErrorHandlerMixin):
                 class PetSchema(Schema):
                     ...
         """
-        def decorator(schema_cls, **kwargs):
-            self.spec.definition(name, schema=schema_cls, **kwargs)
+        def decorator(schema_cls):
+            if APISPEC_VERSION_MAJOR < 1:
+                self.spec.definition(name, schema=schema_cls)
+            else:
+                self.spec.components.schema(name, schema=schema_cls)
             return schema_cls
         return decorator
 
