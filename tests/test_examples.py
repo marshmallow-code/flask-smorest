@@ -7,15 +7,9 @@ import pytest
 
 from flask.views import MethodView
 
-from flask_rest_api import Api, Blueprint, abort, check_etag, set_etag, Page
+from flask_rest_api import Api, Blueprint, abort, Page
 
-from .conftest import AppConfig
 from .mocks import ItemNotFound
-
-
-class AppConfigFullExample(AppConfig):
-    """Basic config with ETag feature enabled"""
-    ETAG_ENABLED = True
 
 
 def implicit_data_and_schema_etag_blueprint(collection, schemas):
@@ -32,11 +26,13 @@ def implicit_data_and_schema_etag_blueprint(collection, schemas):
     @blp.route('/')
     class Resource(MethodView):
 
+        @blp.etag
         @blp.response(DocSchema(many=True))
         @blp.paginate(Page)
         def get(self):
             return collection.items
 
+        @blp.etag
         @blp.arguments(DocSchema)
         @blp.response(DocSchema)
         def post(self, new_item):
@@ -51,23 +47,26 @@ def implicit_data_and_schema_etag_blueprint(collection, schemas):
             except ItemNotFound:
                 abort(404)
 
+        @blp.etag
         @blp.response(DocSchema)
         def get(self, item_id):
             return self._get_item(item_id)
 
+        @blp.etag
         @blp.arguments(DocSchema)
         @blp.response(DocSchema)
         def put(self, new_item, item_id):
             item = self._get_item(item_id)
             # Check ETag is a manual action and schema must be provided
-            check_etag(item, DocSchema)
+            blp.check_etag(item, DocSchema)
             return collection.put(item_id, new_item)
 
+        @blp.etag
         @blp.response(code=204)
         def delete(self, item_id):
             item = self._get_item(item_id)
             # Check ETag is a manual action and schema must be provided
-            check_etag(item, DocSchema)
+            blp.check_etag(item, DocSchema)
             collection.delete(item_id)
 
     return blp
@@ -87,9 +86,8 @@ def implicit_data_explicit_schema_etag_blueprint(collection, schemas):
     @blp.route('/')
     class Resource(MethodView):
 
-        @blp.response(
-            DocSchema(many=True), etag_schema=DocEtagSchema(many=True)
-        )
+        @blp.etag(DocEtagSchema(many=True))
+        @blp.response(DocSchema(many=True))
         @blp.paginate()
         def get(self, pagination_parameters):
             pagination_parameters.item_count = len(collection.items)
@@ -98,8 +96,9 @@ def implicit_data_explicit_schema_etag_blueprint(collection, schemas):
                 pagination_parameters.last_item + 1
             ]
 
+        @blp.etag(DocEtagSchema)
         @blp.arguments(DocSchema)
-        @blp.response(DocSchema, etag_schema=DocEtagSchema)
+        @blp.response(DocSchema)
         def post(self, new_item):
             return collection.post(new_item)
 
@@ -112,25 +111,28 @@ def implicit_data_explicit_schema_etag_blueprint(collection, schemas):
             except ItemNotFound:
                 abort(404)
 
-        @blp.response(DocSchema, etag_schema=DocEtagSchema)
+        @blp.etag(DocEtagSchema)
+        @blp.response(DocSchema)
         def get(self, item_id):
             item = self._get_item(item_id)
             return item
 
+        @blp.etag(DocEtagSchema)
         @blp.arguments(DocSchema)
-        @blp.response(DocSchema, etag_schema=DocEtagSchema)
+        @blp.response(DocSchema)
         def put(self, new_item, item_id):
             item = self._get_item(item_id)
             # Check ETag is a manual action, ETag schema is used
-            check_etag(item)
+            blp.check_etag(item)
             new_item = collection.put(item_id, new_item)
             return new_item
 
-        @blp.response(code=204, etag_schema=DocEtagSchema)
+        @blp.etag(DocEtagSchema)
+        @blp.response(code=204)
         def delete(self, item_id):
             item = self._get_item(item_id)
             # Check ETag is a manual action, ETag schema is used
-            check_etag(item)
+            blp.check_etag(item)
             collection.delete(item_id)
 
     return blp
@@ -151,6 +153,7 @@ def explicit_data_no_schema_etag_blueprint(collection, schemas):
     @blp.route('/')
     class Resource(MethodView):
 
+        @blp.etag
         @blp.response(DocSchema(many=True))
         @blp.paginate()
         def get(self, pagination_parameters):
@@ -162,11 +165,12 @@ def explicit_data_no_schema_etag_blueprint(collection, schemas):
                 pagination_parameters.last_item + 1
             ]
 
+        @blp.etag
         @blp.arguments(DocSchema)
         @blp.response(DocSchema)
         def post(self, new_item):
             # Compute ETag using arbitrary data and no schema
-            set_etag(new_item['db_field'])
+            blp.set_etag(new_item['db_field'])
             return collection.post(new_item)
 
     @blp.route('/<int:item_id>')
@@ -178,29 +182,32 @@ def explicit_data_no_schema_etag_blueprint(collection, schemas):
             except ItemNotFound:
                 abort(404)
 
+        @blp.etag
         @blp.response(DocSchema)
         def get(self, item_id):
             item = self._get_item(item_id)
             # Compute ETag using arbitrary data and no schema
-            set_etag(item['db_field'])
+            blp.set_etag(item['db_field'])
             return item
 
+        @blp.etag
         @blp.arguments(DocSchema)
         @blp.response(DocSchema)
         def put(self, new_item, item_id):
             item = self._get_item(item_id)
             # Check ETag is a manual action, no shema used
-            check_etag(item['db_field'])
+            blp.check_etag(item['db_field'])
             new_item = collection.put(item_id, new_item)
             # Compute ETag using arbitrary data and no schema
-            set_etag(new_item['db_field'])
+            blp.set_etag(new_item['db_field'])
             return new_item
 
+        @blp.etag
         @blp.response(code=204)
         def delete(self, item_id):
             item = self._get_item(item_id)
             # Check ETag is a manual action, no shema used
-            check_etag(item['db_field'])
+            blp.check_etag(item['db_field'])
             collection.delete(item_id)
 
     return blp
@@ -218,7 +225,6 @@ def blueprint_fixture(request, collection, schemas):
 
 class TestFullExample():
 
-    @pytest.mark.parametrize('app', [AppConfigFullExample], indirect=True)
     def test_examples(self, app, blueprint_fixture, schemas):
 
         blueprint, bp_schema = blueprint_fixture
@@ -301,7 +307,7 @@ class TestFullExample():
 
         # PUT without ETag: Precondition required error
         item_1_data['field'] = 1
-        with assert_counters(1, 0, 0, 0):
+        with assert_counters(0, 0, 0, 0):
             response = client.put(
                 '/test/{}'.format(item_1_id),
                 data=json.dumps(item_1_data),

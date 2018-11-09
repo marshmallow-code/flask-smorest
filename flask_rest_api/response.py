@@ -4,9 +4,6 @@ from functools import wraps
 
 from flask import jsonify
 
-from .etag import (
-    disable_etag_for_request, check_precondition, verify_check_etag,
-    set_etag_schema, set_etag_in_response)
 from .utils import deepupdate, get_appcontext
 from .compat import MARSHMALLOW_VERSION_MAJOR
 
@@ -14,25 +11,18 @@ from .compat import MARSHMALLOW_VERSION_MAJOR
 class ResponseMixin:
     """Extend Blueprint to add response handling"""
 
-    def response(self, schema=None, *, code=200, description='',
-                 etag_schema=None, disable_etag=False):
+    def response(self, schema=None, *, code=200, description=''):
         """Decorator generating an endpoint response
 
         :param schema: :class:`Schema <marshmallow.Schema>` class or instance.
             If not None, will be used to serialize response data.
         :param int code: HTTP status code (default: 200).
         :param str descripton: Description of the response.
-        :param etag_schema: :class:`Schema <marshmallow.Schema>` class
-            or instance. If not None, will be used to serialize etag data.
-        :param bool disable_etag: Disable ETag feature locally even if enabled
-            globally.
 
         See :doc:`Response <response>`.
         """
         if isinstance(schema, type):
             schema = schema()
-        if isinstance(etag_schema, type):
-            etag_schema = etag_schema()
 
         def decorator(func):
 
@@ -46,40 +36,25 @@ class ResponseMixin:
             @wraps(func)
             def wrapper(*args, **kwargs):
 
-                if disable_etag:
-                    disable_etag_for_request()
-
-                # Check etag precondition
-                check_precondition()
-
-                # Store etag_schema in AppContext
-                set_etag_schema(etag_schema)
-
                 # Execute decorated function
-                result = func(*args, **kwargs)
-
-                # Verify that check_etag was called in resource code if needed
-                verify_check_etag()
+                result_raw = func(*args, **kwargs)
 
                 # Dump result with schema if specified
                 if schema is None:
-                    result_dump = result
+                    result_dump = result_raw
                 else:
-                    result_dump = schema.dump(result)
+                    result_dump = schema.dump(result_raw)
                     if MARSHMALLOW_VERSION_MAJOR < 3:
                         result_dump = result_dump[0]
+
+                # Store result in appcontext (may be used for ETag computation)
+                get_appcontext()['result_raw'] = result_raw
+                get_appcontext()['result_dump'] = result_dump
 
                 # Build response
                 resp = jsonify(self._prepare_response_content(result_dump))
                 resp.headers.extend(get_appcontext()['headers'])
                 resp.status_code = code
-
-                # Add etag value to response
-                # Pass data to use as ETag data if set_etag was not called
-                # If etag_schema is provided, pass raw data rather than dump,
-                # as the dump needs to be done using etag_schema
-                etag_data = result_dump if etag_schema is None else result
-                set_etag_in_response(resp, etag_data, etag_schema)
 
                 return resp
 
