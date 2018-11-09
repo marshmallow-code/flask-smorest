@@ -11,7 +11,7 @@ from flask import Response
 from flask.views import MethodView
 
 from flask_rest_api import Api, Blueprint, abort
-from flask_rest_api.etag import _is_etag_enabled, _get_etag_ctx
+from flask_rest_api.etag import _get_etag_ctx
 from flask_rest_api.exceptions import (
     CheckEtagNotCalledError,
     NotModified, PreconditionRequired, PreconditionFailed)
@@ -19,13 +19,7 @@ from flask_rest_api.blueprint import HTTP_METHODS
 from flask_rest_api.compat import MARSHMALLOW_VERSION_MAJOR
 
 from .mocks import ItemNotFound
-from .conftest import AppConfig
 from .utils import NoLoggingContext
-
-
-class AppConfigEtagEnabled(AppConfig):
-    """Basic config with ETag feature enabled"""
-    ETAG_ENABLED = True
 
 
 @pytest.fixture(params=[True, False])
@@ -216,9 +210,9 @@ class TestEtag():
             else:
                 blp._check_precondition()
 
-    @pytest.mark.parametrize(
-        'app', [AppConfig, AppConfigEtagEnabled], indirect=True)
-    def test_etag_check_etag(self, app, schemas):
+    @pytest.mark.parametrize('etag_disabled', (True, False))
+    def test_etag_check_etag(self, app, schemas, etag_disabled):
+        app.config['ETAG_DISABLED'] = etag_disabled
         blp = Blueprint('test', __name__)
         etag_schema = schemas.DocEtagSchema
         old_item = {'item_id': 1, 'db_field': 0}
@@ -228,7 +222,7 @@ class TestEtag():
 
         with app.test_request_context('/', headers={'If-Match': old_etag}):
             blp.check_etag(old_item)
-            if _is_etag_enabled():
+            if not etag_disabled:
                 with pytest.raises(PreconditionFailed):
                     blp.check_etag(new_item)
             else:
@@ -236,13 +230,12 @@ class TestEtag():
         with app.test_request_context(
                 '/', headers={'If-Match': old_etag_with_schema}):
             blp.check_etag(old_item, etag_schema)
-            if _is_etag_enabled():
+            if not etag_disabled:
                 with pytest.raises(PreconditionFailed):
                     blp.check_etag(new_item, etag_schema)
             else:
                 blp.check_etag(new_item)
 
-    @pytest.mark.parametrize('app', [AppConfigEtagEnabled], indirect=True)
     @pytest.mark.parametrize('method', HTTP_METHODS)
     def test_etag_verify_check_etag_warning(self, app, method):
         blp = Blueprint('test', __name__)
@@ -282,9 +275,9 @@ class TestEtag():
                 else:
                     blp._verify_check_etag()
 
-    @pytest.mark.parametrize(
-        'app', [AppConfig, AppConfigEtagEnabled], indirect=True)
-    def test_etag_set_etag(self, app, schemas):
+    @pytest.mark.parametrize('etag_disabled', (True, False))
+    def test_etag_set_etag(self, app, schemas, etag_disabled):
+        app.config['ETAG_DISABLED'] = etag_disabled
         blp = Blueprint('test', __name__)
         etag_schema = schemas.DocEtagSchema
         item = {'item_id': 1, 'db_field': 0}
@@ -293,14 +286,14 @@ class TestEtag():
 
         with app.test_request_context('/'):
             blp.set_etag(item)
-            if _is_etag_enabled():
+            if not etag_disabled:
                 assert _get_etag_ctx()['etag'] == etag
                 del _get_etag_ctx()['etag']
             else:
                 assert 'etag' not in _get_etag_ctx()
         with app.test_request_context(
                 '/', headers={'If-None-Match': etag}):
-            if _is_etag_enabled():
+            if not etag_disabled:
                 with pytest.raises(NotModified):
                     blp.set_etag(item)
             else:
@@ -308,7 +301,7 @@ class TestEtag():
                 assert 'etag' not in _get_etag_ctx()
         with app.test_request_context(
                 '/', headers={'If-None-Match': etag_with_schema}):
-            if _is_etag_enabled():
+            if not etag_disabled:
                 with pytest.raises(NotModified):
                     blp.set_etag(item, etag_schema)
             else:
@@ -316,7 +309,7 @@ class TestEtag():
                 assert 'etag' not in _get_etag_ctx()
         with app.test_request_context(
                 '/', headers={'If-None-Match': 'dummy'}):
-            if _is_etag_enabled():
+            if not etag_disabled:
                 blp.set_etag(item)
                 assert _get_etag_ctx()['etag'] == etag
                 del _get_etag_ctx()['etag']
@@ -329,10 +322,11 @@ class TestEtag():
                 blp.set_etag(item, etag_schema)
                 assert 'etag' not in _get_etag_ctx()
 
-    @pytest.mark.parametrize(
-        'app', [AppConfig, AppConfigEtagEnabled], indirect=True)
+    @pytest.mark.parametrize('etag_disabled', (True, False))
     @pytest.mark.parametrize('method', HTTP_METHODS)
-    def test_set_etag_method_not_allowed_warning(self, app, method):
+    def test_set_etag_method_not_allowed_warning(
+            self, app, method, etag_disabled):
+        app.config['ETAG_DISABLED'] = etag_disabled
         blp = Blueprint('test', __name__)
 
         with mock.patch.object(app.logger, 'warning') as mock_warning:
@@ -362,7 +356,6 @@ class TestEtag():
             blp._set_etag_in_response(resp, item, etag_schema)
             assert resp.get_etag() == (etag_with_schema, False)
 
-    @pytest.mark.parametrize('app', [AppConfigEtagEnabled], indirect=True)
     def test_etag_operations_etag_enabled(self, app_with_etag):
 
         client = app_with_etag.test_client()
@@ -464,6 +457,7 @@ class TestEtag():
 
     def test_etag_operations_etag_disabled(self, app_with_etag):
 
+        app_with_etag.config['ETAG_DISABLED'] = True
         client = app_with_etag.test_client()
 
         # GET without ETag: OK

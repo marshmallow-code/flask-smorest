@@ -9,13 +9,7 @@ from flask.views import MethodView
 
 from flask_rest_api import Api, Blueprint, abort, Page
 
-from .conftest import AppConfig
 from .mocks import ItemNotFound
-
-
-class AppConfigFullExample(AppConfig):
-    """Basic config with ETag feature enabled"""
-    ETAG_ENABLED = True
 
 
 def implicit_data_and_schema_etag_blueprint(collection, schemas):
@@ -231,7 +225,6 @@ def blueprint_fixture(request, collection, schemas):
 
 class TestFullExample():
 
-    @pytest.mark.parametrize('app', [AppConfigFullExample], indirect=True)
     def test_examples(self, app, blueprint_fixture, schemas):
 
         blueprint, bp_schema = blueprint_fixture

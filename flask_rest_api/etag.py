@@ -16,7 +16,7 @@ from .compat import MARSHMALLOW_VERSION_MAJOR
 
 def _is_etag_enabled():
     """Return True if ETag feature enabled application-wise"""
-    return current_app.config.get('ETAG_ENABLED', False)
+    return not current_app.config.get('ETAG_DISABLED', False)
 
 
 def _get_etag_ctx():
