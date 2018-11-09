@@ -50,6 +50,8 @@ class EtagMixin:
                 @blp.etag(EtagSchema)
                 def view_func(...):
                     ...
+
+        See :doc:`ETag <etag>`.
         """
         if etag_schema is None or isinstance(etag_schema, (type, Schema)):
             # Factory: @etag(), @etag(EtagSchema) or @etag(EtagSchema())

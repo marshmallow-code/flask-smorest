@@ -22,6 +22,9 @@ Blueprint
     .. automethod:: arguments
     .. automethod:: response
     .. automethod:: paginate
+    .. automethod:: etag
+    .. automethod:: check_etag
+    .. automethod:: set_etag
 
 Pagination
 ==========
@@ -30,11 +33,3 @@ Pagination
     :members:
 .. autoclass:: flask_rest_api.pagination.PaginationParameters
     :members:
-
-ETag
-====
-
-.. autofunction:: flask_rest_api.etag.is_etag_enabled
-.. autofunction:: flask_rest_api.etag.is_etag_enabled_for_request
-.. autofunction:: flask_rest_api.etag.check_etag
-.. autofunction:: flask_rest_api.etag.set_etag
