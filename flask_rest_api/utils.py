@@ -1,23 +1,23 @@
 """Utils"""
 
-from collections import defaultdict
+from collections import defaultdict, Mapping
 
 from flask import _app_ctx_stack
 from apispec.utils import trim_docstring, dedent
 
 
-# http://stackoverflow.com/a/8310229/4653485
+# https://stackoverflow.com/a/3233356
 def deepupdate(original, update):
     """Recursively update a dict.
 
     Subdict's won't be overwritten but also updated.
     """
-    for key, value in original.items():
-        if key not in update:
-            update[key] = value
-        elif isinstance(value, dict):
-            deepupdate(value, update[key])
-    return update
+    for key, value in update.items():
+        if isinstance(value, Mapping):
+            original[key] = deepupdate(original.get(key, {}), value)
+        else:
+            original[key] = value
+    return original
 
 
 # XXX: Does this belong here?
