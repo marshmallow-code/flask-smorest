@@ -12,6 +12,10 @@ Features:
   ``Blueprint.ETAG_INCLUDE_HEADERS``. It is enabled by default (only on views
   decorated with ``Blueprint.etag``) and disabled with ``ETAG_DISABLED``
   application configuration parameter. ``is_etag_enabled`` is now private.
+- *Backwards-incompatible*: The ``response`` decorator returns a ``Response``
+  object rather than a (``Response`` object, status code) tuple. The status
+  code is set in the ``Response`` object.
+- Fix compatibility with apispec 1.0.0b5.
 
 0.10.0 (2018-10-24)
 +++++++++++++++++++
