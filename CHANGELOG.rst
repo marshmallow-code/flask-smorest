@@ -15,7 +15,7 @@ Features:
 - *Backwards-incompatible*: The ``response`` decorator returns a ``Response``
   object rather than a (``Response`` object, status code) tuple. The status
   code is set in the ``Response`` object.
-- Fix compatibility with apispec 1.0.0b5.
+- Support apispec 1.0.0b5.
 
 0.10.0 (2018-10-24)
 +++++++++++++++++++
