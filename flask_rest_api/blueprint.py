@@ -12,18 +12,27 @@ Documentation process works in several steps:
 
 - At import time
 
-  - When a MethodView or a function is decorated, relevant information
-    is added to the object's `_apispec` attribute.
+  - When a MethodView or a view function is decorated, relevant information
+    is automatically added to the object's ``_apidoc`` attribute.
 
-  - The `route` decorator registers the endpoint in the Blueprint and gathers
-    all information about the endpoint in `Blueprint._docs[endpoint]`
+  - The ``Blueprint.doc`` decorator stores additional information in a separate
+    ``_api_manual_doc``. It allows the user to specify documentation
+    information that flask-rest-api can not - or does not yet - infer from the
+    code.
+
+  - The ``Blueprint.route`` decorator registers the endpoint in the Blueprint
+    and gathers all information about the endpoint in
+    ``Blueprint._docs[endpoint]``.
 
 - At initialization time
 
   - Schema instances are replaced either by their reference in the `definition`
     section of the spec if applicable, otherwise by their json representation.
 
-  - Endpoints documentation is registered in the APISpec object
+  - Automatic documentation is adapted to OpenAPI version and deep-merged with
+    manual documentation.
+
+  - Endpoints documentation is registered in the APISpec object.
 """
 
 from collections import OrderedDict
@@ -103,13 +112,15 @@ class Blueprint(
         endpoint_doc = self._docs.setdefault(endpoint, OrderedDict())
 
         def store_method_docs(method, function):
+            """Add auto and manual doc to table for later registration"""
             # Get summary/description from docstring
             docstring = function.__doc__
-            doc = load_info_from_docstring(docstring) if docstring else {}
-            # Update doc with description from @doc decorator
-            doc.update(getattr(function, '_apidoc', {}))
-            # Add function doc to table for later registration
-            endpoint_doc[method.lower()] = doc
+            autodoc = load_info_from_docstring(docstring) if docstring else {}
+            # Update doc with auto documentation from decorators
+            autodoc.update(getattr(function, '_apidoc', {}))
+            manual_doc = getattr(function, '_api_manual_doc', {})
+            # Add function auto and manual doc to table for later registration
+            endpoint_doc[method.lower()] = autodoc, manual_doc
 
         # MethodView (class)
         if isinstance(obj, MethodViewType):
@@ -142,11 +153,13 @@ class Blueprint(
             # Prepend Blueprint name to endpoint
             endpoint = '.'.join((self.name, endpoint))
 
-            # Tag all operations with Blueprint name
             # Format operations documentation in OpenAPI structure
-            for operation in doc.values():
-                operation['tags'] = [self.name]
-                self._prepare_doc(operation, spec.openapi_version)
+            # Tag all operations with Blueprint name
+            # Merge manual doc
+            for key, (auto_doc, manual_doc) in doc.items():
+                self._prepare_doc(auto_doc, spec.openapi_version)
+                auto_doc['tags'] = [self.name]
+                doc[key] = deepupdate(auto_doc, manual_doc)
 
             # Thanks to self.route, there can only be one rule per endpoint
             rule = next(app.url_map.iter_rules(endpoint))
@@ -217,6 +230,9 @@ class Blueprint(
                     ...
         """
         def decorator(func):
-            func._apidoc = deepupdate(getattr(func, '_apidoc', {}), kwargs)
+            # Don't merge manual doc with auto-documentation right now.
+            # Store it in a separate attribute to merge it after .
+            func._api_manual_doc = deepupdate(
+                getattr(func, '_api_manual_doc', {}), kwargs)
             return func
         return decorator

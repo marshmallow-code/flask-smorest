@@ -3,6 +3,8 @@
 import json
 import pytest
 
+import marshmallow as ma
+
 from flask import jsonify
 from flask.views import MethodView
 
@@ -281,6 +283,52 @@ class TestBlueprint():
         for method in ('put', 'patch', ):
             assert path[method]['summary'] == 'Dummy {}'.format(method)
             assert path[method]['description'] == 'Do dummy {}'.format(method)
+
+    def test_blueprint_doc_called_twice(self, app):
+        api = Api(app)
+        blp = Blueprint('test', __name__, url_prefix='/test')
+
+        @blp.route('/')
+        @blp.doc(summary='Dummy func')
+        @blp.doc(description='Do dummy stuff')
+        def view_func():
+            pass
+
+        api.register_blueprint(blp)
+        spec = api.spec.to_dict()
+        path = spec['paths']['/test/']
+        assert path['get']['summary'] == 'Dummy func'
+        assert path['get']['description'] == 'Do dummy stuff'
+
+    # Regression test for https://github.com/Nobatek/flask-rest-api/issues/19
+    def test_blueprint_doc_merged_after_prepare_doc(self, app):
+        app.config['OPENAPI_VERSION'] = '3.0.1'
+        api = Api(app)
+        blp = Blueprint('test', __name__, url_prefix='/test')
+
+        doc_example = {
+            'content': {'application/json': {'example': {'test': 123}}}}
+
+        class ItemSchema(ma.Schema):
+            test = ma.fields.Int()
+
+        @blp.route('/')
+        class Resource(MethodView):
+
+            @blp.doc(**{'requestBody': doc_example})
+            @blp.doc(**{'responses': {200: doc_example}})
+            @blp.arguments(ItemSchema)
+            @blp.response(ItemSchema)
+            def get(self):
+                pass
+
+        api.register_blueprint(blp)
+        spec = api.spec.to_dict()
+        get = spec['paths']['/test/']['get']
+        assert get['requestBody']['content']['application/json'][
+            'example'] == {'test': 123}
+        assert get['responses'][200]['content']['application/json'][
+            'example'] == {'test': 123}
 
     def test_blueprint_doc_info_from_docstring(self, app):
         api = Api(app)
