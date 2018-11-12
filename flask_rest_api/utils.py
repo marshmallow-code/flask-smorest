@@ -1,6 +1,7 @@
 """Utils"""
 
-from collections import defaultdict, Mapping
+from collections import defaultdict
+from collections.abc import Mapping
 
 from flask import _app_ctx_stack
 from apispec.utils import trim_docstring, dedent
