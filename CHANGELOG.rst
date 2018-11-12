@@ -1,6 +1,14 @@
 Changelog
 ---------
 
+0.11.1 (unreleased)
++++++++++++++++++++
+
+Bug fixes:
+
+- Import ``Mapping`` from ``collections.abc`` rather than ``collections``. The
+  latter is deprecated in Python 3.7 and will be removed in 3.8.
+
 0.11.0 (2018-11-09)
 +++++++++++++++++++
 
