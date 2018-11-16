@@ -353,41 +353,28 @@ class TestBlueprint():
         assert list(methods_spec.keys()) == [m.lower() for m in HTTP_METHODS]
 
     @pytest.mark.parametrize('openapi_version', ('2.0', '3.0.1'))
-    def test_blueprint_multiple_routes_per_view_func(
-            self, app, openapi_version):
+    @pytest.mark.parametrize('as_method_view', (True, False))
+    def test_blueprint_multiple_routes_per_view(
+            self, app, as_method_view, openapi_version):
         app.config['OPENAPI_VERSION'] = openapi_version
         api = Api(app)
         blp = Blueprint('test', __name__, url_prefix='/test')
 
-        def func():
-            pass
+        if as_method_view:
+            # Blueprint.route ensures a different endpoint is used for each
+            # route. Otherwise, this would break in Blueprint.route when
+            # calling as_view for the second time with the same endpoint.
+            @blp.route('/route_1')
+            @blp.route('/route_2')
+            class Resource(MethodView):
 
-        # Blueprint.route ensures a different endpoint is used for each route.
-        # Otherwise, the second call would erase the doc from the first.
-        blp.route('/route_1')(blp.doc(description='Route 1')(func))
-        blp.route('/route_2')(blp.doc(description='Route 2')(func))
+                def get(self):
+                    pass
 
-        api.register_blueprint(blp)
-        paths = api.spec.to_dict()['paths']
-
-        assert paths['/test/route_1']['get']['description'] == 'Route 1'
-        assert paths['/test/route_2']['get']['description'] == 'Route 2'
-
-    @pytest.mark.parametrize('openapi_version', ('2.0', '3.0.1'))
-    def test_blueprint_multiple_routes_per_method_view(
-            self, app, openapi_version):
-        app.config['OPENAPI_VERSION'] = openapi_version
-        api = Api(app)
-        blp = Blueprint('test', __name__, url_prefix='/test')
-
-        # Blueprint.route ensures a different endpoint is used for each route.
-        # Otherwise, this would break in Blueprint.route when calling as_view
-        # for the second time with the same endpoint.
-        @blp.route('/route_1')
-        @blp.route('/route_2')
-        class Resource(MethodView):
-
-            def get(self):
+        else:
+            @blp.route('/route_1')
+            @blp.route('/route_2')
+            def func():
                 pass
 
         api.register_blueprint(blp)
