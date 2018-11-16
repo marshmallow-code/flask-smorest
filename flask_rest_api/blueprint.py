@@ -27,7 +27,6 @@ Documentation process works in several steps:
 """
 
 from collections import OrderedDict
-from copy import deepcopy
 
 from flask import Blueprint as FlaskBlueprint
 from flask.views import MethodViewType
@@ -37,7 +36,6 @@ from .arguments import ArgumentsMixin
 from .response import ResponseMixin
 from .pagination import PaginationMixin
 from .etag import EtagMixin
-from .exceptions import EndpointMethodDocAlreadyRegistedError
 from .compat import APISPEC_VERSION_MAJOR
 
 
@@ -65,6 +63,7 @@ class Blueprint(
         #     }
         # }
         self._docs = OrderedDict()
+        self._endpoints = []
 
     def route(self, rule, **options):
         """Decorator to register url rule in application
@@ -79,16 +78,14 @@ class Blueprint(
             # By default, endpoint name is function name
             endpoint = options.pop('endpoint', func.__name__)
 
-            # MethodView (class)
+            # Prevent registering several times the same endpoint
+            # by silently renaming the endpoint in case of collision
+            if endpoint in self._endpoints:
+                endpoint = '{}_{}'.format(endpoint, len(self._endpoints))
+            self._endpoints.append(endpoint)
+
             if isinstance(func, MethodViewType):
-                # This decorator may be called multiple times on the same
-                # MethodView, but Flask will complain if different views are
-                # mapped to the same endpoint, so we should call 'as_view' only
-                # once and keep the result in MethodView._view_func
-                if not getattr(func, '_view_func', None):
-                    func._view_func = func.as_view(endpoint)
-                view_func = func._view_func
-            # Function
+                view_func = func.as_view(endpoint)
             else:
                 view_func = func
 
@@ -112,16 +109,7 @@ class Blueprint(
             # Update doc with description from @doc decorator
             doc.update(getattr(function, '_apidoc', {}))
             # Add function doc to table for later registration
-            method_l = method.lower()
-            # Check another doc was not already registed for endpoint/method
-            if method_l in endpoint_doc and endpoint_doc[method_l] is not doc:
-                # If multiple routes point to the same endpoint, the doc may
-                # be already registered.
-                # Only trigger exception if a different doc is passed.
-                raise EndpointMethodDocAlreadyRegistedError(
-                    "Another doc is already registered for endpoint '{}' "
-                    "method {}".format(endpoint, method_l.upper()))
-            endpoint_doc[method_l] = doc
+            endpoint_doc[method.lower()] = doc
 
         # MethodView (class)
         if isinstance(obj, MethodViewType):
@@ -147,7 +135,6 @@ class Blueprint(
         # This method uses the documentation information associated with the
         # endpoint (in self._docs) to provide documentation for the route to
         # the spec object.
-        #
         for endpoint, doc in self._docs.items():
             # doc is a dict of documentation per method for the endpoint
             # {'get': documentation, 'post': documentation,...}
@@ -161,16 +148,12 @@ class Blueprint(
                 operation['tags'] = [self.name]
                 self._prepare_doc(operation, spec.openapi_version)
 
-            # TODO: Do we support multiple rules per endpoint?
-            # https://github.com/marshmallow-code/apispec/issues/181
-            for rule in app.url_map.iter_rules(endpoint):
-                # We need to deepcopy operations here
-                # because it can be modified in APISpec.path(), which causes
-                # issues if there are multiple rules for the same endpoint
-                if APISPEC_VERSION_MAJOR < 1:
-                    spec.add_path(rule=rule, operations=deepcopy(doc))
-                else:
-                    spec.path(rule=rule, operations=deepcopy(doc))
+            # Thanks to self.route, there can only be one rule per endpoint
+            rule = next(app.url_map.iter_rules(endpoint))
+            if APISPEC_VERSION_MAJOR < 1:
+                spec.add_path(rule=rule, operations=doc)
+            else:
+                spec.path(rule=rule, operations=doc)
 
     @staticmethod
     def _prepare_doc(operation, openapi_version):
