@@ -163,6 +163,26 @@ class TestBlueprint():
             'query_args': {'arg1': 'test'},
         }
 
+    @pytest.mark.parametrize('openapi_version', ('2.0', '3.0.1'))
+    def test_blueprint_path_parameters(self, app, schemas, openapi_version):
+        """Check auto and manual param docs are merged"""
+        app.config['OPENAPI_VERSION'] = openapi_version
+        api = Api(app)
+        blp = Blueprint('test', __name__, url_prefix='/test')
+
+        @blp.route('/<int:item_id>')
+        @blp.doc(parameters=[{'name': 'item_id', 'description': 'Item ID'}])
+        def get(item_id):
+            pass
+
+        api.register_blueprint(blp)
+        spec = api.spec.to_dict()
+        params = spec['paths']['/test/{item_id}']['get']['parameters']
+        assert len(params) == 1
+        assert params == [{
+            'name': 'item_id', 'required': True, 'description': 'Item ID',
+            'format': 'int32', 'type': 'integer', 'in': 'path'}]
+
     @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.1'])
     def test_blueprint_response_schema(self, app, openapi_version, schemas):
         """Check response schema is correctly documented.

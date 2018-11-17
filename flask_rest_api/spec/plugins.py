@@ -72,19 +72,29 @@ class FlaskPlugin(BasePlugin):
             params.append(param)
         return params
 
-    # Greatly inspired by apispec
     def path_helper(self, rule, operations=None, **kwargs):
         """Get path from flask Rule and set path parameters in operations"""
         path = self.flaskpath2openapi(rule.rule)
 
         if operations:
-            # Get path parameters
-            path_parameters = self.rule_to_params(rule)
-            if path_parameters:
+            for path_p in self.rule_to_params(rule):
                 for operation in operations.values():
                     parameters = operation.setdefault('parameters', [])
-                    # Add path parameters to documentation
-                    for path_p in path_parameters:
+                    # If a parameter with same name is already documented,
+                    # update it. Otherwise, append as new parameter.
+                    # At this stage, Schema parameters are not resolved, so
+                    # some parameters may have no name. Fortunately, we're only
+                    # looking for path parameters and those can't be schemas.
+                    p_doc = next(
+                        (p for p in parameters
+                         if p.get('name') == path_p['name']),
+                        None
+                    )
+                    if p_doc is not None:
+                        # If parameter already documented, mutate to update doc
+                        # Ensure manual doc overwrites auto doc
+                        p_doc.update({**path_p, **p_doc})
+                    else:
                         parameters.append(path_p)
 
         if APISPEC_VERSION_MAJOR == 0:
