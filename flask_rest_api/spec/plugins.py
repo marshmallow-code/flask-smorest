@@ -78,14 +78,11 @@ class FlaskPlugin(BasePlugin):
         for path_p in self.rule_to_params(rule):
             for operation in operations.values():
                 parameters = operation.setdefault('parameters', [])
-                # If a parameter with same name is already documented,
-                # update it. Otherwise, append as new parameter.
-                # At this stage, Schema parameters are not resolved, so
-                # some parameters may have no name. Fortunately, we're only
-                # looking for path parameters and those can't be schemas.
+                # If a parameter with same name and location is already
+                # documented, update. Otherwise, append as new parameter.
                 p_doc = next(
                     (p for p in parameters
-                     if p.get('name') == path_p['name']),
+                     if p['in'] == 'path' and p['name'] == path_p['name']),
                     None
                 )
                 if p_doc is not None:

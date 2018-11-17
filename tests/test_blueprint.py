@@ -171,7 +171,9 @@ class TestBlueprint():
         blp = Blueprint('test', __name__, url_prefix='/test')
 
         @blp.route('/<int:item_id>')
-        @blp.doc(parameters=[{'name': 'item_id', 'description': 'Item ID'}])
+        @blp.doc(parameters=[
+            {'name': 'item_id', 'in': 'path', 'description': 'Item ID'}
+        ])
         def get(item_id):
             pass
 
