@@ -11,6 +11,9 @@ Bug fixes:
 - Merge manual doc added with ``Blueprint.doc`` with automatic documentation
   after auto doc is prepared (i.e. adapted to OpenAPI version) (:issue:`19`).
   Thanks :user:`fbergroth` for reporting.
+- Merge automatic path parameter documentation with existing manual doc rather
+  than append as duplicate parameter (:issue:`23`).
+  Thanks :user:`congenica-andrew` for reporting.
 
 0.11.0 (2018-11-09)
 +++++++++++++++++++
