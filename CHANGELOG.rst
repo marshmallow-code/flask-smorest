@@ -8,6 +8,9 @@ Bug fixes:
 
 - Import ``Mapping`` from ``collections.abc`` rather than ``collections``. The
   latter is deprecated in Python 3.7 and will be removed in 3.8.
+- Merge manual doc added with ``Blueprint.doc`` with automatic documentation
+  after auto doc is prepared (i.e. adapted to OpenAPI version) (:issue:`19`).
+  Thanks :user:`fbergroth` for reporting.
 
 0.11.0 (2018-11-09)
 +++++++++++++++++++
