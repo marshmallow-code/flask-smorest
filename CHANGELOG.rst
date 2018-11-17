@@ -8,8 +8,6 @@ Bug fixes:
 
 - Import ``Mapping`` from ``collections.abc`` rather than ``collections``. The
   latter is deprecated in Python 3.7 and will be removed in 3.8.
-- When ``Blueprint.route`` is called twice on the same view function, the doc
-  for the first rule is not overwritten by the second call (:pr:`24`).
 
 0.11.0 (2018-11-09)
 +++++++++++++++++++
