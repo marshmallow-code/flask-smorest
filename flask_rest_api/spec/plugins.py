@@ -72,31 +72,30 @@ class FlaskPlugin(BasePlugin):
             params.append(param)
         return params
 
-    def path_helper(self, rule, operations=None, **kwargs):
+    def path_helper(self, rule, operations, **kwargs):
         """Get path from flask Rule and set path parameters in operations"""
+
+        for path_p in self.rule_to_params(rule):
+            for operation in operations.values():
+                parameters = operation.setdefault('parameters', [])
+                # If a parameter with same name is already documented,
+                # update it. Otherwise, append as new parameter.
+                # At this stage, Schema parameters are not resolved, so
+                # some parameters may have no name. Fortunately, we're only
+                # looking for path parameters and those can't be schemas.
+                p_doc = next(
+                    (p for p in parameters
+                     if p.get('name') == path_p['name']),
+                    None
+                )
+                if p_doc is not None:
+                    # If parameter already documented, mutate to update doc
+                    # Ensure manual doc overwrites auto doc
+                    p_doc.update({**path_p, **p_doc})
+                else:
+                    parameters.append(path_p)
+
         path = self.flaskpath2openapi(rule.rule)
-
-        if operations:
-            for path_p in self.rule_to_params(rule):
-                for operation in operations.values():
-                    parameters = operation.setdefault('parameters', [])
-                    # If a parameter with same name is already documented,
-                    # update it. Otherwise, append as new parameter.
-                    # At this stage, Schema parameters are not resolved, so
-                    # some parameters may have no name. Fortunately, we're only
-                    # looking for path parameters and those can't be schemas.
-                    p_doc = next(
-                        (p for p in parameters
-                         if p.get('name') == path_p['name']),
-                        None
-                    )
-                    if p_doc is not None:
-                        # If parameter already documented, mutate to update doc
-                        # Ensure manual doc overwrites auto doc
-                        p_doc.update({**path_p, **p_doc})
-                    else:
-                        parameters.append(path_p)
-
         if APISPEC_VERSION_MAJOR == 0:
             return Path(path=path, operations=operations)
         return path
