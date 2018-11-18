@@ -14,6 +14,8 @@ Bug fixes:
 - Merge automatic path parameter documentation with existing manual doc rather
   than append as duplicate parameter (:issue:`23`).
   Thanks :user:`congenica-andrew` for reporting.
+- Fix path parameter documentation structure when using OpenAPI v3.
+- Document http status codes as strings, not integers.
 
 0.11.0 (2018-11-09)
 +++++++++++++++++++
@@ -108,7 +110,7 @@ Features:
 
 Bug fixes:
 
-- Document body parameter correctly when using OpenAPI 3.
+- Document body parameter correctly when using OpenAPI v3.
 
 0.8.0 (2018-09-20)
 ++++++++++++++++++
