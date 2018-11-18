@@ -221,7 +221,7 @@ class TestBlueprint():
 
         paths = api.spec.to_dict()['paths']
 
-        response = paths['/test/schema_many_false']['get']['responses'][200]
+        response = paths['/test/schema_many_false']['get']['responses']['200']
         if openapi_version == '2.0':
             schema = response['schema']
             assert schema == {'$ref': '#/definitions/Doc'}
@@ -230,7 +230,7 @@ class TestBlueprint():
                 response['content']['application/json']['schema'])
             assert schema == {'$ref': '#/components/schemas/Doc'}
 
-        response = paths['/test/schema_many_true']['get']['responses'][200]
+        response = paths['/test/schema_many_true']['get']['responses']['200']
         if openapi_version == '2.0':
             schema = response['schema']['items']
             assert schema == {'$ref': '#/definitions/Doc'}
@@ -346,7 +346,7 @@ class TestBlueprint():
         class Resource(MethodView):
 
             @blp.doc(**{'requestBody': doc_example})
-            @blp.doc(**{'responses': {200: doc_example}})
+            @blp.doc(**{'responses': {'200': doc_example}})
             @blp.arguments(ItemSchema)
             @blp.response(ItemSchema)
             def get(self):
@@ -357,7 +357,7 @@ class TestBlueprint():
         get = spec['paths']['/test/']['get']
         assert get['requestBody']['content']['application/json'][
             'example'] == {'test': 123}
-        assert get['responses'][200]['content']['application/json'][
+        assert get['responses']['200']['content']['application/json'][
             'example'] == {'test': 123}
 
     def test_blueprint_doc_info_from_docstring(self, app):

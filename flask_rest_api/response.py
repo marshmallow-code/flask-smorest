@@ -27,10 +27,10 @@ class ResponseMixin:
         def decorator(func):
 
             # Add schema as response in the API doc
-            doc = {'responses': {code: {'description': description}}}
+            doc = {'responses': {str(code): {'description': description}}}
             doc_schema = self._make_doc_response_schema(schema)
             if doc_schema:
-                doc['responses'][code]['schema'] = doc_schema
+                doc['responses'][str(code)]['schema'] = doc_schema
             func._apidoc = deepupdate(getattr(func, '_apidoc', {}), doc)
 
             @wraps(func)
