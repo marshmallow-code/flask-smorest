@@ -237,7 +237,7 @@ number.
 
    Default: ``None``
 
-.. describe:: OPENAPI_SWAGGER_URL
+.. describe:: OPENAPI_SWAGGER_UI_URL
 
    URL to the Swagger UI script. If ``None``, a CDN version is used.
 
