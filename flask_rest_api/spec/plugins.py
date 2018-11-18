@@ -34,6 +34,11 @@ class FlaskPlugin(BasePlugin):
     def __init__(self):
         super().__init__()
         self.converter_mapping = dict(DEFAULT_CONVERTER_MAPPING)
+        self.openapi_version = None
+
+    def init_spec(self, spec):
+        super().init_spec(spec)
+        self.openapi_version = spec.openapi_version
 
     # From apispec
     @staticmethod
@@ -66,9 +71,13 @@ class FlaskPlugin(BasePlugin):
             }
             type_, format_ = self.converter_mapping.get(
                 type(rule._converters[argument]), DEFAULT_TYPE)
-            param['type'] = type_
+            schema = {'type': type_}
             if format_ is not None:
-                param['format'] = format_
+                schema['format'] = format_
+            if self.openapi_version.major < 3:
+                param.update(schema)
+            else:
+                param['schema'] = schema
             params.append(param)
         return params
 
