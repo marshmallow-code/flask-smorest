@@ -16,6 +16,7 @@ Bug fixes:
   Thanks :user:`congenica-andrew` for reporting.
 - Fix path parameter documentation structure when using OpenAPI v3.
 - Document http status codes as strings, not integers.
+- Fix use of Swagger UI config parameter OPENAPI_SWAGGER_UI_URL.
 
 0.11.0 (2018-11-09)
 +++++++++++++++++++
