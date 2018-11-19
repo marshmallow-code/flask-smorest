@@ -36,8 +36,10 @@ class TestAPISpecServeDocs():
     @pytest.mark.parametrize('redoc_path', (None, 'redoc'))
     @pytest.mark.parametrize('swagger_ui_path', (None, 'swagger-ui'))
     @pytest.mark.parametrize('swagger_ui_version', (None, '3.0.0'))
-    def test_apipec_serve_spec(self, app, prefix, json_path, redoc_path,
-                               swagger_ui_path, swagger_ui_version):
+    @pytest.mark.parametrize('swagger_ui_url', (None, 'https://my-swagger/'))
+    def test_apipec_serve_spec(
+            self, app, prefix, json_path, redoc_path,
+            swagger_ui_path, swagger_ui_url, swagger_ui_version):
         """Test default values and leading/trailing slashes issues"""
 
         class NewAppConfig(AppConfig):
@@ -51,6 +53,8 @@ class TestAPISpecServeDocs():
                 OPENAPI_SWAGGER_UI_PATH = swagger_ui_path
             if swagger_ui_version is not None:
                 OPENAPI_SWAGGER_UI_VERSION = swagger_ui_version
+            if swagger_ui_url is not None:
+                OPENAPI_SWAGGER_UI_URL = swagger_ui_url
 
         app.config.from_object(NewAppConfig)
         Api(app)
@@ -71,8 +75,11 @@ class TestAPISpecServeDocs():
                 assert response_redoc.status_code == 200
                 assert (response_redoc.headers['Content-Type'] ==
                         'text/html; charset=utf-8')
-            if (app.config.get('OPENAPI_SWAGGER_UI_PATH') is None or
-                    app.config.get('OPENAPI_SWAGGER_UI_VERSION') is None):
+            if (
+                    app.config.get('OPENAPI_SWAGGER_UI_PATH') is None or
+                    (app.config.get('OPENAPI_SWAGGER_UI_VERSION') is None and
+                     app.config.get('OPENAPI_SWAGGER_UI_URL') is None)
+            ):
                 assert response_swagger_ui.status_code == 404
             else:
                 assert response_swagger_ui.status_code == 200

@@ -102,7 +102,10 @@ class DocBlueprintMixin:
                 'OPENAPI_SWAGGER_UI_PATH', None)
             swagger_ui_version = self._app.config.get(
                 'OPENAPI_SWAGGER_UI_VERSION', None)
-            if swagger_ui_path is not None and swagger_ui_version:
+            swagger_ui_url = self._app.config.get(
+                'OPENAPI_SWAGGER_UI_URL', None)
+            if (swagger_ui_path is not None and
+                    (swagger_ui_version or swagger_ui_url)):
                 blueprint.add_url_rule(
                     _add_leading_slash(swagger_ui_path),
                     endpoint='openapi_swagger_ui',
