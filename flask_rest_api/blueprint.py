@@ -22,7 +22,8 @@ Documentation process works in several steps:
 
   - The ``Blueprint.route`` decorator registers the endpoint in the Blueprint
     and gathers all information about the endpoint in
-    ``Blueprint._docs[endpoint]``.
+    ``Blueprint._auto_docs[endpoint]`` and
+    ``Blueprint._manual_docs[endpoint]``.
 
 - At initialization time
 
@@ -36,6 +37,7 @@ Documentation process works in several steps:
 """
 
 from collections import OrderedDict
+from copy import deepcopy
 
 from flask import Blueprint as FlaskBlueprint
 from flask.views import MethodViewType
@@ -64,14 +66,17 @@ class Blueprint(
 
         super().__init__(*args, **kwargs)
 
-        # _docs is an ordered dict storing endpoints documentation:
-        # {endpoint: {
-        #     'get': documentation,
-        #     'post': documentation,
+        # _[manual|auto]_docs are ordered dicts storing endpoints documentation
+        # {
+        #     endpoint: {
+        #         'get': documentation,
+        #         'post': documentation,
+        #         ...
+        #     },
         #     ...
-        #     }
         # }
-        self._docs = OrderedDict()
+        self._auto_docs = OrderedDict()
+        self._manual_docs = OrderedDict()
         self._endpoints = []
 
     def route(self, rule, **options):
@@ -109,18 +114,24 @@ class Blueprint(
     def _store_endpoint_docs(self, endpoint, obj, **kwargs):
         """Store view or function doc info"""
 
-        endpoint_doc = self._docs.setdefault(endpoint, OrderedDict())
+        endpoint_auto_doc = self._auto_docs.setdefault(
+            endpoint, OrderedDict())
+        endpoint_manual_doc = self._manual_docs.setdefault(
+            endpoint, OrderedDict())
 
         def store_method_docs(method, function):
             """Add auto and manual doc to table for later registration"""
             # Get summary/description from docstring
+            # and auto documentation from decorators
+            # Get manual documentation from @doc decorator
             docstring = function.__doc__
-            autodoc = load_info_from_docstring(docstring) if docstring else {}
-            # Update doc with auto documentation from decorators
-            autodoc.update(getattr(function, '_apidoc', {}))
+            auto_doc = load_info_from_docstring(docstring) if docstring else {}
+            auto_doc.update(getattr(function, '_apidoc', {}))
             manual_doc = getattr(function, '_api_manual_doc', {})
-            # Add function auto and manual doc to table for later registration
-            endpoint_doc[method.lower()] = autodoc, manual_doc
+            # Store function auto and manual docs for later registration
+            method_l = method.lower()
+            endpoint_auto_doc[method_l] = auto_doc
+            endpoint_manual_doc[method_l] = manual_doc
 
         # MethodView (class)
         if isinstance(obj, MethodViewType):
@@ -143,26 +154,26 @@ class Blueprint(
 
         "schema":{"$ref": "#/definitions/MySchema"}
         """
-        # This method uses the documentation information associated with the
-        # endpoint (in self._docs) to provide documentation for the route to
-        # the spec object.
-        for endpoint, doc in self._docs.items():
-            # doc is a dict of documentation per method for the endpoint
-            # {'get': documentation, 'post': documentation,...}
-
-            # Prepend Blueprint name to endpoint
-            endpoint = '.'.join((self.name, endpoint))
-
-            # Format operations documentation in OpenAPI structure
-            # Tag all operations with Blueprint name
-            # Merge manual doc
-            for key, (auto_doc, manual_doc) in doc.items():
-                self._prepare_doc(auto_doc, spec.openapi_version)
-                auto_doc['tags'] = [self.name]
-                doc[key] = deepupdate(auto_doc, manual_doc)
+        # This method uses the documentation information associated with each
+        # endpoint in self._[auto|manual]_docs to provide documentation for
+        # corresponding route to the spec object.
+        for endpoint, endpoint_auto_doc in self._auto_docs.items():
+            doc = OrderedDict()
+            for key, auto_doc in endpoint_auto_doc.items():
+                # Deepcopy to avoid mutating the source
+                # Allows calling this function twice
+                endpoint_doc = deepcopy(auto_doc)
+                # Format operations documentation in OpenAPI structure
+                self._prepare_doc(endpoint_doc, spec.openapi_version)
+                # Tag all operations with Blueprint name
+                endpoint_doc['tags'] = [self.name]
+                # Merge auto_doc and manual_doc into doc
+                manual_doc = self._manual_docs[endpoint][key]
+                doc[key] = deepupdate(endpoint_doc, manual_doc)
 
             # Thanks to self.route, there can only be one rule per endpoint
-            rule = next(app.url_map.iter_rules(endpoint))
+            full_endpoint = '.'.join((self.name, endpoint))
+            rule = next(app.url_map.iter_rules(full_endpoint))
             if APISPEC_VERSION_MAJOR < 1:
                 spec.add_path(rule=rule, operations=doc)
             else:
@@ -231,7 +242,7 @@ class Blueprint(
         """
         def decorator(func):
             # Don't merge manual doc with auto-documentation right now.
-            # Store it in a separate attribute to merge it after .
+            # Store it in a separate attribute to merge it later.
             func._api_manual_doc = deepupdate(
                 getattr(func, '_api_manual_doc', {}), kwargs)
             return func
