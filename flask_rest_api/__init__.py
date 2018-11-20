@@ -8,7 +8,7 @@ from .pagination import Page  # noqa
 from .error_handler import ErrorHandlerMixin
 from .compat import APISPEC_VERSION_MAJOR
 
-__version__ = '0.11.0'
+__version__ = '0.11.1'
 
 
 class Api(DocBlueprintMixin, ErrorHandlerMixin):
