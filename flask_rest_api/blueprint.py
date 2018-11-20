@@ -50,15 +50,13 @@ from .etag import EtagMixin
 from .compat import APISPEC_VERSION_MAJOR
 
 
-# This is the order in which the methods are presented in the spec
-HTTP_METHODS = [
-    'OPTIONS', 'HEAD', 'GET', 'POST', 'PUT', 'PATCH', 'DELETE']
-
-
 class Blueprint(
         FlaskBlueprint,
         ArgumentsMixin, ResponseMixin, PaginationMixin, EtagMixin):
     """Blueprint that registers info in API documentation"""
+
+    # Order in which the methods are presented in the spec
+    HTTP_METHODS = ['OPTIONS', 'HEAD', 'GET', 'POST', 'PUT', 'PATCH', 'DELETE']
 
     def __init__(self, *args, **kwargs):
 
@@ -135,7 +133,7 @@ class Blueprint(
 
         # MethodView (class)
         if isinstance(obj, MethodViewType):
-            for method in HTTP_METHODS:
+            for method in self.HTTP_METHODS:
                 if method in obj.methods:
                     func = getattr(obj, method.lower())
                     store_method_docs(method, func)

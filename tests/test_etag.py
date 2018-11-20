@@ -15,11 +15,13 @@ from flask_rest_api.etag import _get_etag_ctx
 from flask_rest_api.exceptions import (
     CheckEtagNotCalledError,
     NotModified, PreconditionRequired, PreconditionFailed)
-from flask_rest_api.blueprint import HTTP_METHODS
 from flask_rest_api.compat import MARSHMALLOW_VERSION_MAJOR
 
 from .mocks import ItemNotFound
 from .utils import NoLoggingContext
+
+
+HTTP_METHODS = ['OPTIONS', 'HEAD', 'GET', 'POST', 'PUT', 'PATCH', 'DELETE']
 
 
 @pytest.fixture(params=[True, False])

@@ -9,7 +9,7 @@ from flask import jsonify
 from flask.views import MethodView
 
 from flask_rest_api import Api
-from flask_rest_api.blueprint import Blueprint, HTTP_METHODS
+from flask_rest_api.blueprint import Blueprint
 from flask_rest_api.exceptions import InvalidLocationError
 
 
@@ -398,9 +398,17 @@ class TestBlueprint():
         assert path['patch']['summary'] == 'Decorator patch summary'
         assert path['patch']['description'] == 'Decorator patch description'
 
-    def test_blueprint_enforce_method_order(self, app):
+    @pytest.mark.parametrize('http_methods', (
+        ['OPTIONS', 'HEAD', 'GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+        ['PUT', 'PATCH', 'DELETE', 'OPTIONS', 'HEAD', 'GET', 'POST'],
+    ))
+    def test_blueprint_enforce_method_order(self, app, http_methods):
         api = Api(app)
-        blp = Blueprint('test', __name__, url_prefix='/test')
+
+        class MyBlueprint(Blueprint):
+            HTTP_METHODS = http_methods
+
+        blp = MyBlueprint('test', __name__, url_prefix='/test')
 
         @blp.route('/')
         class Resource(MethodView):
@@ -427,8 +435,8 @@ class TestBlueprint():
                 pass
 
         api.register_blueprint(blp)
-        methods_spec = api.spec.to_dict()['paths']['/test/']
-        assert list(methods_spec.keys()) == [m.lower() for m in HTTP_METHODS]
+        methods = list(api.spec.to_dict()['paths']['/test/'].keys())
+        assert methods == [m.lower() for m in http_methods]
 
     @pytest.mark.parametrize('openapi_version', ('2.0', '3.0.1'))
     @pytest.mark.parametrize('as_method_view', (True, False))
