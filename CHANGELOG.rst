@@ -1,8 +1,14 @@
 Changelog
 ---------
 
-0.11.1 (unreleased)
+0.11.1 (2018-11-20)
 +++++++++++++++++++
+
+Features:
+
+- The ``HTTP_METHODS`` list that defines the order of the methods in the spec
+  is now a class attribute of ``Blueprint``. It can be overridden to enforce
+  another order.
 
 Bug fixes:
 
@@ -16,7 +22,13 @@ Bug fixes:
   Thanks :user:`congenica-andrew` for reporting.
 - Fix path parameter documentation structure when using OpenAPI v3.
 - Document http status codes as strings, not integers.
-- Fix use of Swagger UI config parameter OPENAPI_SWAGGER_UI_URL.
+- Fix use of Swagger UI config parameter ``OPENAPI_SWAGGER_UI_URL``.
+
+
+Other changes:
+
+- 100% test coverage !
+
 
 0.11.0 (2018-11-09)
 +++++++++++++++++++
