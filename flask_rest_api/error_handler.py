@@ -51,13 +51,13 @@ class ErrorHandlerMixin:
             error = InternalServerError()
             do_log = False
 
-        payload, headers = self._prepare_error_reponse_content(error)
+        payload, headers = self._prepare_error_response_content(error)
         if do_log:
             self._log_error(error, payload)
         return jsonify(payload), error.code, headers
 
     @staticmethod
-    def _prepare_error_reponse_content(error):
+    def _prepare_error_response_content(error):
         """Build payload and headers from error"""
         headers = {}
         payload = {'status': str(error), }
