@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+0.11.2 (unreleased)
++++++++++++++++++++
+
+Bug fixes:
+
+- Fix typo in ``ErrorHandlerMixin._prepare_error_response_content``.
+
 0.11.1 (2018-11-20)
 +++++++++++++++++++
 
