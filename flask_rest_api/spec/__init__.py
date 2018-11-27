@@ -3,7 +3,6 @@
 import json
 
 import flask
-from flask import current_app
 import apispec
 
 from .plugins import FlaskPlugin
@@ -72,14 +71,14 @@ def _add_leading_slash(string):
 class DocBlueprintMixin:
     """Extend Api to serve the spec in a dedicated blueprint."""
 
-    def _register_doc_blueprint(self):
+    def _register_doc_blueprint(self, app):
         """Register a blueprint in the application to expose the spec
 
         Doc Blueprint contains routes to
         - json spec file
         - spec UI (ReDoc, Swagger UI).
         """
-        api_url = self._app.config.get('OPENAPI_URL_PREFIX', None)
+        api_url = app.config.get('OPENAPI_URL_PREFIX', None)
         if api_url is not None:
             blueprint = flask.Blueprint(
                 'api-docs',
@@ -87,18 +86,30 @@ class DocBlueprintMixin:
                 url_prefix=_add_leading_slash(api_url),
                 template_folder='./templates',
             )
-            # Serve json spec at 'url_prefix/openapi.json' by default
-            json_path = self._app.config.get(
-                'OPENAPI_JSON_PATH', 'openapi.json')
-            blueprint.add_url_rule(
-                _add_leading_slash(json_path),
-                endpoint='openapi_json',
-                view_func=self._openapi_json)
-            self._register_redoc_rule(blueprint)
-            self._register_swagger_ui_rule(blueprint)
-            self._app.register_blueprint(blueprint)
+            self._register_openapi_json_rule(app, blueprint)
+            self._register_redoc_rule(app, blueprint)
+            self._register_swagger_ui_rule(app, blueprint)
+            app.register_blueprint(blueprint)
 
-    def _register_redoc_rule(self, blueprint):
+    def _register_openapi_json_rule(self, app, blueprint):
+        """Serve json spec file"""
+        json_path = app.config.get('OPENAPI_JSON_PATH', 'openapi.json')
+
+        def openapi_json():
+            """Serve JSON spec file"""
+            # We don't use Flask.jsonify here as it would sort the keys
+            # alphabetically while we want to preserve the order.
+            return app.response_class(
+                json.dumps(self._specs[app].to_dict(), indent=2),
+                mimetype='application/json')
+
+        blueprint.add_url_rule(
+            _add_leading_slash(json_path),
+            endpoint='openapi_json',
+            view_func=openapi_json)
+
+    @staticmethod
+    def _register_redoc_rule(app, blueprint):
         """Register ReDoc rule
 
         The ReDoc script URL can be specified as OPENAPI_REDOC_URL.
@@ -115,12 +126,12 @@ class DocBlueprintMixin:
 
         OPENAPI_REDOC_VERSION is ignored when OPENAPI_REDOC_URL is passed.
         """
-        redoc_path = self._app.config.get('OPENAPI_REDOC_PATH')
+        redoc_path = app.config.get('OPENAPI_REDOC_PATH')
         if redoc_path is not None:
-            redoc_url = self._app.config.get('OPENAPI_REDOC_URL')
+            redoc_url = app.config.get('OPENAPI_REDOC_URL')
             if redoc_url is None:
                 # TODO: default to 'next' when ReDoc 2.0.0 is released.
-                redoc_version = self._app.config.get(
+                redoc_version = app.config.get(
                     'OPENAPI_REDOC_VERSION', 'latest')
                 # latest or v1.x -> Redoc GitHub CDN
                 if redoc_version == 'latest' or redoc_version.startswith('v1'):
@@ -132,13 +143,19 @@ class DocBlueprintMixin:
                     redoc_url = (
                         'https://cdn.jsdelivr.net/npm/redoc@'
                         '{}/bundles/redoc.standalone.js'.format(redoc_version))
-            self._redoc_url = redoc_url
+
+            def openapi_redoc():
+                """Expose OpenAPI spec with ReDoc"""
+                return flask.render_template(
+                    'redoc.html', title=app.name, redoc_url=redoc_url)
+
             blueprint.add_url_rule(
                 _add_leading_slash(redoc_path),
                 endpoint='openapi_redoc',
-                view_func=self._openapi_redoc)
+                view_func=openapi_redoc)
 
-    def _register_swagger_ui_rule(self, blueprint):
+    @staticmethod
+    def _register_swagger_ui_rule(app, blueprint):
         """Register Swagger UI rule
 
         The Swagger UI scripts base URL can be specified as
@@ -154,47 +171,34 @@ class DocBlueprintMixin:
         OPENAPI_SWAGGER_UI_SUPPORTED_SUBMIT_METHODS specifes the methods for
         which the 'Try it out!' feature is enabled.
         """
-        swagger_ui_path = self._app.config.get('OPENAPI_SWAGGER_UI_PATH')
+        swagger_ui_path = app.config.get('OPENAPI_SWAGGER_UI_PATH')
         if swagger_ui_path is not None:
-            swagger_ui_url = self._app.config.get('OPENAPI_SWAGGER_UI_URL')
+            swagger_ui_url = app.config.get('OPENAPI_SWAGGER_UI_URL')
             if swagger_ui_url is None:
-                swagger_ui_version = self._app.config.get(
+                swagger_ui_version = app.config.get(
                     'OPENAPI_SWAGGER_UI_VERSION')
                 if swagger_ui_version is not None:
                     swagger_ui_url = (
                         'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/'
                         '{}/'.format(swagger_ui_version))
             if swagger_ui_url is not None:
-                self._swagger_ui_url = swagger_ui_url
-                self._swagger_ui_supported_submit_methods = (
-                    self._app.config.get(
+                swagger_ui_supported_submit_methods = (
+                    app.config.get(
                         'OPENAPI_SWAGGER_UI_SUPPORTED_SUBMIT_METHODS',
                         ['get', 'put', 'post', 'delete', 'options',
                          'head', 'patch', 'trace'])
                 )
+
+                def openapi_swagger_ui():
+                    """Expose OpenAPI spec with Swagger UI"""
+                    return flask.render_template(
+                        'swagger_ui.html', title=app.name,
+                        swagger_ui_url=swagger_ui_url,
+                        swagger_ui_supported_submit_methods=(
+                            swagger_ui_supported_submit_methods)
+                    )
+
                 blueprint.add_url_rule(
                     _add_leading_slash(swagger_ui_path),
                     endpoint='openapi_swagger_ui',
-                    view_func=self._openapi_swagger_ui)
-
-    def _openapi_json(self):
-        """Serve JSON spec file"""
-        # We don't use Flask.jsonify here as it would sort the keys
-        # alphabetically while we want to preserve the order.
-        return current_app.response_class(
-            json.dumps(self.spec.to_dict(), indent=2),
-            mimetype='application/json')
-
-    def _openapi_redoc(self):
-        """Expose OpenAPI spec with ReDoc"""
-        return flask.render_template(
-            'redoc.html', title=self._app.name, redoc_url=self._redoc_url)
-
-    def _openapi_swagger_ui(self):
-        """Expose OpenAPI spec with Swagger UI"""
-        return flask.render_template(
-            'swagger_ui.html', title=self._app.name,
-            swagger_ui_url=self._swagger_ui_url,
-            swagger_ui_supported_submit_methods=(
-                self._swagger_ui_supported_submit_methods)
-        )
+                    view_func=openapi_swagger_ui)

@@ -7,13 +7,12 @@ from flask import jsonify, current_app
 class ErrorHandlerMixin:
     """Extend Api to manage error handling."""
 
-    def _register_error_handlers(self):
+    def _register_error_handlers(self, app):
         """Register error handlers in Flask app
 
         This method registers a default error handler for HTTPException.
         """
-        self._app.register_error_handler(
-            HTTPException, self.handle_http_exception)
+        app.register_error_handler(HTTPException, self.handle_http_exception)
 
     def handle_http_exception(self, error):
         """Return error description and details in response body
