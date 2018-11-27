@@ -28,6 +28,8 @@ class Api(DocBlueprintMixin, ErrorHandlerMixin):
     """
     def __init__(self, app=None, *, spec_kwargs=None):
         self._specs = {}
+        # Use list rather than dict to enforce definition order
+        self._definitions = []
         if app is not None:
             self.init_app(app, spec_kwargs=spec_kwargs)
 
@@ -51,13 +53,21 @@ class Api(DocBlueprintMixin, ErrorHandlerMixin):
             if base_path != '/':
                 spec_kwargs.setdefault('basePath', base_path)
         spec_kwargs.update(app.config.get('API_SPEC_OPTIONS', {}))
-        # Keep one spec per app instance
-        self._specs[app] = APISpec(
+        # Define one APISpec instance per app instance
+        spec = APISpec(
             app.name,
             app.config.get('API_VERSION', '1'),
             openapi_version=openapi_version,
             **spec_kwargs,
         )
+        # Add definitions to spec
+        for name, schema_cls, kwargs in self._definitions:
+            if APISPEC_VERSION_MAJOR < 1:
+                spec.definition(name, schema=schema_cls, **kwargs)
+            else:
+                spec.components.schema(name, schema=schema_cls, **kwargs)
+        self._specs[app] = spec
+
         # Initialize blueprint serving spec
         self._register_doc_blueprint(app)
 
@@ -100,6 +110,7 @@ class Api(DocBlueprintMixin, ErrorHandlerMixin):
                     ...
         """
         def decorator(schema_cls, **kwargs):
+            self._definitions.append((name, schema_cls, kwargs))
             for spec in self._specs.values():
                 if APISPEC_VERSION_MAJOR < 1:
                     spec.definition(name, schema=schema_cls, **kwargs)
