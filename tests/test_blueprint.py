@@ -48,8 +48,8 @@ class TestBlueprint():
             def func():
                 """Dummy view func"""
 
-        api.register_blueprint(blp)
-        spec = api.spec.to_dict()
+        api.register_blueprint(app, blp)
+        spec = api._specs[app].to_dict()
         get = spec['paths']['/test/']['get']
         if openapi_location != 'body' or openapi_version == '2.0':
             loc = get['parameters'][0]['in']
@@ -87,8 +87,8 @@ class TestBlueprint():
             def func():
                 pass
 
-        api.register_blueprint(blp)
-        get = api.spec.to_dict()['paths']['/test/']['get']
+        api.register_blueprint(app, blp)
+        get = api._specs[app].to_dict()['paths']['/test/']['get']
         if location == 'json':
             if openapi_version == '2.0':
                 parameters = get['parameters']
@@ -130,8 +130,8 @@ class TestBlueprint():
                 'query_args': query_args,
             })
 
-        api.register_blueprint(blp)
-        spec = api.spec.to_dict()
+        api.register_blueprint(app, blp)
+        spec = api._specs[app].to_dict()
 
         # Check parameters are documented
         parameters = spec['paths']['/test/']['post']['parameters']
@@ -177,8 +177,8 @@ class TestBlueprint():
         def get(item_id):
             pass
 
-        api.register_blueprint(blp)
-        spec = api.spec.to_dict()
+        api.register_blueprint(app, blp)
+        spec = api._specs[app].to_dict()
         params = spec['paths']['/test/{item_id}']['get']['parameters']
         assert len(params) == 1
         if openapi_version == '2.0':
@@ -217,9 +217,9 @@ class TestBlueprint():
         def many_true():
             pass
 
-        api.register_blueprint(blp)
+        api.register_blueprint(app, blp)
 
-        paths = api.spec.to_dict()['paths']
+        paths = api._specs[app].to_dict()['paths']
 
         response = paths['/test/schema_many_false']['get']['responses']['200']
         if openapi_version == '2.0':
@@ -249,8 +249,8 @@ class TestBlueprint():
         def func():
             """Dummy view func"""
 
-        api.register_blueprint(blp)
-        spec = api.spec.to_dict()
+        api.register_blueprint(app, blp)
+        spec = api._specs[app].to_dict()
 
         # Check parameters are documented
         parameters = spec['paths']['/test/']['get']['parameters']
@@ -285,8 +285,8 @@ class TestBlueprint():
         def view_func():
             pass
 
-        api.register_blueprint(blp)
-        spec = api.spec.to_dict()
+        api.register_blueprint(app, blp)
+        spec = api._specs[app].to_dict()
         path = spec['paths']['/test/']
         for method in ('put', 'patch', ):
             assert path[method]['summary'] == 'Dummy func'
@@ -307,8 +307,8 @@ class TestBlueprint():
             def patch(self):
                 pass
 
-        api.register_blueprint(blp)
-        spec = api.spec.to_dict()
+        api.register_blueprint(app, blp)
+        spec = api._specs[app].to_dict()
         path = spec['paths']['/test/']
         for method in ('put', 'patch', ):
             assert path[method]['summary'] == 'Dummy {}'.format(method)
@@ -324,8 +324,8 @@ class TestBlueprint():
         def view_func():
             pass
 
-        api.register_blueprint(blp)
-        spec = api.spec.to_dict()
+        api.register_blueprint(app, blp)
+        spec = api._specs[app].to_dict()
         path = spec['paths']['/test/']
         assert path['get']['summary'] == 'Dummy func'
         assert path['get']['description'] == 'Do dummy stuff'
@@ -352,8 +352,8 @@ class TestBlueprint():
             def get(self):
                 pass
 
-        api.register_blueprint(blp)
-        spec = api.spec.to_dict()
+        api.register_blueprint(app, blp)
+        spec = api._specs[app].to_dict()
         get = spec['paths']['/test/']['get']
         assert get['requestBody']['content']['application/json'][
             'example'] == {'test': 123}
@@ -386,8 +386,8 @@ class TestBlueprint():
                 Docstring patch description
                 """
 
-        api.register_blueprint(blp)
-        spec = api.spec.to_dict()
+        api.register_blueprint(app, blp)
+        spec = api._specs[app].to_dict()
         path = spec['paths']['/test/']
 
         assert path['get']['summary'] == 'Docstring get summary'
@@ -434,8 +434,8 @@ class TestBlueprint():
             def get(self):
                 pass
 
-        api.register_blueprint(blp)
-        methods = list(api.spec.to_dict()['paths']['/test/'].keys())
+        api.register_blueprint(app, blp)
+        methods = list(api._specs[app].to_dict()['paths']['/test/'].keys())
         assert methods == [m.lower() for m in http_methods]
 
     @pytest.mark.parametrize('openapi_version', ('2.0', '3.0.1'))
@@ -463,8 +463,8 @@ class TestBlueprint():
             def func():
                 pass
 
-        api.register_blueprint(blp)
-        paths = api.spec.to_dict()['paths']
+        api.register_blueprint(app, blp)
+        paths = api._specs[app].to_dict()['paths']
 
         assert 'get' in paths['/test/route_1']
         assert 'get' in paths['/test/route_2']

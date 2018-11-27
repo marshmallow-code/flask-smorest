@@ -34,8 +34,7 @@ class TestApi():
 
     @pytest.mark.parametrize('view_type', ['function', 'method'])
     @pytest.mark.parametrize('custom_format', ['custom', None])
-    @pytest.mark.parametrize('name', ['custom_str', None])
-    def test_api_register_converter(self, app, view_type, custom_format, name):
+    def test_api_register_converter(self, app, view_type, custom_format):
         api = Api(app)
         blp = Blueprint('test', 'test', url_prefix='/test')
 
@@ -43,8 +42,7 @@ class TestApi():
             pass
 
         app.url_map.converters['custom_str'] = CustomConverter
-        api.register_converter(
-            CustomConverter, 'custom string', custom_format, name=name)
+        api.register_converter(CustomConverter, 'custom string', custom_format)
 
         if view_type == 'function':
             @blp.route('/<custom_str:val>')
@@ -56,8 +54,8 @@ class TestApi():
                 def get(self, val):
                     return jsonify(val)
 
-        api.register_blueprint(blp)
-        spec = api.spec.to_dict()
+        api.register_blueprint(app, blp)
+        spec = api._specs[app].to_dict()
 
         # If custom_format is None (default), it does not appear in the spec
         if custom_format is not None:
@@ -67,12 +65,6 @@ class TestApi():
             parameters = [{'in': 'path', 'name': 'val', 'required': True,
                            'type': 'custom string'}]
         assert spec['paths']['/test/{val}']['get']['parameters'] == parameters
-
-        # Converter is registered in the app iff name it not None
-        if name is not None:
-            assert api._app.url_map.converters[name] == CustomConverter
-        else:
-            assert name not in api._app.url_map.converters
 
     @pytest.mark.parametrize('view_type', ['function', 'method'])
     @pytest.mark.parametrize('mapping', [
@@ -104,8 +96,8 @@ class TestApi():
                 def get(self, args):
                     return jsonify(None)
 
-        api.register_blueprint(blp)
-        spec = api.spec.to_dict()
+        api.register_blueprint(app, blp)
+        spec = api._specs[app].to_dict()
 
         if len(mapping) == 2:
             properties = {'field': {'type': 'custom string'}}
@@ -123,7 +115,7 @@ class TestApi():
         """Test APISpec kwargs can be passed in Api init or app config"""
         app.config['API_SPEC_OPTIONS'] = {'basePath': '/v2'}
         api = Api(app, spec_kwargs={'basePath': '/v1', 'host': 'example.com'})
-        spec = api.spec.to_dict()
+        spec = api._specs[app].to_dict()
         assert spec['host'] == 'example.com'
         # app config overrides Api spec_kwargs parameters
         assert spec['basePath'] == '/v2'
@@ -141,7 +133,7 @@ class TestApi():
 
         api = Api(app, spec_kwargs={'plugins': (MyPlugin(), )})
         api.definition('Pet')(schemas.DocSchema)
-        spec = api.spec.to_dict()
+        spec = api._specs[app].to_dict()
         assert spec['definitions']['Pet']['dummy'] == 'whatever'
 
     @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.1'])
@@ -149,7 +141,7 @@ class TestApi():
         app.config['API_VERSION'] = 'v42'
         app.config['OPENAPI_VERSION'] = openapi_version
         api = Api(app)
-        spec = api.spec.to_dict()
+        spec = api._specs[app].to_dict()
 
         assert spec['info'] == {'title': 'API Test', 'version': 'v42'}
         if openapi_version == '2.0':
@@ -165,9 +157,9 @@ class TestApi():
         def test_func():
             return jsonify('OK')
 
-        api.register_blueprint(blp, url_prefix='/test2')
+        api.register_blueprint(app, blp, url_prefix='/test2')
 
-        spec = api.spec.to_dict()
+        spec = api._specs[app].to_dict()
         assert '/test1/' not in spec['paths']
         assert '/test2/' in spec['paths']
 
@@ -185,7 +177,7 @@ class TestApi():
         if base_path is not None:
             app.config['APPLICATION_ROOT'] = base_path
         api = Api(app)
-        spec = api.spec.to_dict()
+        spec = api._specs[app].to_dict()
 
         if openapi_version == '2.0' and base_path == '/v1':
             assert spec['basePath'] == base_path

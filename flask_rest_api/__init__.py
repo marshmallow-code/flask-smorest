@@ -27,15 +27,12 @@ class Api(DocBlueprintMixin, ErrorHandlerMixin):
     according to the app configuration.
     """
     def __init__(self, app=None, *, spec_kwargs=None):
-        self._app = app
-        self.spec = None
+        self._specs = {}
         if app is not None:
             self.init_app(app, spec_kwargs=spec_kwargs)
 
     def init_app(self, app, *, spec_kwargs=None):
         """Initialize Api with application"""
-
-        self._app = app
 
         # Register flask-rest-api in app extensions
         app.extensions = getattr(app, 'extensions', {})
@@ -54,19 +51,20 @@ class Api(DocBlueprintMixin, ErrorHandlerMixin):
             if base_path != '/':
                 spec_kwargs.setdefault('basePath', base_path)
         spec_kwargs.update(app.config.get('API_SPEC_OPTIONS', {}))
-        self.spec = APISpec(
+        # Keep one spec per app instance
+        self._specs[app] = APISpec(
             app.name,
             app.config.get('API_VERSION', '1'),
             openapi_version=openapi_version,
             **spec_kwargs,
         )
         # Initialize blueprint serving spec
-        self._register_doc_blueprint()
+        self._register_doc_blueprint(app)
 
         # Register error handlers
-        self._register_error_handlers()
+        self._register_error_handlers(app)
 
-    def register_blueprint(self, blp, **options):
+    def register_blueprint(self, app, blp, **options):
         """Register a blueprint in the application
 
         Also registers documentation for the blueprint/resource
@@ -75,17 +73,17 @@ class Api(DocBlueprintMixin, ErrorHandlerMixin):
         :param dict options: Keyword arguments overriding Blueprint defaults
         """
 
-        self._app.register_blueprint(blp, **options)
+        app.register_blueprint(blp, **options)
 
         # Register views in API documentation for this resource
-        blp.register_views_in_doc(self._app, self.spec)
+        blp.register_views_in_doc(app, self._specs[app])
 
         # Add tag relative to this resource to the global tag list
         tag = {'name': blp.name, 'description': blp.description}
         if APISPEC_VERSION_MAJOR < 1:
-            self.spec.add_tag(tag)
+            self._specs[app].add_tag(tag)
         else:
-            self.spec.tag(tag)
+            self._specs[app].tag(tag)
 
     def definition(self, name):
         """Decorator to register a Schema in the doc
@@ -102,28 +100,26 @@ class Api(DocBlueprintMixin, ErrorHandlerMixin):
                     ...
         """
         def decorator(schema_cls, **kwargs):
-            if APISPEC_VERSION_MAJOR < 1:
-                self.spec.definition(name, schema=schema_cls, **kwargs)
-            else:
-                self.spec.components.schema(name, schema=schema_cls, **kwargs)
+            for spec in self._specs.values():
+                if APISPEC_VERSION_MAJOR < 1:
+                    spec.definition(name, schema=schema_cls, **kwargs)
+                else:
+                    spec.components.schema(name, schema=schema_cls, **kwargs)
             return schema_cls
         return decorator
 
-    def register_converter(self, converter, conv_type, conv_format=None,
-                           *, name=None):
+    def register_converter(self, converter, conv_type, conv_format=None):
         """Register custom path parameter converter
 
         :param BaseConverter converter: Converter
             Subclass of werkzeug's BaseConverter
         :param str conv_type: Parameter type
         :param str conv_format: Parameter format (optional)
-        :param str name: Name of the converter. If not None, this name is used
-            to register the converter in the Flask app.
 
             Example: ::
 
-                api.register_converter(
-                    UUIDConverter, 'string', 'UUID', name='uuid')
+                app.url_map.converters['uuid'] = UUIDConverter
+                api.register_converter(UUIDConverter, 'string', 'UUID')
 
                 @blp.route('/pets/{uuid:pet_id}')
                     ...
@@ -135,14 +131,9 @@ class Api(DocBlueprintMixin, ErrorHandlerMixin):
 
         Once the converter is registered, all paths using it will have
         corresponding path parameter documented with the right type and format.
-
-        The `name` parameter need not be passed if the converter is already
-        registered in the app, for instance if it belongs to a Flask extension
-        that already registers it in the app.
         """
-        if name:
-            self._app.url_map.converters[name] = converter
-        self.spec.register_converter(converter, conv_type, conv_format)
+        for spec in self._specs.values():
+            spec.register_converter(converter, conv_type, conv_format)
 
     def register_field(self, field, *args):
         """Register custom Marshmallow field
@@ -168,4 +159,5 @@ class Api(DocBlueprintMixin, ErrorHandlerMixin):
             # Map to ('integer, 'int32')
             api.register_field(CustomIntegerField, ma.fields.Integer)
         """
-        self.spec.register_field(field, *args)
+        for spec in self._specs.values():
+            spec.register_field(field, *args)

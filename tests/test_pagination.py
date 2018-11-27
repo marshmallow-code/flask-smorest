@@ -105,7 +105,7 @@ def app_fixture(request, collection, schemas, app):
     blp_factory, as_method_view, custom_params = request.param
     blueprint = blp_factory(collection, schemas, as_method_view, custom_params)
     api = Api(app)
-    api.register_blueprint(blueprint)
+    api.register_blueprint(app, blueprint)
     return namedtuple('AppFixture', ('client', 'custom_params'))(
         app.test_client(), custom_params)
 
@@ -139,7 +139,7 @@ class TestPagination():
             pagination_parameters.item_count = 2
             return [1, 2]
 
-        api.register_blueprint(blp)
+        api.register_blueprint(app, blp)
         client = app.test_client()
         response = client.get('/test/')
         assert response.status_code == 200
@@ -168,7 +168,7 @@ class TestPagination():
             # pagination_parameters.item_count = 2
             return [1, 2]
 
-        api.register_blueprint(blp)
+        api.register_blueprint(app, blp)
         client = app.test_client()
 
         with mock.patch.object(app.logger, 'warning') as mock_warning:

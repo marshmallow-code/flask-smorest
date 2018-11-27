@@ -122,7 +122,7 @@ def app_with_etag(request, collection, schemas, app):
             del collection.items[collection.items.index(item)]
 
     api = Api(app)
-    api.register_blueprint(blp)
+    api.register_blueprint(app, blp)
 
     return app
 

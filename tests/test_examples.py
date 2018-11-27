@@ -227,10 +227,10 @@ class TestFullExample():
 
     def test_examples(self, app, blueprint_fixture, schemas):
 
-        blueprint, bp_schema = blueprint_fixture
+        blp, bp_schema = blueprint_fixture
 
         api = Api(app)
-        api.register_blueprint(blueprint)
+        api.register_blueprint(app, blp)
 
         client = app.test_client()
 

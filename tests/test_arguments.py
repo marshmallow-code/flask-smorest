@@ -39,7 +39,7 @@ class TestArgsParser():
             def get(self, args):
                 return jsonify(args)
 
-        api.register_blueprint(blp)
+        api.register_blueprint(app, blp)
 
         res = app.test_client().get('/test/', query_string={
             'user.first_name': 'Chuck', 'user.last_name': 'Norris'})

@@ -16,7 +16,7 @@ class TestAPISpec():
     def test_apispec_sets_produces_consumes(self, app, openapi_version):
         app.config['OPENAPI_VERSION'] = openapi_version
         api = Api(app)
-        spec = api.spec.to_dict()
+        spec = api._specs[app].to_dict()
 
         if openapi_version == '2.0':
             assert spec['produces'] == ['application/json', ]
@@ -160,7 +160,7 @@ class TestAPISpecServeDocs():
         # Add ordered stuff. This is invalid, but it will do for the test.
         paths = OrderedDict(
             [('/path_{}'.format(i), str(i)) for i in range(20)])
-        api.spec._paths = paths
+        api._specs[app]._paths = paths
 
         response_json_docs = client.get('/api-docs/openapi.json')
         assert response_json_docs.status_code == 200
