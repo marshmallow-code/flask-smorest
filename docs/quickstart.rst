@@ -118,4 +118,4 @@ Finally, register the :class:`Blueprint <Blueprint>` in the :class:`Api <Api>`.
 
 .. code-block:: python
 
-    api.register_blueprint(blp)
+    api.register_blueprint(app, blp)
