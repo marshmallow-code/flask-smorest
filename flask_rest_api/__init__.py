@@ -109,39 +109,30 @@ class Api(DocBlueprintMixin, ErrorHandlerMixin):
             return schema_cls
         return decorator
 
-    def register_converter(self, converter, conv_type, conv_format=None,
-                           *, name=None):
+    def register_converter(self, converter, conv_type, conv_format=None):
         """Register custom path parameter converter
 
         :param BaseConverter converter: Converter
             Subclass of werkzeug's BaseConverter
         :param str conv_type: Parameter type
         :param str conv_format: Parameter format (optional)
-        :param str name: Name of the converter. If not None, this name is used
-            to register the converter in the Flask app.
 
             Example: ::
 
-                api.register_converter(
-                    UUIDConverter, 'string', 'UUID', name='uuid')
+                # Register converter in Flask app
+                app.url_map.converters['uuid'] = UUIDConverter
+
+                # Register converter in internal APISpec instance
+                api.register_converter(UUIDConverter, 'string', 'UUID')
 
                 @blp.route('/pets/{uuid:pet_id}')
                     ...
 
                 api.register_blueprint(blp)
 
-        This registers the converter in the Flask app and in the internal
-        APISpec instance.
-
         Once the converter is registered, all paths using it will have
         corresponding path parameter documented with the right type and format.
-
-        The `name` parameter need not be passed if the converter is already
-        registered in the app, for instance if it belongs to a Flask extension
-        that already registers it in the app.
         """
-        if name:
-            self._app.url_map.converters[name] = converter
         self.spec.register_converter(converter, conv_type, conv_format)
 
     def register_field(self, field, *args):

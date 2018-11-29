@@ -36,8 +36,7 @@ class TestApi():
 
     @pytest.mark.parametrize('view_type', ['function', 'method'])
     @pytest.mark.parametrize('custom_format', ['custom', None])
-    @pytest.mark.parametrize('name', ['custom_str', None])
-    def test_api_register_converter(self, app, view_type, custom_format, name):
+    def test_api_register_converter(self, app, view_type, custom_format):
         api = Api(app)
         blp = Blueprint('test', 'test', url_prefix='/test')
 
@@ -45,8 +44,7 @@ class TestApi():
             pass
 
         app.url_map.converters['custom_str'] = CustomConverter
-        api.register_converter(
-            CustomConverter, 'custom string', custom_format, name=name)
+        api.register_converter(CustomConverter, 'custom string', custom_format)
 
         if view_type == 'function':
             @blp.route('/<custom_str:val>')
@@ -69,12 +67,6 @@ class TestApi():
             parameters = [{'in': 'path', 'name': 'val', 'required': True,
                            'type': 'custom string'}]
         assert spec['paths']['/test/{val}']['get']['parameters'] == parameters
-
-        # Converter is registered in the app iff name it not None
-        if name is not None:
-            assert api._app.url_map.converters[name] == CustomConverter
-        else:
-            assert name not in api._app.url_map.converters
 
     @pytest.mark.parametrize('view_type', ['function', 'method'])
     @pytest.mark.parametrize('mapping', [
