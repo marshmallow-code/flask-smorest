@@ -157,26 +157,18 @@ Register Custom Path Parameter Converters
 Likewise, standard types used as path parameter converters in the flask routes
 are correctly documented, but custom path converters must be registered.
 
-The :meth:`Api.register_converter` allows to register a converter in the ``Api``
-object to generate a correct documentation, and optionally to also register it
-in the Flask application. (The converter may be already registered in the app,
-for instance if it is provided by another Flask extension.)
+The :meth:`Api.register_converter` allows to register a converter in the
+``Api`` object to generate a correct documentation.
 
 .. code-block:: python
 
-    # UUIDConverter is already known to the flask app as it is imported
-    # from an extension that registers it.
+    # Register UUID converter in Flask application
+    app.url_map.converters['uuid'] = UUIDConverter
+
+    # Register UUID converter in Api
     api.register_converter(UUIDConverter, 'string', 'UUID')
 
     @blp.route('/pets/{uuid:pet_id}')
-        ...
-
-    # CustomConverter is defined in our application and must be registered
-    # in the Flask app. A name must be passed.
-    api.register_converter(CustomConverter, 'string', 'Custom',
-                           name='custom')
-
-    @blp.route('/pets/{custom:pet_id}')
         ...
 
 Serve the OpenAPI Documentation
