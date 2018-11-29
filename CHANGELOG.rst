@@ -1,6 +1,15 @@
 Changelog
 ---------
 
+0.12.0 (unreleased)
++++++++++++++++++++
+
+Features:
+
+- *Backwards-incompatible*: ``Api.register_converter`` doesn't register
+  converter in Flask app anymore. It should be registered manually using
+  `app.url_map.converters['converter_name'] = Converter`.
+
 0.11.2 (2018-11-28)
 +++++++++++++++++++
 
