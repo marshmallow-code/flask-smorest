@@ -13,6 +13,8 @@ import apispec
 from flask_rest_api import Api, Blueprint
 from flask_rest_api.compat import APISPEC_VERSION_MAJOR
 
+from .utils import get_definitions
+
 
 class TestApi():
     """Test Api class"""
@@ -128,8 +130,10 @@ class TestApi():
         # app config overrides Api spec_kwargs parameters
         assert spec['basePath'] == '/v2'
 
-    def test_api_extra_spec_plugins(self, app, schemas):
+    @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.1'])
+    def test_api_extra_spec_plugins(self, app, schemas, openapi_version):
         """Test extra plugins can be passed to internal APISpec instance"""
+        app.config['OPENAPI_VERSION'] = openapi_version
 
         class MyPlugin(apispec.BasePlugin):
             if APISPEC_VERSION_MAJOR < 1:
@@ -141,8 +145,7 @@ class TestApi():
 
         api = Api(app, spec_kwargs={'plugins': (MyPlugin(), )})
         api.definition('Pet')(schemas.DocSchema)
-        spec = api.spec.to_dict()
-        assert spec['definitions']['Pet']['dummy'] == 'whatever'
+        assert get_definitions(api.spec)['Pet']['dummy'] == 'whatever'
 
     @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.1'])
     def test_api_gets_apispec_parameters_from_app(self, app, openapi_version):
@@ -180,7 +183,7 @@ class TestApi():
 
     @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.1'])
     @pytest.mark.parametrize('base_path', [None, '/', '/v1'])
-    def test_apispec_sets_base_path(self, app, openapi_version, base_path):
+    def test_api_apispec_sets_base_path(self, app, openapi_version, base_path):
         app.config['OPENAPI_VERSION'] = openapi_version
         if base_path is not None:
             app.config['APPLICATION_ROOT'] = base_path

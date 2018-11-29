@@ -37,3 +37,10 @@ class NoLoggingContext:
 
     def __exit__(self, et, ev, tb):
         self.app.logger.disabled = self.logger_was_disabled
+
+
+def get_definitions(spec):
+    """Get definitions/schemas from spec"""
+    if spec.openapi_version.major < 3:
+        return spec.to_dict()['definitions']
+    return spec.to_dict()['components']['schemas']
