@@ -29,6 +29,10 @@ class Api(DocBlueprintMixin, ErrorHandlerMixin):
     def __init__(self, app=None, *, spec_kwargs=None):
         self._app = app
         self.spec = None
+        # Use lists to enforce order
+        self._definitions = []
+        self._fields = []
+        self._converters = []
         if app is not None:
             self.init_app(app, spec_kwargs=spec_kwargs)
 
@@ -60,6 +64,19 @@ class Api(DocBlueprintMixin, ErrorHandlerMixin):
             openapi_version=openapi_version,
             **spec_kwargs,
         )
+        # Register custom fields in spec
+        for args in self._fields:
+            self.spec.register_field(*args)
+        # Register schema definitions in spec
+        for name, schema_cls, kwargs in self._definitions:
+            if APISPEC_VERSION_MAJOR < 1:
+                self.spec.definition(name, schema=schema_cls, **kwargs)
+            else:
+                self.spec.components.schema(name, schema=schema_cls, **kwargs)
+        # Register custom converters in spec
+        for args in self._converters:
+            self.spec.register_converter(*args)
+
         # Initialize blueprint serving spec
         self._register_doc_blueprint()
 
@@ -102,10 +119,14 @@ class Api(DocBlueprintMixin, ErrorHandlerMixin):
                     ...
         """
         def decorator(schema_cls, **kwargs):
-            if APISPEC_VERSION_MAJOR < 1:
-                self.spec.definition(name, schema=schema_cls, **kwargs)
-            else:
-                self.spec.components.schema(name, schema=schema_cls, **kwargs)
+            self._definitions.append((name, schema_cls, kwargs))
+            # Register definition in spec if app is already initialized
+            if self.spec is not None:
+                if APISPEC_VERSION_MAJOR < 1:
+                    self.spec.definition(name, schema=schema_cls, **kwargs)
+                else:
+                    self.spec.components.schema(
+                        name, schema=schema_cls, **kwargs)
             return schema_cls
         return decorator
 
@@ -132,8 +153,14 @@ class Api(DocBlueprintMixin, ErrorHandlerMixin):
 
         Once the converter is registered, all paths using it will have
         corresponding path parameter documented with the right type and format.
+
+        Should be called before registering paths with
+        :meth:`Blueprint.route <Blueprint.route>`.
         """
-        self.spec.register_converter(converter, conv_type, conv_format)
+        self._converters.append((converter, conv_type, conv_format))
+        # Register converter in spec if app is already initialized
+        if self.spec is not None:
+            self.spec.register_converter(converter, conv_type, conv_format)
 
     def register_field(self, field, *args):
         """Register custom Marshmallow field
@@ -158,5 +185,11 @@ class Api(DocBlueprintMixin, ErrorHandlerMixin):
 
             # Map to ('integer, 'int32')
             api.register_field(CustomIntegerField, ma.fields.Integer)
+
+        Should be called before registering definitions with
+        :meth:`definition <Api.definition>`.
         """
-        self.spec.register_field(field, *args)
+        self._fields.append((field, *args))
+        # Register field in spec if app is already initialized
+        if self.spec is not None:
+            self.spec.register_field(field, *args)

@@ -34,6 +34,24 @@ class TestApi():
         assert ret is DocSchema
         mock_def.assert_called_once_with('Document', schema=DocSchema)
 
+    @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.1'])
+    def test_api_definition_before_and_after_init(self, app, openapi_version):
+        app.config['OPENAPI_VERSION'] = openapi_version
+        api = Api()
+
+        @api.definition('Schema_1')
+        class Schema_1(ma.Schema):
+            int_1 = ma.fields.Int()
+
+        api.init_app(app)
+
+        @api.definition('Schema_2')
+        class Schema_2(ma.Schema):
+            int_2 = ma.fields.Int()
+
+        definitions = get_definitions(api.spec)
+        assert set(definitions) == {'Schema_1', 'Schema_2'}
+
     @pytest.mark.parametrize('view_type', ['function', 'method'])
     @pytest.mark.parametrize('custom_format', ['custom', None])
     def test_api_register_converter(self, app, view_type, custom_format):
@@ -67,6 +85,37 @@ class TestApi():
             parameters = [{'in': 'path', 'name': 'val', 'required': True,
                            'type': 'custom string'}]
         assert spec['paths']['/test/{val}']['get']['parameters'] == parameters
+
+    def test_api_register_converter_before_and_after_init(self, app):
+        api = Api()
+        blp = Blueprint('test', 'test', url_prefix='/test')
+
+        class CustomConverter_1(BaseConverter):
+            pass
+
+        class CustomConverter_2(BaseConverter):
+            pass
+
+        app.url_map.converters['custom_str_1'] = CustomConverter_1
+        app.url_map.converters['custom_str_2'] = CustomConverter_2
+        api.register_converter(CustomConverter_1, 'custom string 1')
+        api.init_app(app)
+        api.register_converter(CustomConverter_2, 'custom string 2')
+
+        @blp.route('/1/<custom_str_1:val>')
+        def test_func_1(val):
+            return jsonify(val)
+
+        @blp.route('/2/<custom_str_2:val>')
+        def test_func_2(val):
+            return jsonify(val)
+
+        api.register_blueprint(blp)
+        spec = api.spec.to_dict()
+        parameter_1 = spec['paths']['/test/1/{val}']['get']['parameters'][0]
+        parameter_2 = spec['paths']['/test/2/{val}']['get']['parameters'][0]
+        assert parameter_1['type'] == 'custom string 1'
+        assert parameter_2['type'] == 'custom string 2'
 
     @pytest.mark.parametrize('view_type', ['function', 'method'])
     @pytest.mark.parametrize('mapping', [
@@ -112,6 +161,39 @@ class TestApi():
         assert (spec['paths']['/test/']['get']['parameters'] ==
                 [{'in': 'body', 'required': True, 'name': 'body',
                   'schema': {'properties': properties, 'type': 'object'}, }])
+
+    @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.1'])
+    def test_api_register_field_before_and_after_init(
+            self, app, openapi_version):
+        app.config['OPENAPI_VERSION'] = openapi_version
+        api = Api()
+
+        class CustomField_1(ma.fields.Field):
+            pass
+
+        class CustomField_2(ma.fields.Field):
+            pass
+
+        api.register_field(CustomField_1, 'custom string', 'custom')
+
+        @api.definition('Schema_1')
+        class Schema_1(ma.Schema):
+            int_1 = ma.fields.Int()
+            custom_1 = CustomField_1()
+
+        api.init_app(app)
+        api.register_field(CustomField_2, 'custom string', 'custom')
+
+        @api.definition('Schema_2')
+        class Schema_2(ma.Schema):
+            int_2 = ma.fields.Int()
+            custom_2 = CustomField_2()
+
+        definitions = get_definitions(api.spec)
+        assert definitions['Schema_1']['properties']['custom_1'] == {
+            'type': 'custom string', 'format': 'custom'}
+        assert definitions['Schema_2']['properties']['custom_2'] == {
+            'type': 'custom string', 'format': 'custom'}
 
     def test_api_extra_spec_kwargs(self, app):
         """Test APISpec kwargs can be passed in Api init or app config"""
