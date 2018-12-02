@@ -4,6 +4,9 @@
 Quickstart
 ==========
 
+Introduction
+------------
+
 ``flask-rest-api`` makes a few assumptions about how the code should be structured.
 
 The application should be split in :class:`Blueprint <Blueprint>`.
@@ -11,8 +14,16 @@ It is possible to use basic Flask view functions but it is generally a good idea
 to use Flask :class:`MethodView <flask.views.MethodView>` classes instead.
 
 Marshmallow :class:`Schema <marshmallow.Schema>` are used to serialize parameters
-and responses. It may look overkill for a method with a single parameter, but it
-makes the code consistent and it is easier to support.
+and responses.
+
+Request and response bodies are serialized as `JSON`.
+
+A view function only has one successful response type and status code. All other
+possible responses are errors.
+
+
+Simple example
+--------------
 
 Here is a basic "Petstore example", where The ``Pet`` class is an imaginary ORM.
 
@@ -24,7 +35,7 @@ First instantiate an :class:`Api <Api>` with a :class:`Flask <flask.Flask>` appl
     from flask import Flask
     from flask.views import MethodView
     import marshmallow as ma
-    from flask_rest_api import Api, Blueprint
+    from flask_rest_api import Api, Blueprint, abort
 
     from .model import Pet
 
@@ -69,8 +80,14 @@ Instantiate a :class:`Blueprint <Blueprint>`.
         description='Operations on pets'
     )
 
-:class:`MethodView <flask.views.MethodView>` classes come in handy when dealing
-with REST APIs.
+Use :class:`MethodView <flask.views.MethodView>` classes to organize resources,
+and decorate view methods with :meth:`Blueprint.arguments <Blueprint.arguments>`
+and :meth:`Blueprint.response <Blueprint.response>` to specify request
+deserialization and response serialization respectively.
+
+Use :func:`abort <abort>` to return errors, passing kwargs used by the error
+handler (:meth:`handle_http_exception <Api.handle_http_exception>`) to build
+the error response.
 
 .. code-block:: python
 
@@ -97,21 +114,31 @@ with REST APIs.
         @blp.response(PetSchema)
         def get(self, pet_id):
             """Get pet by ID"""
-            item = Pet.get_by_id(pet_id)
+            try:
+                item = Pet.get_by_id(pet_id)
+            except ItemNotFoundError:
+                abort(404, message='Item not found.')
             return item
 
         @blp.arguments(PetSchema)
         @blp.response(PetSchema)
         def put(self, update_data, pet_id):
             """Update existing pet"""
-            item = Pet.get_by_id(pet_id)
+            try:
+                item = Pet.get_by_id(pet_id)
+            except ItemNotFoundError:
+                abort(404, message='Item not found.')
             item.update(update_data)
+            item.commit()
             return item
 
         @blp.response(code=204)
         def delete(self, pet_id):
             """Delete pet"""
-            Pet.delete(pet_id)
+            try:
+                Pet.delete(pet_id)
+            except ItemNotFoundError:
+                abort(404, message='Item not found.')
 
 
 Finally, register the :class:`Blueprint <Blueprint>` in the :class:`Api <Api>`.

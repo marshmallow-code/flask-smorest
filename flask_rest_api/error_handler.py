@@ -16,29 +16,29 @@ class ErrorHandlerMixin:
             HTTPException, self.handle_http_exception)
 
     def handle_http_exception(self, error):
-        """Return error description and details in response body
+        """Return a JSON response containing a description of the error
 
-        This method is registered at init to handle `HTTPException`.
+        This method is registered at app init to handle `HTTPException`.
 
         - When `abort` is called in the code, this triggers a `HTTPException`,
           and Flask calls this handler to generate a better response.
 
-        - Also, when an exception is not caught in a view, Flask automatically
-          calls the 500 error handler.
+        - When an exception is not caught in a view, Flask automatically calls
+          the handler regstered for error 500.
 
-        flask_rest_api republishes webarg's `abort` override. This `abort`
-        allows the caller to pass kwargs and stores those kwargs in
-        `exception.data`.
+        flask_rest_api republishes webargs's
+        :func:`abort <webargs.flaskparser.abort>`. This ``abort`` allows the
+        caller to pass kwargs and stores them in ``exception.data`` so that the
+        error handler can use them to populate the response payload.
 
-        This handler uses this extra information to populate the response.
+        Extra information expected by this handler:
 
-        Extra information considered by this handler:
-        - `message`: a comment (string)
-        - `errors`: a dict of errors, typically validation issues on a form
-        - `headers`: a dict of additional headers
+        - `message` (``str``): a comment
+        - `errors` (``dict``): errors, typically validation issues on a form
+        - `headers` (``dict``): additional headers
 
-        If the error is an `HTTPException` (typically if it was triggered by
-        `abort`), this handler logs it with `INF0` level. Otherwise, it is an
+        If the error is an ``HTTPException`` (typically if it was triggered by
+        ``abort``), this handler logs it with `INF0` level. Otherwise, it is an
         unhandled exception and it is already logged as `ERROR` by Flask.
         """
         # TODO: use an error Schema

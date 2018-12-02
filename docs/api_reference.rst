@@ -5,6 +5,8 @@ API Reference
 *************
 
 .. module:: flask_rest_api
+.. autofunction:: flask_rest_api.abort
+
 
 Api
 ===
@@ -12,6 +14,8 @@ Api
 
 .. autoclass:: flask_rest_api.Api
     :members:
+
+    .. automethod:: handle_http_exception
 
 Blueprint
 =========
