@@ -46,11 +46,11 @@ def pagination_blueprint(collection, schemas, as_method_view, custom_params):
         @blp.paginate(
             page=page, page_size=page_size, max_page_size=max_page_size)
         def get_resources(pagination_parameters):
-                pagination_parameters.item_count = len(collection.items)
-                return collection.items[
-                    pagination_parameters.first_item:
-                    pagination_parameters.last_item + 1
-                ]
+            pagination_parameters.item_count = len(collection.items)
+            return collection.items[
+                pagination_parameters.first_item:
+                pagination_parameters.last_item + 1
+            ]
 
     return blp
 
