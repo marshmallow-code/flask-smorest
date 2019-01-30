@@ -117,37 +117,23 @@ class TestApi():
         assert parameter_1['type'] == 'custom string 1'
         assert parameter_2['type'] == 'custom string 2'
 
-    @pytest.mark.parametrize('view_type', ['function', 'method'])
     @pytest.mark.parametrize('mapping', [
         ('custom string', 'custom'),
         ('custom string', None),
         (ma.fields.Integer, ),
     ])
-    def test_api_register_field(self, app, view_type, mapping):
+    def test_api_register_field(self, app, mapping):
         api = Api(app)
-        blp = Blueprint('test', 'test', url_prefix='/test')
 
         class CustomField(ma.fields.Field):
             pass
 
         api.register_field(CustomField, *mapping)
 
+        @api.definition('Document')
         class Document(ma.Schema):
             field = CustomField()
 
-        if view_type == 'function':
-            @blp.route('/')
-            @blp.arguments(Document)
-            def test_func(args):
-                return jsonify(None)
-        else:
-            @blp.route('/')
-            class TestMethod(MethodView):
-                @blp.arguments(Document)
-                def get(self, args):
-                    return jsonify(None)
-
-        api.register_blueprint(blp)
         spec = api.spec.to_dict()
 
         if len(mapping) == 2:
@@ -158,9 +144,8 @@ class TestApi():
         else:
             properties = {'field': {'type': 'integer', 'format': 'int32'}}
 
-        assert (spec['paths']['/test/']['get']['parameters'] ==
-                [{'in': 'body', 'required': True, 'name': 'body',
-                  'schema': {'properties': properties, 'type': 'object'}, }])
+        assert spec['definitions']['Document'] == {
+            'properties': properties, 'type': 'object'}
 
     @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.1'])
     def test_api_register_field_before_and_after_init(

@@ -143,11 +143,11 @@ class TestBlueprint():
         if openapi_version == '2.0':
             assert len(parameters) == 3
             assert parameters[2]['in'] == 'body'
-            assert 'field' in parameters[2]['schema']['properties']
+            assert 'schema' in parameters[2]
         else:
             assert len(parameters) == 2
-            assert 'field' in spec['paths']['/test/']['post']['requestBody'][
-                'content']['application/json']['schema']['properties']
+            assert 'schema' in spec['paths']['/test/']['post']['requestBody'][
+                'content']['application/json']
 
         # Check parameters are passed as arguments to view function
         item_data = {'field': 12}
