@@ -2,7 +2,7 @@
 
 from webargs.flaskparser import abort  # noqa
 
-from .spec import APISpecMixin, DocBlueprintMixin
+from .spec import APISpecMixin
 from .blueprint import Blueprint  # noqa
 from .pagination import Page  # noqa
 from .error_handler import ErrorHandlerMixin
@@ -11,7 +11,7 @@ from .compat import APISPEC_VERSION_MAJOR
 __version__ = '0.12.0'
 
 
-class Api(APISpecMixin, DocBlueprintMixin, ErrorHandlerMixin):
+class Api(APISpecMixin, ErrorHandlerMixin):
     """Main class
 
     Provides helpers to build a REST API using Flask.
