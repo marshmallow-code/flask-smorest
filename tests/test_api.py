@@ -202,7 +202,7 @@ class TestApi():
                 def schema_helper(self, name, definition, **kwargs):
                     return {'dummy': 'whatever'}
 
-        api = Api(app, spec_kwargs={'plugins': (MyPlugin(), )})
+        api = Api(app, spec_kwargs={'extra_plugins': (MyPlugin(), )})
         api.definition('Pet')(schemas.DocSchema)
         assert get_definitions(api.spec)['Pet']['dummy'] == 'whatever'
 
