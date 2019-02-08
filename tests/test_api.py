@@ -11,7 +11,6 @@ import marshmallow as ma
 import apispec
 
 from flask_rest_api import Api, Blueprint
-from flask_rest_api.compat import APISPEC_VERSION_MAJOR
 
 from .utils import get_definitions
 
@@ -22,15 +21,8 @@ class TestApi():
     def test_api_definition(self, app, schemas):
         DocSchema = schemas.DocSchema
         api = Api(app)
-        if APISPEC_VERSION_MAJOR < 1:
-            with mock.patch.object(apispec.APISpec, 'definition') as mock_def:
-                ret = api.definition('Document')(DocSchema)
-        else:
-            with mock.patch.object(
-                    apispec.core.Components,
-                    'schema'
-            ) as mock_def:
-                ret = api.definition('Document')(DocSchema)
+        with mock.patch.object(apispec.core.Components, 'schema') as mock_def:
+            ret = api.definition('Document')(DocSchema)
         assert ret is DocSchema
         mock_def.assert_called_once_with('Document', schema=DocSchema)
 
@@ -195,12 +187,8 @@ class TestApi():
         app.config['OPENAPI_VERSION'] = openapi_version
 
         class MyPlugin(apispec.BasePlugin):
-            if APISPEC_VERSION_MAJOR < 1:
-                def definition_helper(self, name, definition, **kwargs):
-                    return {'dummy': 'whatever'}
-            else:
-                def schema_helper(self, name, definition, **kwargs):
-                    return {'dummy': 'whatever'}
+            def schema_helper(self, name, definition, **kwargs):
+                return {'dummy': 'whatever'}
 
         api = Api(app, spec_kwargs={'extra_plugins': (MyPlugin(), )})
         api.definition('Pet')(schemas.DocSchema)
@@ -249,7 +237,7 @@ class TestApi():
         api = Api(app)
         spec = api.spec.to_dict()
 
-        if openapi_version == '2.0' and base_path == '/v1':
-            assert spec['basePath'] == base_path
+        if openapi_version == '2.0':
+            assert spec['basePath'] == base_path or '/'
         else:
             assert 'basePath' not in spec

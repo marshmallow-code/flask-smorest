@@ -8,12 +8,6 @@ import re
 import werkzeug.routing
 
 from apispec import BasePlugin
-from apispec.exceptions import PluginMethodNotImplementedError
-
-from flask_rest_api.compat import APISPEC_VERSION_MAJOR
-if APISPEC_VERSION_MAJOR == 0:
-    from apispec import Path
-    from apispec.ext import marshmallow as aem
 
 
 # from flask-restplus
@@ -101,20 +95,4 @@ class FlaskPlugin(BasePlugin):
                 else:
                     parameters.append(path_p)
 
-        path = self.flaskpath2openapi(rule.rule)
-        if APISPEC_VERSION_MAJOR == 0:
-            return Path(path=path, operations=operations)
-        return path
-
-
-if APISPEC_VERSION_MAJOR == 0:
-    # This is not needed in apispec 1.0.0
-    class MarshmallowPlugin(aem.MarshmallowPlugin):
-        """Plugin introspecting marshmallow schemas"""
-
-        def path_helper(self, *args, **kwargs):
-            """No-op path helper
-
-            apispec's path helper parses YAML docstring. We don't need this.
-            """
-            raise PluginMethodNotImplementedError
+        return self.flaskpath2openapi(rule.rule)

@@ -47,7 +47,6 @@ from .arguments import ArgumentsMixin
 from .response import ResponseMixin
 from .pagination import PaginationMixin
 from .etag import EtagMixin
-from .compat import APISPEC_VERSION_MAJOR
 
 
 class Blueprint(
@@ -172,10 +171,7 @@ class Blueprint(
             # Thanks to self.route, there can only be one rule per endpoint
             full_endpoint = '.'.join((self.name, endpoint))
             rule = next(app.url_map.iter_rules(full_endpoint))
-            if APISPEC_VERSION_MAJOR < 1:
-                spec.add_path(rule=rule, operations=doc)
-            else:
-                spec.path(rule=rule, operations=doc)
+            spec.path(rule=rule, operations=doc)
 
     @staticmethod
     def _prepare_doc(operation, openapi_version):

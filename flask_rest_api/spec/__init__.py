@@ -5,13 +5,9 @@ import json
 import flask
 from flask import current_app
 import apispec
+from apispec.ext.marshmallow import MarshmallowPlugin
 
 from .plugins import FlaskPlugin
-from flask_rest_api.compat import APISPEC_VERSION_MAJOR
-if APISPEC_VERSION_MAJOR == 0:
-    from .plugins import MarshmallowPlugin
-else:
-    from apispec.ext.marshmallow import MarshmallowPlugin
 
 
 def _add_leading_slash(string):
@@ -168,11 +164,7 @@ class APISpecMixin(DocBlueprintMixin):
         openapi_major_version = int(openapi_version.split('.')[0])
         if openapi_major_version < 3:
             base_path = self._app.config.get('APPLICATION_ROOT')
-            # Don't pass basePath if '/' to avoid a bug in apispec
-            # https://github.com/marshmallow-code/apispec/issues/78#issuecomment-431854606
-            # TODO: Remove this condition when the bug is fixed
-            if base_path != '/':
-                options.setdefault('basePath', base_path)
+            options.setdefault('basePath', base_path)
             options.setdefault('produces', ['application/json', ])
             options.setdefault('consumes', ['application/json', ])
         options.update(self._app.config.get('API_SPEC_OPTIONS', {}))
@@ -191,10 +183,7 @@ class APISpecMixin(DocBlueprintMixin):
             self._register_field(*args)
         # Register schema definitions in spec
         for name, schema_cls, kwargs in self._definitions:
-            if APISPEC_VERSION_MAJOR < 1:
-                self.spec.definition(name, schema=schema_cls, **kwargs)
-            else:
-                self.spec.components.schema(name, schema=schema_cls, **kwargs)
+            self.spec.components.schema(name, schema=schema_cls, **kwargs)
         # Register custom converters in spec
         for args in self._converters:
             self._register_converter(*args)
@@ -217,11 +206,7 @@ class APISpecMixin(DocBlueprintMixin):
             self._definitions.append((name, schema_cls, kwargs))
             # Register definition in spec if app is already initialized
             if self.spec is not None:
-                if APISPEC_VERSION_MAJOR < 1:
-                    self.spec.definition(name, schema=schema_cls, **kwargs)
-                else:
-                    self.spec.components.schema(
-                        name, schema=schema_cls, **kwargs)
+                self.spec.components.schema(name, schema=schema_cls, **kwargs)
             return schema_cls
         return decorator
 

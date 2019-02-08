@@ -6,7 +6,6 @@ from .spec import APISpecMixin
 from .blueprint import Blueprint  # noqa
 from .pagination import Page  # noqa
 from .error_handler import ErrorHandlerMixin
-from .compat import APISPEC_VERSION_MAJOR
 
 __version__ = '0.12.0'
 
@@ -72,8 +71,4 @@ class Api(APISpecMixin, ErrorHandlerMixin):
         blp.register_views_in_doc(self._app, self.spec)
 
         # Add tag relative to this resource to the global tag list
-        tag = {'name': blp.name, 'description': blp.description}
-        if APISPEC_VERSION_MAJOR < 1:
-            self.spec.add_tag(tag)
-        else:
-            self.spec.tag(tag)
+        self.spec.tag({'name': blp.name, 'description': blp.description})
