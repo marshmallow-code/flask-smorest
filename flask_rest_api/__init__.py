@@ -16,14 +16,26 @@ class Api(APISpecMixin, ErrorHandlerMixin):
     Provides helpers to build a REST API using Flask.
 
     :param Flask app: Flask application
-    :param dict spec_kwargs: kwargs to pass to APISpec
+    :param dict spec_kwargs: kwargs to pass to internal APISpec instance
 
-    The spec_kwargs dictionary is passed as kwargs to the internal APISpec
-    instance. See :class:`apispec.APISpec <apispec.APISpec>` documentation for
-    the list of available parameters. If ``plugins`` are passed, they are
-    appended to the default plugins: ``[FlaskPlugin(), MarshmallowPlugin()]``.
-    `title`, `version` and `openapi_version` can't be passed here, they are set
+    The ``spec_kwargs`` dictionary is passed as kwargs to the internal APISpec
+    instance. **flask-rest-api** adds a few parameters to the original
+    parameters documented in :class:`apispec.APISpec <apispec.APISpec>`:
+
+    :param apispec.BasePlugin flask_plugin: Flask plugin
+    :param apispec.BasePlugin marshmallow_plugin: Marshmallow plugin
+    :param list|tuple extra_plugins: List of additional ``BasePlugin``
+        instances
+    :param str openapi_version: OpenAPI version. Can also be passed as
+        application parameter `OPENAPI_VERSION`.
+
+    This allows the user to override default Flask and marshmallow plugins.
+
+    `title` and `version` APISpec parameters can't be passed here, they are set
     according to the app configuration.
+
+    For more flexibility, additional spec kwargs can also be passed as app
+    parameter `API_SPEC_OPTIONS`.
     """
     def __init__(self, app=None, *, spec_kwargs=None):
         self._app = app
