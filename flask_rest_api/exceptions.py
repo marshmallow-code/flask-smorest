@@ -7,6 +7,10 @@ class FlaskRestApiError(Exception):
     """Generic flask-rest-api exception"""
 
 
+class OpenAPIVersionNotSpecified(FlaskRestApiError):
+    """OpenAPI version was not specified"""
+
+
 class InvalidLocationError(FlaskRestApiError):
     """Parameter location is not a valid location"""
 

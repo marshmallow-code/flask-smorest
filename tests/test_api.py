@@ -11,6 +11,7 @@ import marshmallow as ma
 import apispec
 
 from flask_rest_api import Api, Blueprint
+from flask_rest_api.exceptions import OpenAPIVersionNotSpecified
 
 from .utils import get_definitions
 
@@ -249,3 +250,20 @@ class TestApi():
             assert spec['basePath'] == base_path or '/'
         else:
             assert 'basePath' not in spec
+
+    def test_api_openapi_version_parameters(self, app):
+        """Test OpenAPI version must be passed, as app param or spec kwarg"""
+
+        app.config['OPENAPI_VERSION'] = '3.0.2'
+        api = Api(app)
+        assert api.spec.to_dict()['openapi'] == '3.0.2'
+
+        del app.config['OPENAPI_VERSION']
+        api = Api(app, spec_kwargs={'openapi_version': '3.0.2'})
+        assert api.spec.to_dict()['openapi'] == '3.0.2'
+
+        with pytest.raises(
+                OpenAPIVersionNotSpecified,
+                match='The OpenAPI version must be specified'
+        ):
+            Api(app)

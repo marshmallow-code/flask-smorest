@@ -7,6 +7,7 @@ from flask import current_app
 import apispec
 from apispec.ext.marshmallow import MarshmallowPlugin
 
+from flask_rest_api.exceptions import OpenAPIVersionNotSpecified
 from .plugins import FlaskPlugin
 
 
@@ -151,7 +152,7 @@ class APISpecMixin(DocBlueprintMixin):
 
     def _init_spec(
             self, *, flask_plugin=None, marshmallow_plugin=None,
-            extra_plugins=None, **options
+            extra_plugins=None, openapi_version=None, **options
     ):
         # Plugins
         self.flask_plugin = flask_plugin or FlaskPlugin()
@@ -160,7 +161,13 @@ class APISpecMixin(DocBlueprintMixin):
         plugins.extend(extra_plugins or ())
 
         # APISpec options
-        openapi_version = self._app.config.get('OPENAPI_VERSION')
+        openapi_version = self._app.config.get(
+            'OPENAPI_VERSION', openapi_version)
+        if openapi_version is None:
+            raise OpenAPIVersionNotSpecified(
+                'The OpenAPI version must be specified, either as '
+                '"OPENAPI_VERSION" app parameter or as '
+                '"openapi_version" spec kwarg.')
         openapi_major_version = int(openapi_version.split('.')[0])
         if openapi_major_version < 3:
             base_path = self._app.config.get('APPLICATION_ROOT')
