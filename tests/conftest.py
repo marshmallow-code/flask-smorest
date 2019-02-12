@@ -17,6 +17,7 @@ class AppConfig:
 
     Overload this to add config parameters
     """
+    OPENAPI_VERSION = '2.0'
 
 
 @pytest.fixture(params=[0])

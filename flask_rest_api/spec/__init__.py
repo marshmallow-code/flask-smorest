@@ -160,7 +160,7 @@ class APISpecMixin(DocBlueprintMixin):
         plugins.extend(extra_plugins or ())
 
         # APISpec options
-        openapi_version = self._app.config.get('OPENAPI_VERSION', '2.0')
+        openapi_version = self._app.config.get('OPENAPI_VERSION')
         openapi_major_version = int(openapi_version.split('.')[0])
         if openapi_major_version < 3:
             base_path = self._app.config.get('APPLICATION_ROOT')

@@ -4,7 +4,6 @@ from unittest import mock
 import pytest
 
 from werkzeug.exceptions import default_exceptions, InternalServerError
-from flask import Flask
 from flask_rest_api import Api, abort
 
 from .utils import NoLoggingContext
@@ -13,10 +12,9 @@ from .utils import NoLoggingContext
 class TestErrorHandler:
 
     @pytest.mark.parametrize('code', default_exceptions)
-    def test_error_handler_registration(self, code):
+    def test_error_handler_registration(self, code, app):
         """Check custom error handler is registered for all codes"""
 
-        app = Flask('test')
         client = app.test_client()
 
         @app.route('/')
@@ -35,9 +33,7 @@ class TestErrorHandler:
             data = json.loads(response.get_data(as_text=True))
             assert data['status'] == str(default_exceptions[code]())
 
-    def test_error_handler_payload(self):
-
-        app = Flask('test')
+    def test_error_handler_payload(self, app):
 
         client = app.test_client()
 
@@ -92,10 +88,9 @@ class TestErrorHandler:
         data = json.loads(response.get_data(as_text=True))
         assert data['message'] == 'Access denied'
 
-    def test_error_handler_uncaught_exception(self):
+    def test_error_handler_uncaught_exception(self, app):
         """Test uncaught exceptions result in 500 status code being returned"""
 
-        app = Flask('test')
         client = app.test_client()
 
         @app.route('/')
@@ -111,9 +106,8 @@ class TestErrorHandler:
         data = json.loads(response.get_data(as_text=True))
         assert data['status'] == str(InternalServerError())
 
-    def test_error_handler_logging(self):
+    def test_error_handler_logging(self, app):
 
-        app = Flask('test')
         client = app.test_client()
         logger = app.logger
 
