@@ -26,7 +26,7 @@ LOCATIONS_MAPPING = (
 class TestBlueprint():
     """Test Blueprint class"""
 
-    @pytest.mark.parametrize('openapi_version', ('2.0', '3.0.1'))
+    @pytest.mark.parametrize('openapi_version', ('2.0', '3.0.2'))
     @pytest.mark.parametrize(
         # Also test 'json/body' is default
         'location_map', LOCATIONS_MAPPING + ((None, 'body'),))
@@ -65,7 +65,7 @@ class TestBlueprint():
         with pytest.raises(InvalidLocationError):
             blp.arguments(schemas.DocSchema, location='invalid')
 
-    @pytest.mark.parametrize('openapi_version', ('2.0', '3.0.1'))
+    @pytest.mark.parametrize('openapi_version', ('2.0', '3.0.2'))
     @pytest.mark.parametrize('location_map', LOCATIONS_MAPPING)
     @pytest.mark.parametrize('required', (True, False, None))
     def test_blueprint_arguments_required(
@@ -114,7 +114,7 @@ class TestBlueprint():
             # Only the required attribute of the field matters
             assert parameters[0]['required'] is False
 
-    @pytest.mark.parametrize('openapi_version', ('2.0', '3.0.1'))
+    @pytest.mark.parametrize('openapi_version', ('2.0', '3.0.2'))
     def test_blueprint_arguments_multiple(self, app, schemas, openapi_version):
         app.config['OPENAPI_VERSION'] = openapi_version
         api = Api(app)
@@ -163,7 +163,7 @@ class TestBlueprint():
             'query_args': {'arg1': 'test'},
         }
 
-    @pytest.mark.parametrize('openapi_version', ('2.0', '3.0.1'))
+    @pytest.mark.parametrize('openapi_version', ('2.0', '3.0.2'))
     def test_blueprint_path_parameters(self, app, openapi_version):
         """Check auto and manual param docs are merged"""
         app.config['OPENAPI_VERSION'] = openapi_version
@@ -193,7 +193,7 @@ class TestBlueprint():
                 'schema': {'format': 'int32', 'type': 'integer'}
             }]
 
-    @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.1'])
+    @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.2'])
     def test_blueprint_response_schema(self, app, openapi_version, schemas):
         """Check response schema is correctly documented.
 
@@ -239,7 +239,9 @@ class TestBlueprint():
                 response['content']['application/json']['schema']['items'])
             assert schema == {'$ref': '#/components/schemas/Doc'}
 
-    def test_blueprint_pagination(self, app, schemas):
+    @pytest.mark.parametrize('openapi_version', ('2.0', '3.0.2'))
+    def test_blueprint_pagination(self, app, schemas, openapi_version):
+        app.config['OPENAPI_VERSION'] = openapi_version
         api = Api(app)
         blp = Blueprint('test', __name__, url_prefix='/test')
 
@@ -257,18 +259,29 @@ class TestBlueprint():
         # Page
         assert parameters[0]['name'] == 'page'
         assert parameters[0]['in'] == 'query'
-        assert parameters[0]['type'] == 'integer'
         assert parameters[0]['required'] is False
-        assert parameters[0]['default'] == 1
-        assert parameters[0]['minimum'] == 1
+        if openapi_version == '2.0':
+            assert parameters[0]['type'] == 'integer'
+            assert parameters[0]['default'] == 1
+            assert parameters[0]['minimum'] == 1
+        else:
+            assert parameters[0]['schema']['type'] == 'integer'
+            assert parameters[0]['schema']['default'] == 1
+            assert parameters[0]['schema']['minimum'] == 1
         # Page size
         assert parameters[1]['name'] == 'page_size'
         assert parameters[1]['in'] == 'query'
-        assert parameters[1]['type'] == 'integer'
         assert parameters[1]['required'] is False
-        assert parameters[1]['default'] == 10
-        assert parameters[1]['minimum'] == 1
-        assert parameters[1]['maximum'] == 100
+        if openapi_version == '2.0':
+            assert parameters[1]['type'] == 'integer'
+            assert parameters[1]['default'] == 10
+            assert parameters[1]['minimum'] == 1
+            assert parameters[1]['maximum'] == 100
+        else:
+            assert parameters[1]['schema']['type'] == 'integer'
+            assert parameters[1]['schema']['default'] == 10
+            assert parameters[1]['schema']['minimum'] == 1
+            assert parameters[1]['schema']['maximum'] == 100
         # Other query string parameters
         assert parameters[1]['in'] == 'query'
         assert parameters[2]['name'] == 'arg1'
@@ -332,7 +345,7 @@ class TestBlueprint():
 
     # Regression test for https://github.com/Nobatek/flask-rest-api/issues/19
     def test_blueprint_doc_merged_after_prepare_doc(self, app):
-        app.config['OPENAPI_VERSION'] = '3.0.1'
+        app.config['OPENAPI_VERSION'] = '3.0.2'
         api = Api(app)
         blp = Blueprint('test', __name__, url_prefix='/test')
 
@@ -438,7 +451,7 @@ class TestBlueprint():
         methods = list(api.spec.to_dict()['paths']['/test/'].keys())
         assert methods == [m.lower() for m in http_methods]
 
-    @pytest.mark.parametrize('openapi_version', ('2.0', '3.0.1'))
+    @pytest.mark.parametrize('openapi_version', ('2.0', '3.0.2'))
     @pytest.mark.parametrize('as_method_view', (True, False))
     def test_blueprint_multiple_routes_per_view(
             self, app, as_method_view, openapi_version):

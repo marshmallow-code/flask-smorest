@@ -12,7 +12,7 @@ from .conftest import AppConfig
 class TestAPISpec():
     """Test APISpec class"""
 
-    @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.1'])
+    @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.2'])
     def test_apispec_sets_produces_consumes(self, app, openapi_version):
         app.config['OPENAPI_VERSION'] = openapi_version
         api = Api(app)
@@ -35,7 +35,7 @@ class TestAPISpecServeDocs():
     @pytest.mark.parametrize('json_path', (None, 'openapi.json'))
     @pytest.mark.parametrize('redoc_path', (None, 'redoc'))
     @pytest.mark.parametrize('swagger_ui_path', (None, 'swagger-ui'))
-    @pytest.mark.parametrize('swagger_ui_version', (None, '3.0.0'))
+    @pytest.mark.parametrize('swagger_ui_version', (None, '3.0.2'))
     @pytest.mark.parametrize('swagger_ui_url', (None, 'https://my-swagger/'))
     def test_apipec_serve_spec(
             self, app, prefix, json_path, redoc_path,
@@ -97,7 +97,7 @@ class TestAPISpecServeDocs():
 
         class NewAppConfig(AppConfig):
             OPENAPI_URL_PREFIX = prefix
-            OPENAPI_SWAGGER_UI_VERSION = '3.0.0'
+            OPENAPI_SWAGGER_UI_VERSION = '3.0.2'
 
         mapping = {
             'json': 'OPENAPI_JSON_PATH',
