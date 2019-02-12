@@ -40,6 +40,7 @@ First instantiate an :class:`Api <Api>` with a :class:`Flask <flask.Flask>` appl
     from .model import Pet
 
     app = Flask('My API')
+    app.config['OPENAPI_VERSION'] = '3.0.2'
     api = Api(app)
 
 Define a marshmallow :class:`Schema <marshmallow.Schema>` to expose the model.

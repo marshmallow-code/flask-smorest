@@ -31,7 +31,8 @@ specified as Flask application parameters:
    Version of the OpenAPI standard used to describe the API. It should be
    provided as a string.
 
-   Default: ``'2.0'``
+   The OpenAPI version must be passed either as application parameter or at
+   :class:`Api <Api>` initialization in ``spec_kwargs`` parameters.
 
 Add Documentation Information to the View Functions
 ---------------------------------------------------
@@ -86,12 +87,12 @@ docstring.
 this decorator should not need to be used for general use cases. However, it
 comes in handy if an OpenAPI feature is not supported.
 
-
 Populating the root document object
 -----------------------------------
 
-Additional root document attributes can be passed either in the code, as
-``Api`` parameter ``spec_kwargs``, or as Flask app configuration parameters.
+Additional root document attributes can be passed either in the code, in
+:class:`Api <Api>` parameter ``spec_kwargs``, or as Flask app configuration
+parameters.
 
 .. code-block:: python
 
@@ -111,7 +112,6 @@ Note that ``app.config`` overrides ``spec_kwargs``. The example above produces
    When using OpenAPI v2, `basePath` is automatically set from the value of the
    flask parameter `APPLICATION_ROOT`. In OpenAPI v3, `basePath` is removed,
    and the `servers` attribute can only be set by the user.
-
 
 Register Definitions
 --------------------
