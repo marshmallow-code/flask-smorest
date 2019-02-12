@@ -1,6 +1,21 @@
 Changelog
 ---------
 
+0.13.0 (2019-02-12)
++++++++++++++++++++
+
+Features:
+
+- Add ``flask_plugin`` and ``marshmallow_plugin`` spec kwargs to allow
+  overriding base plugins.
+- *Backwards-incompatible*: Rename ``plugins`` spec kwarg into
+  ``extra_plugins``.
+- *Backwards-incompatible*: Don't default to OpenAPI version 2.0. The version
+  must now be specified, either as ``OPENAPI_VERSION`` app parameter or as
+  ``openapi_version`` spec kwarg.
+- Support apispec 1.0.0.
+- *Backwards-incompatible*: Drop support for apispec 0.x.
+
 0.12.0 (2018-12-02)
 +++++++++++++++++++
 
