@@ -1,6 +1,14 @@
 Changelog
 ---------
 
+0.13.1 (2019-02-13)
++++++++++++++++++++
+
+Features:
+
+- Register Werkzeug's ``UUIDConverter`` in ``Api`` so that ``uuid`` path
+  parameters are correctly documented.
+
 0.13.0 (2019-02-12)
 +++++++++++++++++++
 
