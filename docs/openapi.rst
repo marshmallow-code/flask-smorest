@@ -142,14 +142,14 @@ or by specifying a parent field class, using :meth:`Api.register_field`:
 
 .. code-block:: python
 
-    # Map to ('string', 'UUID')
-    api.register_field(UUIDField, 'string', 'UUID')
+    # Map to ('string', 'ObjectId') passing type and format
+    api.register_field(ObjectId, 'string', 'ObjectId')
 
-    # Map to ('string')
-    api.register_field(URLField, 'string', None)
+    # Map to ('string') passing type
+    api.register_field(CustomString, 'string', None)
 
-    # Map to ('integer, 'int32')
-    api.register_field(CustomIntegerField, ma.fields.Integer)
+    # Map to ('integer, 'int32') passing a code marshmallow field
+    api.register_field(CustomInteger, ma.fields.Integer)
 
 Register Custom Path Parameter Converters
 -----------------------------------------
@@ -158,17 +158,17 @@ Likewise, standard types used as path parameter converters in the flask routes
 are correctly documented, but custom path converters must be registered.
 
 The :meth:`Api.register_converter` allows to register a converter in the
-``Api`` object to generate a correct documentation.
+``Api`` object to generate an accurate documentation.
 
 .. code-block:: python
 
-    # Register UUID converter in Flask application
-    app.url_map.converters['uuid'] = UUIDConverter
+    # Register MongoDB's ObjectId converter in Flask application
+    app.url_map.converters['objectid'] = ObjectIdConverter
 
-    # Register UUID converter in Api
-    api.register_converter(UUIDConverter, 'string', 'UUID')
+    # Register converter in Api
+    api.register_converter(ObjectIdConverter, 'string', 'ObjectID')
 
-    @blp.route('/pets/{uuid:pet_id}')
+    @blp.route('/pets/{objectid:pet_id}')
         ...
 
 Serve the OpenAPI Documentation

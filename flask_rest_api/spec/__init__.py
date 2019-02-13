@@ -225,18 +225,18 @@ class APISpecMixin(DocBlueprintMixin):
         :param str conv_type: Parameter type
         :param str conv_format: Parameter format (optional)
 
-            Example: ::
+        Example: ::
 
-                # Register converter in Flask app
-                app.url_map.converters['uuid'] = UUIDConverter
+            # Register MongoDB's ObjectId converter in Flask application
+            app.url_map.converters['objectid'] = ObjectIdConverter
 
-                # Register converter in internal APISpec instance
-                api.register_converter(UUIDConverter, 'string', 'UUID')
+            # Register converter in Api
+            api.register_converter(ObjectIdConverter, 'string', 'ObjectID')
 
-                @blp.route('/pets/{uuid:pet_id}')
-                    ...
+            @blp.route('/pets/{objectid:pet_id}')
+                ...
 
-                api.register_blueprint(blp)
+            api.register_blueprint(blp)
 
         Once the converter is registered, all paths using it will have
         corresponding path parameter documented with the right type and format.
@@ -267,14 +267,14 @@ class APISpecMixin(DocBlueprintMixin):
 
         Examples: ::
 
-            # Map to ('string', 'UUID')
-            api.register_field(UUIDField, 'string', 'UUID')
+            # Map to ('string', 'ObjectId') passing type and format
+            api.register_field(ObjectId, 'string', 'ObjectId')
 
-            # Map to ('string')
-            api.register_field(URLField, 'string', None)
+            # Map to ('string') passing type
+            api.register_field(CustomString, 'string', None)
 
-            # Map to ('integer, 'int32')
-            api.register_field(CustomIntegerField, ma.fields.Integer)
+            # Map to ('integer, 'int32') passing a code marshmallow field
+            api.register_field(CustomInteger, ma.fields.Integer)
 
         Should be called before registering definitions with
         :meth:`definition <Api.definition>`.
