@@ -18,6 +18,7 @@ DEFAULT_CONVERTER_MAPPING = {
     werkzeug.routing.UnicodeConverter: ('string', None),
     werkzeug.routing.IntegerConverter: ('integer', 'int32'),
     werkzeug.routing.FloatConverter: ('number', 'float'),
+    werkzeug.routing.UUIDConverter: ('string', 'uuid'),
 }
 DEFAULT_TYPE = ('string', None)
 
