@@ -73,8 +73,8 @@ illustrates how to pass `summary` and `description` using that decorator.
 
 .. code-block:: python
 
-    @blp.doc({'description': 'Return pets based on ID',
-             'summary': 'Find pets by ID'})
+    @blp.doc(description='Return pets based on ID',
+             summary='Find pets by ID')
     def get(...):
         """This get methods is used to find pets by ID"""
         ...
