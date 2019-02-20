@@ -73,8 +73,8 @@ illustrates how to pass `summary` and `description` using that decorator.
 
 .. code-block:: python
 
-    @blp.doc('description': 'Return pets based on ID',
-             'summary': 'Find pets by ID')
+    @blp.doc(description='Return pets based on ID',
+             summary='Find pets by ID')
     def get(...):
         """This get methods is used to find pets by ID"""
         ...
@@ -98,13 +98,13 @@ parameters.
 
     app.config['API_SPEC_OPTIONS'] = {'x-internal-id': '2'}
 
-    api = Api(app, spec_kwargs={'host': 'example.com', 'x-internal-id': 1})
+    api = Api(app, spec_kwargs={'host': 'example.com', 'x-internal-id': '1'})
 
 Note that ``app.config`` overrides ``spec_kwargs``. The example above produces
 
 .. code-block:: python
 
-    {'host': 'example.com', 'x-internal-id': 1, ...}
+    {'host': 'example.com', 'x-internal-id': '2', ...}
 
 .. note:: Again, flask-rest-api tries to provide as much information as
    possible, but some values can only by provided by the user.
