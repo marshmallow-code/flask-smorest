@@ -11,4 +11,4 @@ Leads
 Contributors (chronological)
 ============================
 
-- Ryan Yin `@ryan4yin https://github.com/ryan4yin`_
+- Ryan Yin `@ryan4yin <https://github.com/ryan4yin>`_
