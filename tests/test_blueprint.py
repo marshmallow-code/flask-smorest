@@ -8,8 +8,7 @@ import marshmallow as ma
 from flask import jsonify
 from flask.views import MethodView
 
-from flask_rest_api import Api
-from flask_rest_api.blueprint import Blueprint
+from flask_rest_api import Api, Blueprint, Page
 from flask_rest_api.exceptions import InvalidLocationError
 
 
@@ -548,6 +547,60 @@ class TestBlueprint():
         assert response.status_code == 201
         assert response.status == '201 CREATED'
         assert response.json == {}
+        assert response.headers['X-header'] == 'test'
+        response = client.get('/test/response_wrong_tuple')
+        assert response.status_code == 500
+
+    def test_blueprint_pagination_response_tuple(self, app):
+        api = Api(app)
+        blp = Blueprint('test', __name__, url_prefix='/test')
+        client = app.test_client()
+
+        @blp.route('/response')
+        @blp.response()
+        @blp.paginate(Page)
+        def func_response():
+            return [1, 2]
+
+        @blp.route('/response_code')
+        @blp.response()
+        @blp.paginate(Page)
+        def func_response_code():
+            return [1, 2], 201
+
+        @blp.route('/response_headers')
+        @blp.response()
+        @blp.paginate(Page)
+        def func_response_headers():
+            return [1, 2], {'X-header': 'test'}
+
+        @blp.route('/response_code_headers')
+        @blp.response()
+        @blp.paginate(Page)
+        def func_response_code_headers():
+            return [1, 2], 201, {'X-header': 'test'}
+
+        @blp.route('/response_wrong_tuple')
+        @blp.response()
+        @blp.paginate(Page)
+        def func_response_wrong_tuple():
+            return [1, 2], 201, {'X-header': 'test'}, 'extra'
+
+        api.register_blueprint(blp)
+
+        response = client.get('/test/response')
+        assert response.status_code == 200
+        assert response.json == [1, 2]
+        response = client.get('/test/response_code')
+        assert response.status_code == 201
+        assert response.json == [1, 2]
+        response = client.get('/test/response_headers')
+        assert response.status_code == 200
+        assert response.json == [1, 2]
+        assert response.headers['X-header'] == 'test'
+        response = client.get('/test/response_code_headers')
+        assert response.status_code == 201
+        assert response.json == [1, 2]
         assert response.headers['X-header'] == 'test'
         response = client.get('/test/response_wrong_tuple')
         assert response.status_code == 500
