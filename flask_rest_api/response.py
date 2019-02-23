@@ -4,7 +4,7 @@ from functools import wraps
 
 from flask import jsonify
 
-from .utils import deepupdate, get_appcontext
+from .utils import deepupdate, get_appcontext, unpack_tuple_response
 from .compat import MARSHMALLOW_VERSION_MAJOR
 
 
@@ -37,7 +37,8 @@ class ResponseMixin:
             def wrapper(*args, **kwargs):
 
                 # Execute decorated function
-                result_raw = func(*args, **kwargs)
+                result_raw, status, headers = unpack_tuple_response(
+                    func(*args, **kwargs))
 
                 # Dump result with schema if specified
                 if schema is None:
@@ -54,7 +55,15 @@ class ResponseMixin:
                 # Build response
                 resp = jsonify(self._prepare_response_content(result_dump))
                 resp.headers.extend(get_appcontext()['headers'])
-                resp.status_code = code
+                if headers:
+                    resp.headers.extend(headers)
+                if status is not None:
+                    if isinstance(status, int):
+                        resp.status_code = status
+                    else:
+                        resp.status = status
+                else:
+                    resp.status_code = code
 
                 return resp
 

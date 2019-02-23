@@ -481,3 +481,73 @@ class TestBlueprint():
 
         assert 'get' in paths['/test/route_1']
         assert 'get' in paths['/test/route_2']
+
+    def test_blueprint_response_tuple(self, app):
+        api = Api(app)
+        blp = Blueprint('test', __name__, url_prefix='/test')
+        client = app.test_client()
+
+        @blp.route('/response')
+        @blp.response()
+        def func_response():
+            return {}
+
+        @blp.route('/response_code_int')
+        @blp.response()
+        def func_response_code_int():
+            return {}, 201
+
+        @blp.route('/response_code_str')
+        @blp.response()
+        def func_response_code_str():
+            return {}, '201 CREATED'
+
+        @blp.route('/response_headers')
+        @blp.response()
+        def func_response_headers():
+            return {}, {'X-header': 'test'}
+
+        @blp.route('/response_code_int_headers')
+        @blp.response()
+        def func_response_code_int_headers():
+            return {}, 201, {'X-header': 'test'}
+
+        @blp.route('/response_code_str_headers')
+        @blp.response()
+        def func_response_code_str_headers():
+            return {}, '201 CREATED', {'X-header': 'test'}
+
+        @blp.route('/response_wrong_tuple')
+        @blp.response()
+        def func_response_wrong_tuple():
+            return {}, 201, {'X-header': 'test'}, 'extra'
+
+        api.register_blueprint(blp)
+
+        response = client.get('/test/response')
+        assert response.status_code == 200
+        assert response.json == {}
+        response = client.get('/test/response_code_int')
+        assert response.status_code == 201
+        assert response.status == '201 CREATED'
+        assert response.json == {}
+        response = client.get('/test/response_code_str')
+        assert response.status_code == 201
+        assert response.status == '201 CREATED'
+        assert response.json == {}
+        response = client.get('/test/response_headers')
+        assert response.status_code == 200
+        assert response.json == {}
+        assert response.headers['X-header'] == 'test'
+        response = client.get('/test/response_code_int_headers')
+        assert response.status_code == 201
+        assert response.status == '201 CREATED'
+        assert response.json == {}
+        assert response.headers['X-header'] == 'test'
+        response = client.get('/test/response_code_str_headers')
+        assert response.status_code == 201
+        assert response.status == '201 CREATED'
+        assert response.json == {}
+        assert response.headers['X-header'] == 'test'
+        response = client.get('/test/response_wrong_tuple')
+        assert response.status_code == 500
