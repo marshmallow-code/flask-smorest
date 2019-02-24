@@ -21,7 +21,7 @@ def _is_etag_enabled():
 
 def _get_etag_ctx():
     """Get ETag section of AppContext"""
-    return get_appcontext()['etag']
+    return get_appcontext().setdefault('etag', {})
 
 
 class EtagMixin:

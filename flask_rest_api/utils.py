@@ -1,6 +1,5 @@
 """Utils"""
 
-from collections import defaultdict
 from collections.abc import Mapping
 
 from werkzeug.datastructures import Headers
@@ -26,10 +25,10 @@ def deepupdate(original, update):
 def get_appcontext():
     """Return extension section from top of appcontext stack"""
 
-    # http://flask.pocoo.org/docs/0.12/extensiondev/#the-extension-code
+    # http://flask.pocoo.org/docs/latest/extensiondev/#the-extension-code
     ctx = _app_ctx_stack.top
     if not hasattr(ctx, 'flask_rest_api'):
-        ctx.flask_rest_api = defaultdict(dict)
+        ctx.flask_rest_api = {}
     return ctx.flask_rest_api
 
 
