@@ -66,7 +66,6 @@ class ResponseMixin:
 
                 # Build response
                 resp = jsonify(self._prepare_response_content(result_dump))
-                resp.headers.extend(appcontext['headers'])
                 set_status_and_headers_in_response(resp, status, headers)
                 if status is None:
                     resp.status_code = code

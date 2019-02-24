@@ -18,7 +18,7 @@ from flask import request, current_app
 import marshmallow as ma
 from webargs.flaskparser import FlaskParser
 
-from .utils import get_appcontext, unpack_tuple_response
+from .utils import unpack_tuple_response
 from .compat import MARSHMALLOW_VERSION_MAJOR
 
 
@@ -183,7 +183,9 @@ class PaginationMixin:
                         page_header = self._make_pagination_header(
                             page_params.page, page_params.page_size,
                             page_params.item_count)
-                        get_appcontext()['headers'][
+                        if headers is None:
+                            headers = {}
+                        headers[
                             self.PAGINATION_HEADER_FIELD_NAME] = page_header
 
                 return result, status, headers
