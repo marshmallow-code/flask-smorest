@@ -2,9 +2,13 @@
 
 from functools import wraps
 
+from werkzeug import BaseResponse
 from flask import jsonify
 
-from .utils import deepupdate, get_appcontext, unpack_tuple_response
+from .utils import (
+    deepupdate, get_appcontext,
+    unpack_tuple_response, set_status_and_headers_in_response
+)
 from .compat import MARSHMALLOW_VERSION_MAJOR
 
 
@@ -16,7 +20,8 @@ class ResponseMixin:
 
         :param schema: :class:`Schema <marshmallow.Schema>` class or instance.
             If not None, will be used to serialize response data.
-        :param int code: HTTP status code (default: 200).
+        :param int code: HTTP status code (default: 200). Used if none is
+            returned from the view function.
         :param str descripton: Description of the response.
 
         See :doc:`Response <response>`.
@@ -40,6 +45,12 @@ class ResponseMixin:
                 result_raw, status, headers = unpack_tuple_response(
                     func(*args, **kwargs))
 
+                # If return value is a werkzeug BaseResponse, return it
+                if isinstance(result_raw, BaseResponse):
+                    set_status_and_headers_in_response(
+                        result_raw, status, headers)
+                    return result_raw
+
                 # Dump result with schema if specified
                 if schema is None:
                     result_dump = result_raw
@@ -49,20 +60,15 @@ class ResponseMixin:
                         result_dump = result_dump[0]
 
                 # Store result in appcontext (may be used for ETag computation)
-                get_appcontext()['result_raw'] = result_raw
-                get_appcontext()['result_dump'] = result_dump
+                appcontext = get_appcontext()
+                appcontext['result_raw'] = result_raw
+                appcontext['result_dump'] = result_dump
 
                 # Build response
                 resp = jsonify(self._prepare_response_content(result_dump))
-                resp.headers.extend(get_appcontext()['headers'])
-                if headers:
-                    resp.headers.extend(headers)
-                if status is not None:
-                    if isinstance(status, int):
-                        resp.status_code = status
-                    else:
-                        resp.status = status
-                else:
+                resp.headers.extend(appcontext['headers'])
+                set_status_and_headers_in_response(resp, status, headers)
+                if status is None:
                     resp.status_code = code
 
                 return resp

@@ -93,3 +93,14 @@ def unpack_tuple_response(rv):
             )
 
     return rv, status, headers
+
+
+def set_status_and_headers_in_response(response, status, headers):
+    """Set status and headers in flask Reponse object"""
+    if headers:
+        response.headers.extend(headers)
+    if status is not None:
+        if isinstance(status, int):
+            response.status_code = status
+        else:
+            response.status = status

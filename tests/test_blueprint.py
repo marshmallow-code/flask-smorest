@@ -604,3 +604,22 @@ class TestBlueprint():
         assert response.headers['X-header'] == 'test'
         response = client.get('/test/response_wrong_tuple')
         assert response.status_code == 500
+
+    def test_blueprint_response_response_object(self, app, schemas):
+        api = Api(app)
+        blp = Blueprint('test', __name__, url_prefix='/test')
+        client = app.test_client()
+
+        @blp.route('/response')
+        # Schema is ignored when response object is returned
+        @blp.response(schemas.DocSchema, code=200)
+        def func_response():
+            return jsonify({}), 201, {'X-header': 'test'}
+
+        api.register_blueprint(blp)
+
+        response = client.get('/test/response')
+        assert response.status_code == 201
+        assert response.status == '201 CREATED'
+        assert response.json == {}
+        assert response.headers['X-header'] == 'test'
