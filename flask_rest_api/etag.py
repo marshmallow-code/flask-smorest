@@ -211,9 +211,8 @@ class EtagMixin:
                 etag_data = get_appcontext()[
                     'result_dump' if etag_schema is None else 'result_raw'
                 ]
-                headers = (
-                    response.headers.get(h) for h in self.ETAG_INCLUDE_HEADERS)
-                extra_data = tuple(h for h in headers if h is not None)
+                extra_data = tuple((k, v) for k, v in response.headers
+                                   if k in self.ETAG_INCLUDE_HEADERS)
                 new_etag = self._generate_etag(
                     etag_data, etag_schema, extra_data)
                 if new_etag in request.if_none_match:

@@ -345,7 +345,10 @@ class TestEtag():
         blp = Blueprint('test', __name__)
         etag_schema = schemas.DocEtagSchema
         item = {'item_id': 1, 'db_field': 0}
-        extra_data = ('Dummy pagination header', ) if paginate else tuple()
+        if paginate:
+            extra_data = (('X-Pagination', 'Dummy pagination header'),)
+        else:
+            extra_data = tuple()
         etag = blp._generate_etag(item, extra_data=extra_data)
         etag_with_schema = blp._generate_etag(
             item, etag_schema, extra_data=extra_data)
@@ -365,6 +368,31 @@ class TestEtag():
             get_appcontext()['result_raw'] = item
             blp._set_etag_in_response(resp, etag_schema)
             assert resp.get_etag() == (etag_with_schema, False)
+
+    def test_etag_duplicate_header(self, app):
+        """Check duplicate header results in a different ETag"""
+
+        class CustomBlueprint(Blueprint):
+            ETAG_INCLUDE_HEADERS = Blueprint.ETAG_INCLUDE_HEADERS + ['X-test']
+
+        blp = CustomBlueprint('test', __name__, url_prefix='/test')
+
+        with app.test_request_context('/'):
+            resp = Response()
+            resp.headers.add('X-test', 'Test')
+            get_appcontext()['result_dump'] = {}
+            blp._set_etag_in_response(resp, None)
+            etag_1 = resp.get_etag()
+
+        with app.test_request_context('/'):
+            resp = Response()
+            resp.headers.add('X-test', 'Test')
+            resp.headers.add('X-test', 'Test')
+            get_appcontext()['result_dump'] = {}
+            blp._set_etag_in_response(resp, None)
+            etag_2 = resp.get_etag()
+
+        assert etag_1 != etag_2
 
     def test_etag_response_object(self, app):
         api = Api(app)
