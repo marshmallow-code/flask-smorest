@@ -15,6 +15,7 @@ from flask_rest_api.etag import _get_etag_ctx
 from flask_rest_api.exceptions import (
     CheckEtagNotCalledError,
     NotModified, PreconditionRequired, PreconditionFailed)
+from flask_rest_api.utils import get_appcontext
 from flask_rest_api.compat import MARSHMALLOW_VERSION_MAJOR
 
 from .mocks import ItemNotFound
@@ -353,9 +354,16 @@ class TestEtag():
             resp = Response()
             if extra_data:
                 resp.headers['X-Pagination'] = 'Dummy pagination header'
-            blp._set_etag_in_response(resp, item, None)
+            get_appcontext()['result_dump'] = item
+            blp._set_etag_in_response(resp, None)
             assert resp.get_etag() == (etag, False)
-            blp._set_etag_in_response(resp, item, etag_schema)
+
+        with app.test_request_context('/'):
+            resp = Response()
+            if extra_data:
+                resp.headers['X-Pagination'] = 'Dummy pagination header'
+            get_appcontext()['result_raw'] = item
+            blp._set_etag_in_response(resp, etag_schema)
             assert resp.get_etag() == (etag_with_schema, False)
 
     def test_etag_response_object(self, app):

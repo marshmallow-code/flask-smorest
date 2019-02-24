@@ -82,16 +82,7 @@ class EtagMixin:
                     # Verify check_etag was called in resource code if needed
                     self._verify_check_etag()
                     # Add etag value to response
-                    # Pass data to use as ETag data if set_etag was not called
-                    # If etag_schema is provided, pass raw result rather than
-                    # dump, as the dump needs to be done using etag_schema
-                    # If 'result_dump'/'result_raw' is not in appcontext,
-                    # the Etag must have been set manually. Just pass None.
-                    etag_data = get_appcontext().get(
-                        'result_dump' if etag_schema is None else 'result_raw',
-                        None
-                    )
-                    self._set_etag_in_response(resp, etag_data, etag_schema)
+                    self._set_etag_in_response(resp, etag_schema)
 
                 return resp
 
@@ -203,7 +194,7 @@ class EtagMixin:
             # Store ETag in AppContext to add it to response headers later on
             _get_etag_ctx()['etag'] = new_etag
 
-    def _set_etag_in_response(self, response, etag_data, etag_schema):
+    def _set_etag_in_response(self, response, etag_schema):
         """Set ETag in response object
 
         Called automatically.
@@ -215,6 +206,11 @@ class EtagMixin:
             new_etag = _get_etag_ctx().get('etag')
             # If no ETag data was manually provided, use response content
             if new_etag is None:
+                # If etag_schema is provided, use raw result rather than
+                # the dump, as the dump needs to be done using etag_schema
+                etag_data = get_appcontext()[
+                    'result_dump' if etag_schema is None else 'result_raw'
+                ]
                 headers = (
                     response.headers.get(h) for h in self.ETAG_INCLUDE_HEADERS)
                 extra_data = tuple(h for h in headers if h is not None)
