@@ -51,6 +51,10 @@ class EtagMixin:
                 def view_func(...):
                     ...
 
+        The ``etag`` decorator expects the decorated view function to return a
+        ``Response`` object. It is the case if it is decorated with the
+        ``response`` decorator.
+
         See :doc:`ETag <etag>`.
         """
         if etag_schema is None or isinstance(etag_schema, (type, Schema)):
@@ -177,11 +181,12 @@ class EtagMixin:
 
         Raise 304 if ETag identical to If-None-Match header
 
-        Can be called from resource code. If not called, ETag will be computed
-        by default from response data before sending response.
+        Must be called from resource code, unless the view function is
+        decorated with the ``response`` decorator, in which case the ETag is
+        computed by default from response data if ``set_etag`` is not called.
 
         Logs a warning if called in a method other than one of
-        GET, HEAD, POST, PUT, PATCH
+        GET, HEAD, POST, PUT, PATCH.
         """
         if request.method not in self.METHODS_ALLOWING_SET_ETAG:
             current_app.logger.warning(

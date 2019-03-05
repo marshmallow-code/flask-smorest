@@ -24,6 +24,14 @@ class ResponseMixin:
             returned from the view function.
         :param str descripton: Description of the response.
 
+        The decorated function is expected to return the same types of value
+        than a typical flask view function, except the body part may be an
+        object or a list of objects to serialize with the schema, rather than
+        a ``string``.
+
+        If the decorated function returns a ``Response`` object, the ``schema``
+        and ``code`` parameters are only used to document the resource.
+
         See :doc:`Response <response>`.
         """
         if isinstance(schema, type):

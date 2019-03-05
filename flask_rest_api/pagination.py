@@ -135,6 +135,10 @@ class PaginationMixin:
 
         Otherwise, pagination is handled in the view function.
 
+        The decorated function may return a tuple including status and/or
+        headers, like a typical flask view function. It may not return a
+        ``Response`` object.
+
         See :doc:`Pagination <pagination>`.
         """
         if page is None:
