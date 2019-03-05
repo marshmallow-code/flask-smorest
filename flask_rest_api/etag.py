@@ -85,9 +85,12 @@ class EtagMixin:
                     # Pass data to use as ETag data if set_etag was not called
                     # If etag_schema is provided, pass raw result rather than
                     # dump, as the dump needs to be done using etag_schema
-                    etag_data = get_appcontext()[
-                        'result_dump' if etag_schema is None else 'result_raw'
-                    ]
+                    # If 'result_dump'/'result_raw' is not in appcontext,
+                    # the Etag must have been set manually. Just pass None.
+                    etag_data = get_appcontext().get(
+                        'result_dump' if etag_schema is None else 'result_raw',
+                        None
+                    )
                     self._set_etag_in_response(resp, etag_data, etag_schema)
 
                 return resp

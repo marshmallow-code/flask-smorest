@@ -7,7 +7,7 @@ from unittest import mock
 
 import pytest
 
-from flask import Response
+from flask import jsonify, Response
 from flask.views import MethodView
 
 from flask_rest_api import Api, Blueprint, abort
@@ -357,6 +357,26 @@ class TestEtag():
             assert resp.get_etag() == (etag, False)
             blp._set_etag_in_response(resp, item, etag_schema)
             assert resp.get_etag() == (etag_with_schema, False)
+
+    def test_etag_response_object(self, app):
+        api = Api(app)
+        blp = Blueprint('test', __name__, url_prefix='/test')
+        client = app.test_client()
+
+        @blp.route('/')
+        @blp.etag
+        @blp.response()
+        def func_response_etag():
+            # When the view function returns a Response object,
+            # the ETag must be specified manually
+            blp.set_etag('test')
+            return jsonify({})
+
+        api.register_blueprint(blp)
+
+        response = client.get('/test/')
+        assert response.json == {}
+        assert response.get_etag() == (blp._generate_etag('test'), False)
 
     def test_etag_operations_etag_enabled(self, app_with_etag):
 
