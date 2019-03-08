@@ -26,7 +26,15 @@ setup(
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
     ],
-    keywords='flask REST api',
+    keywords=[
+        'REST',
+        'openapi',
+        'swagger',
+        'flask',
+        'marshmallow',
+        'apispec'
+        'webargs',
+    ],
     packages=find_packages(exclude=['tests*']),
     include_package_data=True,
     package_data={
