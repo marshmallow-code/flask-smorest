@@ -64,6 +64,19 @@ Documentation
 
 Full documentation is available at http://flask-rest-api.readthedocs.io/.
 
+Support flask-rest-api
+======================
+
+flask-rest-api is built on marshmallow, webargs and apispec.
+
+If you'd like to support the future of the project, please consider
+contributing to marshmallow's Open Collective:
+
+.. image:: https://opencollective.com/marshmallow/donate/button.png
+    :target: https://opencollective.com/marshmallow
+    :width: 200
+    :alt: Donate to our collective
+
 License
 =======
 
