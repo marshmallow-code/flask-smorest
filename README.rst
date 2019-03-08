@@ -10,6 +10,14 @@ flask-rest-api
     :target: https://pypi.org/project/flask-rest-api/
     :alt: Python versions
 
+.. image:: https://img.shields.io/badge/marshmallow-2%20|%203-blue.svg
+    :target: https://marshmallow.readthedocs.io/en/latest/upgrading.html
+    :alt: marshmallow 2/3 compatible
+
+.. image:: https://img.shields.io/badge/OAS-2%20|%203-green.svg
+    :target: https://github.com/OAI/OpenAPI-Specification
+    :alt: OpenAPI Specification 2/3 compatible
+
 .. image:: https://img.shields.io/pypi/l/flask-rest-api.svg
     :target: https://flask-rest-api.readthedocs.io/en/latest/license.html
     :alt: License
