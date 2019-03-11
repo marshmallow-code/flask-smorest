@@ -30,10 +30,6 @@ flask-rest-api
     :target: https://coveralls.io/github/Nobatek/flask-rest-api/?branch=master
     :alt: Code coverage
 
-.. image:: https://api.codacy.com/project/badge/Grade/463485aeeac048f08cb4f40ebeb61160
-    :target: https://www.codacy.com/app/lafrech/flask-rest-api
-    :alt: Code health
-
 .. image:: https://readthedocs.org/projects/flask-rest-api/badge/
     :target: http://flask-rest-api.readthedocs.io/
     :alt: Documentation
