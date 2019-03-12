@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+0.14.1 (unreleased)
++++++++++++++++++++
+
+Features:
+
+- Official Python 3.7 support (:pr:`45`).
+
 0.14.0 (2019-03-08)
 +++++++++++++++++++
 
