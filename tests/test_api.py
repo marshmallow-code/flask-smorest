@@ -43,7 +43,7 @@ class TestApi():
             int_2 = ma.fields.Int()
 
         definitions = get_definitions(api.spec)
-        assert set(definitions) == {'Schema_1', 'Schema_2'}
+        assert {'Schema_1', 'Schema_2'}.issubset(definitions)
 
     @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.2'])
     @pytest.mark.parametrize('view_type', ['function', 'method'])
