@@ -188,7 +188,7 @@ class APISpecMixin(DocBlueprintMixin):
         # Register custom fields in spec
         for args in self._fields:
             self._register_field(*args)
-        # Register schema definitions in spec
+        # Register schemas in spec
         for name, schema_cls, kwargs in self._schemas:
             self.spec.components.schema(name, schema=schema_cls, **kwargs)
         # Register custom converters in spec
@@ -216,8 +216,10 @@ class APISpecMixin(DocBlueprintMixin):
                 self.spec.components.schema(name, schema=schema_cls, **kwargs)
             return schema_cls
         return decorator
-    # Compatibility
-    definition = schema
+
+    def definition(self, name):
+        """Alias to :meth:`schema <Api.schema>`"""
+        return self.schema(name)
 
     def register_converter(self, converter, conv_type, conv_format=None):
         """Register custom path parameter converter
@@ -278,8 +280,8 @@ class APISpecMixin(DocBlueprintMixin):
             # Map to ('integer, 'int32') passing a code marshmallow field
             api.register_field(CustomInteger, ma.fields.Integer)
 
-        Should be called before registering definitions with
-        :meth:`definition <Api.definition>`.
+        Should be called before registering schemas with
+        :meth:`schema <Api.schema>`.
         """
         self._fields.append((field, *args))
         # Register field in spec if app is already initialized

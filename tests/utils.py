@@ -40,7 +40,7 @@ class NoLoggingContext:
 
 
 def get_schemas(spec):
-    """Get definitions/schemas from spec"""
+    """Get schema components from spec"""
     if spec.openapi_version.major < 3:
         return spec.to_dict().get('definitions')
     return spec.to_dict()['components'].get('schemas')

@@ -27,7 +27,7 @@ Documentation process works in several steps:
 
 - At initialization time
 
-  - Schema instances are replaced either by their reference in the `definition`
+  - Schema instances are replaced either by their reference in the `schemas`
     section of the spec if applicable, otherwise by their json representation.
 
   - Automatic documentation is adapted to OpenAPI version and deep-merged with
@@ -146,10 +146,10 @@ class Blueprint(
         """Register views information in documentation
 
         If a schema in a parameter or a response appears in the spec
-        `definitions` section, it is replaced by a reference to its definition
-        in the parameter or response documentation:
+        `schemas` section, it is replaced by a reference in the parameter or
+        response documentation:
 
-        "schema":{"$ref": "#/definitions/MySchema"}
+        "schema":{"$ref": "#/components/schemas/MySchema"}
         """
         # This method uses the documentation information associated with each
         # endpoint in self._[auto|manual]_docs to provide documentation for
