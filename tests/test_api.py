@@ -13,7 +13,7 @@ import apispec
 from flask_rest_api import Api, Blueprint
 from flask_rest_api.exceptions import OpenAPIVersionNotSpecified
 
-from .utils import get_definitions
+from .utils import get_schemas
 
 
 class TestApi():
@@ -42,7 +42,7 @@ class TestApi():
         class Schema_2(ma.Schema):
             int_2 = ma.fields.Int()
 
-        definitions = get_definitions(api.spec)
+        definitions = get_schemas(api.spec)
         assert {'Schema_1', 'Schema_2'}.issubset(definitions)
 
     @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.2'])
@@ -145,7 +145,7 @@ class TestApi():
         else:
             properties = {'field': {'type': 'integer', 'format': 'int32'}}
 
-        assert get_definitions(api.spec)['Document'] == {
+        assert get_schemas(api.spec)['Document'] == {
             'properties': properties, 'type': 'object'}
 
     @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.2'])
@@ -175,7 +175,7 @@ class TestApi():
             int_2 = ma.fields.Int()
             custom_2 = CustomField_2()
 
-        definitions = get_definitions(api.spec)
+        definitions = get_schemas(api.spec)
         assert definitions['Schema_1']['properties']['custom_1'] == {
             'type': 'custom string', 'format': 'custom'}
         assert definitions['Schema_2']['properties']['custom_2'] == {
@@ -201,7 +201,7 @@ class TestApi():
 
         api = Api(app, spec_kwargs={'extra_plugins': (MyPlugin(), )})
         api.definition('Pet')(schemas.DocSchema)
-        assert get_definitions(api.spec)['Pet']['dummy'] == 'whatever'
+        assert get_schemas(api.spec)['Pet']['dummy'] == 'whatever'
 
     @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.2'])
     def test_api_gets_apispec_parameters_from_app(self, app, openapi_version):
