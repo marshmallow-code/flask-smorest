@@ -139,6 +139,11 @@ class PaginationMixin:
     DEFAULT_PAGINATION_PARAMETERS = {
         'page': 1, 'page_size': 10, 'max_page_size': 100}
 
+    PAGINATION_HEADER_DOC = {
+        'description': 'Pagination metadata',
+        'schema': PaginationHeaderSchema,
+    }
+
     def paginate(self, pager=None, *,
                  page=None, page_size=None, max_page_size=None):
         """Decorator adding pagination to the endpoint
@@ -212,6 +217,7 @@ class PaginationMixin:
             # Add pagination params to doc info in wrapper object
             wrapper._apidoc = deepcopy(getattr(wrapper, '_apidoc', {}))
             wrapper._apidoc['pagination'] = {'parameters': parameters}
+            wrapper._paginated = True
 
             return wrapper
 
