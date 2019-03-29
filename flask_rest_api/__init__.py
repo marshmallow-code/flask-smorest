@@ -41,7 +41,7 @@ class Api(APISpecMixin, ErrorHandlerMixin):
         self._app = app
         self.spec = None
         # Use lists to enforce order
-        self._definitions = []
+        self._schemas = []
         self._fields = []
         self._converters = []
         if app is not None:

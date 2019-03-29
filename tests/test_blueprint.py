@@ -204,7 +204,7 @@ class TestBlueprint():
         api = Api(app)
         blp = Blueprint('test', 'test', url_prefix='/test')
 
-        api.definition('Doc')(schemas.DocSchema)
+        api.schema('Doc')(schemas.DocSchema)
 
         @blp.route('/schema_many_false')
         @blp.response(schemas.DocSchema(many=False))

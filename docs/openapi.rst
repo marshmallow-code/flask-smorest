@@ -117,17 +117,16 @@ Register Definitions
 --------------------
 
 When a schema is used multiple times throughout the spec, it is better to
-add it to the spec's definitions so as to reference it rather than duplicate
-its content.
+add it to the spec's schema components so as to reference it rather than
+duplicate its content.
 
-To register a definition from a schema, use the :meth:`Api.definition`
-decorator:
+To register a schema, use the :meth:`Api.schema` decorator:
 
 .. code-block:: python
 
     api = Api()
 
-    @api.definition('Pet')
+    @api.schema('Pet')
     class Pet(Schema):
         ...
 

@@ -7,6 +7,8 @@ Changelog
 Features:
 
 - Official Python 3.7 support (:pr:`45`).
+- Rename ``Api.definition`` as ``Api.schema``. Keep ``Api.definition`` as an
+  alias to ``Api.schema`` for backward compatibility.
 
 0.14.0 (2019-03-08)
 +++++++++++++++++++
