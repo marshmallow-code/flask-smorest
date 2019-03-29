@@ -67,6 +67,7 @@ class ResponseMixin:
             resp_doc['examples'] = examples
         if headers is not None:
             resp_doc['headers'] = headers
+        doc = {'responses': {code: resp_doc}}
 
         def decorator(func):
 
@@ -104,10 +105,18 @@ class ResponseMixin:
 
                 return resp
 
+            # Document pagination header if needed
+            if getattr(func, '_paginated', False) is True:
+                doc['responses'][code]['headers'] = {
+                    self.PAGINATION_HEADER_FIELD_NAME: (
+                        self.PAGINATION_HEADER_DOC
+                    )
+                }
+
             # Store doc in wrapper function
             # The deepcopy avoids modifying the wrapped function doc
             wrapper._apidoc = deepcopy(getattr(wrapper, '_apidoc', {}))
-            wrapper._apidoc['response'] = {'responses': {code: resp_doc}}
+            wrapper._apidoc['response'] = doc
 
             return wrapper
 
