@@ -13,13 +13,22 @@ import apispec
 from flask_rest_api import Api, Blueprint
 from flask_rest_api.exceptions import OpenAPIVersionNotSpecified
 
-from .utils import get_definitions
+from .utils import get_schemas
 
 
 class TestApi():
     """Test Api class"""
 
+    def test_api_schema(self, app, schemas):
+        DocSchema = schemas.DocSchema
+        api = Api(app)
+        with mock.patch.object(apispec.core.Components, 'schema') as mock_def:
+            ret = api.schema('Document')(DocSchema)
+        assert ret is DocSchema
+        mock_def.assert_called_once_with('Document', schema=DocSchema)
+
     def test_api_definition(self, app, schemas):
+        """Compatibility: definition is an alias for schema"""
         DocSchema = schemas.DocSchema
         api = Api(app)
         with mock.patch.object(apispec.core.Components, 'schema') as mock_def:
@@ -28,22 +37,22 @@ class TestApi():
         mock_def.assert_called_once_with('Document', schema=DocSchema)
 
     @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.2'])
-    def test_api_definition_before_and_after_init(self, app, openapi_version):
+    def test_api_schema_before_and_after_init(self, app, openapi_version):
         app.config['OPENAPI_VERSION'] = openapi_version
         api = Api()
 
-        @api.definition('Schema_1')
+        @api.schema('Schema_1')
         class Schema_1(ma.Schema):
             int_1 = ma.fields.Int()
 
         api.init_app(app)
 
-        @api.definition('Schema_2')
+        @api.schema('Schema_2')
         class Schema_2(ma.Schema):
             int_2 = ma.fields.Int()
 
-        definitions = get_definitions(api.spec)
-        assert set(definitions) == {'Schema_1', 'Schema_2'}
+        schema_defs = get_schemas(api.spec)
+        assert {'Schema_1', 'Schema_2'}.issubset(schema_defs)
 
     @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.2'])
     @pytest.mark.parametrize('view_type', ['function', 'method'])
@@ -133,7 +142,7 @@ class TestApi():
 
         api.register_field(CustomField, *mapping)
 
-        @api.definition('Document')
+        @api.schema('Document')
         class Document(ma.Schema):
             field = CustomField()
 
@@ -145,7 +154,7 @@ class TestApi():
         else:
             properties = {'field': {'type': 'integer', 'format': 'int32'}}
 
-        assert get_definitions(api.spec)['Document'] == {
+        assert get_schemas(api.spec)['Document'] == {
             'properties': properties, 'type': 'object'}
 
     @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.2'])
@@ -162,7 +171,7 @@ class TestApi():
 
         api.register_field(CustomField_1, 'custom string', 'custom')
 
-        @api.definition('Schema_1')
+        @api.schema('Schema_1')
         class Schema_1(ma.Schema):
             int_1 = ma.fields.Int()
             custom_1 = CustomField_1()
@@ -170,15 +179,15 @@ class TestApi():
         api.init_app(app)
         api.register_field(CustomField_2, 'custom string', 'custom')
 
-        @api.definition('Schema_2')
+        @api.schema('Schema_2')
         class Schema_2(ma.Schema):
             int_2 = ma.fields.Int()
             custom_2 = CustomField_2()
 
-        definitions = get_definitions(api.spec)
-        assert definitions['Schema_1']['properties']['custom_1'] == {
+        schema_defs = get_schemas(api.spec)
+        assert schema_defs['Schema_1']['properties']['custom_1'] == {
             'type': 'custom string', 'format': 'custom'}
-        assert definitions['Schema_2']['properties']['custom_2'] == {
+        assert schema_defs['Schema_2']['properties']['custom_2'] == {
             'type': 'custom string', 'format': 'custom'}
 
     def test_api_extra_spec_kwargs(self, app):
@@ -200,8 +209,8 @@ class TestApi():
                 return {'dummy': 'whatever'}
 
         api = Api(app, spec_kwargs={'extra_plugins': (MyPlugin(), )})
-        api.definition('Pet')(schemas.DocSchema)
-        assert get_definitions(api.spec)['Pet']['dummy'] == 'whatever'
+        api.schema('Pet')(schemas.DocSchema)
+        assert get_schemas(api.spec)['Pet']['dummy'] == 'whatever'
 
     @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.2'])
     def test_api_gets_apispec_parameters_from_app(self, app, openapi_version):

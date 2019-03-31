@@ -188,34 +188,38 @@ class APISpecMixin(DocBlueprintMixin):
         # Register custom fields in spec
         for args in self._fields:
             self._register_field(*args)
-        # Register schema definitions in spec
-        for name, schema_cls, kwargs in self._definitions:
+        # Register schemas in spec
+        for name, schema_cls, kwargs in self._schemas:
             self.spec.components.schema(name, schema=schema_cls, **kwargs)
         # Register custom converters in spec
         for args in self._converters:
             self._register_converter(*args)
 
-    def definition(self, name):
+    def schema(self, name):
         """Decorator to register a Schema in the doc
 
-        This allows a schema to be defined once in the `definitions`
+        This allows a schema to be defined once in the `schemas`
         section of the spec and be referenced throughout the spec.
 
-        :param str name: Name of the definition in the spec
+        :param str name: Name of the schema in the spec
 
             Example: ::
 
-                @api.definition('Pet')
+                @api.schema('Pet')
                 class PetSchema(Schema):
                     ...
         """
         def decorator(schema_cls, **kwargs):
-            self._definitions.append((name, schema_cls, kwargs))
-            # Register definition in spec if app is already initialized
+            self._schemas.append((name, schema_cls, kwargs))
+            # Register schema in spec if app is already initialized
             if self.spec is not None:
                 self.spec.components.schema(name, schema=schema_cls, **kwargs)
             return schema_cls
         return decorator
+
+    def definition(self, name):
+        """Alias to :meth:`schema <Api.schema>`"""
+        return self.schema(name)
 
     def register_converter(self, converter, conv_type, conv_format=None):
         """Register custom path parameter converter
@@ -276,8 +280,8 @@ class APISpecMixin(DocBlueprintMixin):
             # Map to ('integer, 'int32') passing a code marshmallow field
             api.register_field(CustomInteger, ma.fields.Integer)
 
-        Should be called before registering definitions with
-        :meth:`definition <Api.definition>`.
+        Should be called before registering schemas with
+        :meth:`schema <Api.schema>`.
         """
         self._fields.append((field, *args))
         # Register field in spec if app is already initialized

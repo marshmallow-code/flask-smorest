@@ -73,10 +73,10 @@ illustrates how to pass `summary` and `description` using that decorator.
 
 .. code-block:: python
 
-    @blp.doc('description': 'Return pets based on ID',
-             'summary': 'Find pets by ID')
+    @blp.doc(description='Return pets based on ID',
+             summary='Find pets by ID')
     def get(...):
-        """This get methods is used to find pets by ID"""
+        """This method is used to find pets by ID"""
         ...
 
 `summary` and `description` passed using the
@@ -98,13 +98,13 @@ parameters.
 
     app.config['API_SPEC_OPTIONS'] = {'x-internal-id': '2'}
 
-    api = Api(app, spec_kwargs={'host': 'example.com', 'x-internal-id': 1})
+    api = Api(app, spec_kwargs={'host': 'example.com', 'x-internal-id': '1'})
 
 Note that ``app.config`` overrides ``spec_kwargs``. The example above produces
 
 .. code-block:: python
 
-    {'host': 'example.com', 'x-internal-id': 1, ...}
+    {'host': 'example.com', 'x-internal-id': '2', ...}
 
 .. note:: Again, flask-rest-api tries to provide as much information as
    possible, but some values can only by provided by the user.
@@ -117,17 +117,16 @@ Register Definitions
 --------------------
 
 When a schema is used multiple times throughout the spec, it is better to
-add it to the spec's definitions so as to reference it rather than duplicate
-its content.
+add it to the spec's schema components so as to reference it rather than
+duplicate its content.
 
-To register a definition from a schema, use the :meth:`Api.definition`
-decorator:
+To register a schema, use the :meth:`Api.schema` decorator:
 
 .. code-block:: python
 
     api = Api()
 
-    @api.definition('Pet')
+    @api.schema('Pet')
     class Pet(Schema):
         ...
 

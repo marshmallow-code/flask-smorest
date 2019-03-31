@@ -21,7 +21,7 @@ def _is_etag_enabled():
 
 def _get_etag_ctx():
     """Get ETag section of AppContext"""
-    return get_appcontext()['etag']
+    return get_appcontext().setdefault('etag', {})
 
 
 class EtagMixin:
@@ -50,6 +50,10 @@ class EtagMixin:
                 @blp.etag(EtagSchema)
                 def view_func(...):
                     ...
+
+        The ``etag`` decorator expects the decorated view function to return a
+        ``Response`` object. It is the case if it is decorated with the
+        ``response`` decorator.
 
         See :doc:`ETag <etag>`.
         """
@@ -82,13 +86,7 @@ class EtagMixin:
                     # Verify check_etag was called in resource code if needed
                     self._verify_check_etag()
                     # Add etag value to response
-                    # Pass data to use as ETag data if set_etag was not called
-                    # If etag_schema is provided, pass raw result rather than
-                    # dump, as the dump needs to be done using etag_schema
-                    etag_data = get_appcontext()[
-                        'result_dump' if etag_schema is None else 'result_raw'
-                    ]
-                    self._set_etag_in_response(resp, etag_data, etag_schema)
+                    self._set_etag_in_response(resp, etag_schema)
 
                 return resp
 
@@ -183,11 +181,12 @@ class EtagMixin:
 
         Raise 304 if ETag identical to If-None-Match header
 
-        Can be called from resource code. If not called, ETag will be computed
-        by default from response data before sending response.
+        Must be called from resource code, unless the view function is
+        decorated with the ``response`` decorator, in which case the ETag is
+        computed by default from response data if ``set_etag`` is not called.
 
         Logs a warning if called in a method other than one of
-        GET, HEAD, POST, PUT, PATCH
+        GET, HEAD, POST, PUT, PATCH.
         """
         if request.method not in self.METHODS_ALLOWING_SET_ETAG:
             current_app.logger.warning(
@@ -200,7 +199,7 @@ class EtagMixin:
             # Store ETag in AppContext to add it to response headers later on
             _get_etag_ctx()['etag'] = new_etag
 
-    def _set_etag_in_response(self, response, etag_data, etag_schema):
+    def _set_etag_in_response(self, response, etag_schema):
         """Set ETag in response object
 
         Called automatically.
@@ -212,9 +211,13 @@ class EtagMixin:
             new_etag = _get_etag_ctx().get('etag')
             # If no ETag data was manually provided, use response content
             if new_etag is None:
-                headers = (
-                    response.headers.get(h) for h in self.ETAG_INCLUDE_HEADERS)
-                extra_data = tuple(h for h in headers if h is not None)
+                # If etag_schema is provided, use raw result rather than
+                # the dump, as the dump needs to be done using etag_schema
+                etag_data = get_appcontext()[
+                    'result_dump' if etag_schema is None else 'result_raw'
+                ]
+                extra_data = tuple((k, v) for k, v in response.headers
+                                   if k in self.ETAG_INCLUDE_HEADERS)
                 new_etag = self._generate_etag(
                     etag_data, etag_schema, extra_data)
                 if new_etag in request.if_none_match:

@@ -10,6 +10,14 @@ flask-rest-api
     :target: https://pypi.org/project/flask-rest-api/
     :alt: Python versions
 
+.. image:: https://img.shields.io/badge/marshmallow-2%20|%203-blue.svg
+    :target: https://marshmallow.readthedocs.io/en/latest/upgrading.html
+    :alt: marshmallow 2/3 compatible
+
+.. image:: https://img.shields.io/badge/OAS-2%20|%203-green.svg
+    :target: https://github.com/OAI/OpenAPI-Specification
+    :alt: OpenAPI Specification 2/3 compatible
+
 .. image:: https://img.shields.io/pypi/l/flask-rest-api.svg
     :target: https://flask-rest-api.readthedocs.io/en/latest/license.html
     :alt: License
@@ -21,10 +29,6 @@ flask-rest-api
 .. image:: https://coveralls.io/repos/github/Nobatek/flask-rest-api/badge.svg?branch=master
     :target: https://coveralls.io/github/Nobatek/flask-rest-api/?branch=master
     :alt: Code coverage
-
-.. image:: https://api.codacy.com/project/badge/Grade/463485aeeac048f08cb4f40ebeb61160
-    :target: https://www.codacy.com/app/lafrech/flask-rest-api
-    :alt: Code health
 
 .. image:: https://readthedocs.org/projects/flask-rest-api/badge/
     :target: http://flask-rest-api.readthedocs.io/
@@ -55,6 +59,19 @@ Documentation
 =============
 
 Full documentation is available at http://flask-rest-api.readthedocs.io/.
+
+Support flask-rest-api
+======================
+
+flask-rest-api is built on marshmallow, webargs and apispec.
+
+If you'd like to support the future of the project, please consider
+contributing to marshmallow's Open Collective:
+
+.. image:: https://opencollective.com/marshmallow/donate/button.png
+    :target: https://opencollective.com/marshmallow
+    :width: 200
+    :alt: Donate to our collective
 
 License
 =======

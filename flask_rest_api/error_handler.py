@@ -24,7 +24,7 @@ class ErrorHandlerMixin:
           and Flask calls this handler to generate a better response.
 
         - When an exception is not caught in a view, Flask automatically calls
-          the handler regstered for error 500.
+          the handler registered for error 500.
 
         flask_rest_api republishes webargs's
         :func:`abort <webargs.flaskparser.abort>`. This ``abort`` allows the

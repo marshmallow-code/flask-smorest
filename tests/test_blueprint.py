@@ -8,8 +8,7 @@ import marshmallow as ma
 from flask import jsonify
 from flask.views import MethodView
 
-from flask_rest_api import Api
-from flask_rest_api.blueprint import Blueprint
+from flask_rest_api import Api, Blueprint, Page
 from flask_rest_api.exceptions import InvalidLocationError
 
 
@@ -205,7 +204,7 @@ class TestBlueprint():
         api = Api(app)
         blp = Blueprint('test', 'test', url_prefix='/test')
 
-        api.definition('Doc')(schemas.DocSchema)
+        api.schema('Doc')(schemas.DocSchema)
 
         @blp.route('/schema_many_false')
         @blp.response(schemas.DocSchema(many=False))
@@ -481,3 +480,146 @@ class TestBlueprint():
 
         assert 'get' in paths['/test/route_1']
         assert 'get' in paths['/test/route_2']
+
+    def test_blueprint_response_tuple(self, app):
+        api = Api(app)
+        blp = Blueprint('test', __name__, url_prefix='/test')
+        client = app.test_client()
+
+        @blp.route('/response')
+        @blp.response()
+        def func_response():
+            return {}
+
+        @blp.route('/response_code_int')
+        @blp.response()
+        def func_response_code_int():
+            return {}, 201
+
+        @blp.route('/response_code_str')
+        @blp.response()
+        def func_response_code_str():
+            return {}, '201 CREATED'
+
+        @blp.route('/response_headers')
+        @blp.response()
+        def func_response_headers():
+            return {}, {'X-header': 'test'}
+
+        @blp.route('/response_code_int_headers')
+        @blp.response()
+        def func_response_code_int_headers():
+            return {}, 201, {'X-header': 'test'}
+
+        @blp.route('/response_code_str_headers')
+        @blp.response()
+        def func_response_code_str_headers():
+            return {}, '201 CREATED', {'X-header': 'test'}
+
+        @blp.route('/response_wrong_tuple')
+        @blp.response()
+        def func_response_wrong_tuple():
+            return {}, 201, {'X-header': 'test'}, 'extra'
+
+        api.register_blueprint(blp)
+
+        response = client.get('/test/response')
+        assert response.status_code == 200
+        assert response.json == {}
+        response = client.get('/test/response_code_int')
+        assert response.status_code == 201
+        assert response.status == '201 CREATED'
+        assert response.json == {}
+        response = client.get('/test/response_code_str')
+        assert response.status_code == 201
+        assert response.status == '201 CREATED'
+        assert response.json == {}
+        response = client.get('/test/response_headers')
+        assert response.status_code == 200
+        assert response.json == {}
+        assert response.headers['X-header'] == 'test'
+        response = client.get('/test/response_code_int_headers')
+        assert response.status_code == 201
+        assert response.status == '201 CREATED'
+        assert response.json == {}
+        assert response.headers['X-header'] == 'test'
+        response = client.get('/test/response_code_str_headers')
+        assert response.status_code == 201
+        assert response.status == '201 CREATED'
+        assert response.json == {}
+        assert response.headers['X-header'] == 'test'
+        response = client.get('/test/response_wrong_tuple')
+        assert response.status_code == 500
+
+    def test_blueprint_pagination_response_tuple(self, app):
+        api = Api(app)
+        blp = Blueprint('test', __name__, url_prefix='/test')
+        client = app.test_client()
+
+        @blp.route('/response')
+        @blp.response()
+        @blp.paginate(Page)
+        def func_response():
+            return [1, 2]
+
+        @blp.route('/response_code')
+        @blp.response()
+        @blp.paginate(Page)
+        def func_response_code():
+            return [1, 2], 201
+
+        @blp.route('/response_headers')
+        @blp.response()
+        @blp.paginate(Page)
+        def func_response_headers():
+            return [1, 2], {'X-header': 'test'}
+
+        @blp.route('/response_code_headers')
+        @blp.response()
+        @blp.paginate(Page)
+        def func_response_code_headers():
+            return [1, 2], 201, {'X-header': 'test'}
+
+        @blp.route('/response_wrong_tuple')
+        @blp.response()
+        @blp.paginate(Page)
+        def func_response_wrong_tuple():
+            return [1, 2], 201, {'X-header': 'test'}, 'extra'
+
+        api.register_blueprint(blp)
+
+        response = client.get('/test/response')
+        assert response.status_code == 200
+        assert response.json == [1, 2]
+        response = client.get('/test/response_code')
+        assert response.status_code == 201
+        assert response.json == [1, 2]
+        response = client.get('/test/response_headers')
+        assert response.status_code == 200
+        assert response.json == [1, 2]
+        assert response.headers['X-header'] == 'test'
+        response = client.get('/test/response_code_headers')
+        assert response.status_code == 201
+        assert response.json == [1, 2]
+        assert response.headers['X-header'] == 'test'
+        response = client.get('/test/response_wrong_tuple')
+        assert response.status_code == 500
+
+    def test_blueprint_response_response_object(self, app, schemas):
+        api = Api(app)
+        blp = Blueprint('test', __name__, url_prefix='/test')
+        client = app.test_client()
+
+        @blp.route('/response')
+        # Schema is ignored when response object is returned
+        @blp.response(schemas.DocSchema, code=200)
+        def func_response():
+            return jsonify({}), 201, {'X-header': 'test'}
+
+        api.register_blueprint(blp)
+
+        response = client.get('/test/response')
+        assert response.status_code == 201
+        assert response.status == '201 CREATED'
+        assert response.json == {}
+        assert response.headers['X-header'] == 'test'

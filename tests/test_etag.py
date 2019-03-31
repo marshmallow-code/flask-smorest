@@ -7,7 +7,7 @@ from unittest import mock
 
 import pytest
 
-from flask import Response
+from flask import jsonify, Response
 from flask.views import MethodView
 
 from flask_rest_api import Api, Blueprint, abort
@@ -15,6 +15,7 @@ from flask_rest_api.etag import _get_etag_ctx
 from flask_rest_api.exceptions import (
     CheckEtagNotCalledError,
     NotModified, PreconditionRequired, PreconditionFailed)
+from flask_rest_api.utils import get_appcontext
 from flask_rest_api.compat import MARSHMALLOW_VERSION_MAJOR
 
 from .mocks import ItemNotFound
@@ -344,7 +345,10 @@ class TestEtag():
         blp = Blueprint('test', __name__)
         etag_schema = schemas.DocEtagSchema
         item = {'item_id': 1, 'db_field': 0}
-        extra_data = ('Dummy pagination header', ) if paginate else tuple()
+        if paginate:
+            extra_data = (('X-Pagination', 'Dummy pagination header'),)
+        else:
+            extra_data = tuple()
         etag = blp._generate_etag(item, extra_data=extra_data)
         etag_with_schema = blp._generate_etag(
             item, etag_schema, extra_data=extra_data)
@@ -353,10 +357,62 @@ class TestEtag():
             resp = Response()
             if extra_data:
                 resp.headers['X-Pagination'] = 'Dummy pagination header'
-            blp._set_etag_in_response(resp, item, None)
+            get_appcontext()['result_dump'] = item
+            blp._set_etag_in_response(resp, None)
             assert resp.get_etag() == (etag, False)
-            blp._set_etag_in_response(resp, item, etag_schema)
+
+        with app.test_request_context('/'):
+            resp = Response()
+            if extra_data:
+                resp.headers['X-Pagination'] = 'Dummy pagination header'
+            get_appcontext()['result_raw'] = item
+            blp._set_etag_in_response(resp, etag_schema)
             assert resp.get_etag() == (etag_with_schema, False)
+
+    def test_etag_duplicate_header(self, app):
+        """Check duplicate header results in a different ETag"""
+
+        class CustomBlueprint(Blueprint):
+            ETAG_INCLUDE_HEADERS = Blueprint.ETAG_INCLUDE_HEADERS + ['X-test']
+
+        blp = CustomBlueprint('test', __name__, url_prefix='/test')
+
+        with app.test_request_context('/'):
+            resp = Response()
+            resp.headers.add('X-test', 'Test')
+            get_appcontext()['result_dump'] = {}
+            blp._set_etag_in_response(resp, None)
+            etag_1 = resp.get_etag()
+
+        with app.test_request_context('/'):
+            resp = Response()
+            resp.headers.add('X-test', 'Test')
+            resp.headers.add('X-test', 'Test')
+            get_appcontext()['result_dump'] = {}
+            blp._set_etag_in_response(resp, None)
+            etag_2 = resp.get_etag()
+
+        assert etag_1 != etag_2
+
+    def test_etag_response_object(self, app):
+        api = Api(app)
+        blp = Blueprint('test', __name__, url_prefix='/test')
+        client = app.test_client()
+
+        @blp.route('/')
+        @blp.etag
+        @blp.response()
+        def func_response_etag():
+            # When the view function returns a Response object,
+            # the ETag must be specified manually
+            blp.set_etag('test')
+            return jsonify({})
+
+        api.register_blueprint(blp)
+
+        response = client.get('/test/')
+        assert response.json == {}
+        assert response.get_etag() == (blp._generate_etag('test'), False)
 
     def test_etag_operations_etag_enabled(self, app_with_etag):
 

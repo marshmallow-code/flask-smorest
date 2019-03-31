@@ -1,6 +1,32 @@
 Changelog
 ---------
 
+0.14.1 (unreleased)
++++++++++++++++++++
+
+Features:
+
+- Official Python 3.7 support (:pr:`45`).
+- Rename ``Api.definition`` as ``Api.schema``. Keep ``Api.definition`` as an
+  alias to ``Api.schema`` for backward compatibility.
+
+0.14.0 (2019-03-08)
++++++++++++++++++++
+
+Features:
+
+- Allow view functions decorated with ``response`` to return a ``Response``
+  object or a tuple with status and/or headers (:pr:`40`).
+- Allow view functions decorated with ``paginate`` to return a tuple with
+  status and/or headers (:pr:`40`). The pagination header is now passed
+  in the response tuple. Users relying on undocumented
+  ``get_context()['headers']`` as a workaround to pass headers must update
+  their code to pass headers in the response tuple as well.
+
+Bug fixes:
+
+- Fix ETag computation when headers contain a duplicate key.
+
 0.13.1 (2019-02-13)
 +++++++++++++++++++
 
