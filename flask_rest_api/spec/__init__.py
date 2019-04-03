@@ -134,17 +134,18 @@ class DocBlueprintMixin:
             mimetype='application/json')
 
     def _fix_base_path(self):
-        """Lazily set OpenAPI basePath for each request.
+        """Lazily set OpenAPI servers for each request.
         This is to reflect the path root the application is running under.
         c.f. SCRIPT_NAME https://www.python.org/dev/peps/pep-0333/#environ-variables
         """
         if not flask.has_request_context():
             # not in request
             return
-        if not flask.request.script_root:
-            # not running under different root
-            return
-        self.spec.options['basePath'] = flask.request.script_root
+        # TODO: allow configuration of more servers.
+        servers = [{
+            'url': flask.request.url_root,
+        }]
+        self.spec.options['servers'] = servers
 
     def _openapi_redoc(self):
         """Expose OpenAPI spec with ReDoc"""
