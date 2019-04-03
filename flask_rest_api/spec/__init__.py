@@ -128,9 +128,23 @@ class DocBlueprintMixin:
         """Serve JSON spec file"""
         # We don't use Flask.jsonify here as it would sort the keys
         # alphabetically while we want to preserve the order.
+        self._fix_base_path()
         return current_app.response_class(
             json.dumps(self.spec.to_dict(), indent=2),
             mimetype='application/json')
+
+    def _fix_base_path(self):
+        """Lazily set OpenAPI basePath for each request.
+        This is to reflect the path root the application is running under.
+        c.f. SCRIPT_NAME https://www.python.org/dev/peps/pep-0333/#environ-variables
+        """
+        if not flask.has_request_context():
+            # not in request
+            return
+        if not flask.request.script_root:
+            # not running under different root
+            return
+        self.spec.options['basePath'] = flask.request.script_root
 
     def _openapi_redoc(self):
         """Expose OpenAPI spec with ReDoc"""
