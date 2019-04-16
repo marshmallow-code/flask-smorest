@@ -14,6 +14,8 @@ Bug fixes:
 
 - Fix passing route with path parameter default value (:pr:`58`).
   Thanks :user:`zedrdave` for reporting.
+- When no descrition is provided to ``Blueprint.response``, don't add an empty
+  string as description in the docs.
 
 0.14.0 (2019-03-08)
 +++++++++++++++++++
