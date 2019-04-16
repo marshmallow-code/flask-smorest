@@ -58,7 +58,7 @@ class FlaskPlugin(BasePlugin):
     def rule_to_params(self, rule):
         """Get parameters from flask Rule"""
         params = []
-        for argument in rule.arguments:
+        for argument in [a for a in rule.arguments if a not in rule.defaults]:
             param = {
                 'in': 'path',
                 'name': argument,

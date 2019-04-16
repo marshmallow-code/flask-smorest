@@ -481,6 +481,35 @@ class TestBlueprint():
         assert 'get' in paths['/test/route_1']
         assert 'get' in paths['/test/route_2']
 
+    @pytest.mark.parametrize('openapi_version', ('2.0', '3.0.2'))
+    @pytest.mark.parametrize('as_method_view', (True, False))
+    def test_blueprint_route_path_parameter_default(
+            self, app, as_method_view, openapi_version):
+        app.config['OPENAPI_VERSION'] = openapi_version
+        api = Api(app)
+        blp = Blueprint('test', __name__, url_prefix='/test')
+
+        if as_method_view:
+            @blp.route('/<int:user_id>')
+            @blp.route('/', defaults={'user_id': 1})
+            class Resource(MethodView):
+
+                def get(self, user_id):
+                    pass
+
+        else:
+            @blp.route('/<int:user_id>')
+            @blp.route('/', defaults={'user_id': 1})
+            def func(user_id):
+                pass
+
+        api.register_blueprint(blp)
+        paths = api.spec.to_dict()['paths']
+
+        assert 'parameters' not in paths['/test/']['get']
+        assert paths['/test/{user_id}']['get']['parameters'][0][
+            'name'] == 'user_id'
+
     def test_blueprint_response_tuple(self, app):
         api = Api(app)
         blp = Blueprint('test', __name__, url_prefix='/test')
