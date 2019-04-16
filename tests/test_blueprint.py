@@ -238,6 +238,27 @@ class TestBlueprint():
                 response['content']['application/json']['schema']['items'])
             assert schema == {'$ref': '#/components/schemas/Doc'}
 
+    def test_blueprint_response_description(self, app):
+        api = Api(app)
+        blp = Blueprint('test', 'test', url_prefix='/test')
+
+        @blp.route('/route_1')
+        @blp.response()
+        def func_1():
+            pass
+
+        @blp.route('/route_2')
+        @blp.response(description='Test')
+        def func_2():
+            pass
+
+        api.register_blueprint(blp)
+
+        get_1 = api.spec.to_dict()['paths']['/test/route_1']['get']
+        assert 'description' not in get_1['responses']['200']
+        get_2 = api.spec.to_dict()['paths']['/test/route_2']['get']
+        assert get_2['responses']['200']['description'] == 'Test'
+
     @pytest.mark.parametrize('openapi_version', ('2.0', '3.0.2'))
     def test_blueprint_pagination(self, app, schemas, openapi_version):
         app.config['OPENAPI_VERSION'] = openapi_version
@@ -367,6 +388,7 @@ class TestBlueprint():
         api.register_blueprint(blp)
         spec = api.spec.to_dict()
         get = spec['paths']['/test/']['get']
+        print(get)
         assert get['requestBody']['content']['application/json'][
             'example'] == {'test': 123}
         assert get['responses']['200']['content']['application/json'][

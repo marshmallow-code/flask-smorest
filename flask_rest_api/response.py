@@ -15,14 +15,14 @@ from .compat import MARSHMALLOW_VERSION_MAJOR
 class ResponseMixin:
     """Extend Blueprint to add response handling"""
 
-    def response(self, schema=None, *, code=200, description=''):
+    def response(self, schema=None, *, code=200, description=None):
         """Decorator generating an endpoint response
 
         :param schema: :class:`Schema <marshmallow.Schema>` class or instance.
             If not None, will be used to serialize response data.
         :param int code: HTTP status code (default: 200). Used if none is
             returned from the view function.
-        :param str descripton: Description of the response.
+        :param str description: Description of the response (default: None).
 
         The decorated function is expected to return the same types of value
         than a typical flask view function, except the body part may be an
@@ -39,11 +39,14 @@ class ResponseMixin:
 
         def decorator(func):
 
-            # Add schema as response in the API doc
-            doc = {'responses': {str(code): {'description': description}}}
+            # Document response (schema, description) in the API doc
+            resp_doc = {}
             doc_schema = self._make_doc_response_schema(schema)
-            if doc_schema:
-                doc['responses'][str(code)]['schema'] = doc_schema
+            if doc_schema is not None:
+                resp_doc['schema'] = doc_schema
+            if description is not None:
+                resp_doc['description'] = description
+            doc = {'responses': {str(code): resp_doc}}
             func._apidoc = deepupdate(getattr(func, '_apidoc', {}), doc)
 
             @wraps(func)
