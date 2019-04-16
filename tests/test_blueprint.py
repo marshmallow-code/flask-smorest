@@ -566,6 +566,13 @@ class TestBlueprint():
         def func_response_wrong_tuple():
             return {}, 201, {'X-header': 'test'}, 'extra'
 
+        @blp.route('/response_tuple_subclass')
+        @blp.response()
+        def func_response_tuple_subclass():
+            class MyTuple(tuple):
+                pass
+            return MyTuple((1, 2))
+
         api.register_blueprint(blp)
 
         response = client.get('/test/response')
@@ -595,6 +602,9 @@ class TestBlueprint():
         assert response.headers['X-header'] == 'test'
         response = client.get('/test/response_wrong_tuple')
         assert response.status_code == 500
+        response = client.get('/test/response_tuple_subclass')
+        assert response.status_code == 200
+        assert response.json == [1, 2]
 
     def test_blueprint_pagination_response_tuple(self, app):
         api = Api(app)
@@ -631,6 +641,14 @@ class TestBlueprint():
         def func_response_wrong_tuple():
             return [1, 2], 201, {'X-header': 'test'}, 'extra'
 
+        @blp.route('/response_tuple_subclass')
+        @blp.response()
+        @blp.paginate(Page)
+        def func_response_tuple_subclass():
+            class MyTuple(tuple):
+                pass
+            return MyTuple((1, 2))
+
         api.register_blueprint(blp)
 
         response = client.get('/test/response')
@@ -649,6 +667,9 @@ class TestBlueprint():
         assert response.headers['X-header'] == 'test'
         response = client.get('/test/response_wrong_tuple')
         assert response.status_code == 500
+        response = client.get('/test/response_tuple_subclass')
+        assert response.status_code == 200
+        assert response.json == [1, 2]
 
     def test_blueprint_response_response_object(self, app, schemas):
         api = Api(app)
