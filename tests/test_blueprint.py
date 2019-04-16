@@ -472,11 +472,8 @@ class TestBlueprint():
         methods = list(api.spec.to_dict()['paths']['/test/'].keys())
         assert methods == [m.lower() for m in http_methods]
 
-    @pytest.mark.parametrize('openapi_version', ('2.0', '3.0.2'))
     @pytest.mark.parametrize('as_method_view', (True, False))
-    def test_blueprint_multiple_routes_per_view(
-            self, app, as_method_view, openapi_version):
-        app.config['OPENAPI_VERSION'] = openapi_version
+    def test_blueprint_multiple_routes_per_view(self, app, as_method_view):
         api = Api(app)
         blp = Blueprint('test', __name__, url_prefix='/test')
 
@@ -503,11 +500,8 @@ class TestBlueprint():
         assert 'get' in paths['/test/route_1']
         assert 'get' in paths['/test/route_2']
 
-    @pytest.mark.parametrize('openapi_version', ('2.0', '3.0.2'))
     @pytest.mark.parametrize('as_method_view', (True, False))
-    def test_blueprint_route_path_parameter_default(
-            self, app, as_method_view, openapi_version):
-        app.config['OPENAPI_VERSION'] = openapi_version
+    def test_blueprint_route_path_parameter_default(self, app, as_method_view):
         api = Api(app)
         blp = Blueprint('test', __name__, url_prefix='/test')
 
