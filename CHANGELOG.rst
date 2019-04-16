@@ -10,6 +10,11 @@ Features:
 - Rename ``Api.definition`` as ``Api.schema``. Keep ``Api.definition`` as an
   alias to ``Api.schema`` for backward compatibility (:pr:`53`).
 
+Bug fixes:
+
+- Fix passing route with path parameter default value (:pr:`58`).
+  Thanks :user:`zedrdave` for reporting.
+
 0.14.0 (2019-03-08)
 +++++++++++++++++++
 
