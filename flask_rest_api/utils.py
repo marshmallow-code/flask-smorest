@@ -64,14 +64,16 @@ def load_info_from_docstring(docstring):
     return info
 
 
-# Copied from flask
+# Copied from Flask
 def unpack_tuple_response(rv):
     """Unpack a flask Response tuple"""
 
     status = headers = None
 
     # unpack tuple returns
-    if isinstance(rv, tuple):
+    # Unlike Flask, we check exact type because tuple subclasses may be
+    # returned by view functions and paginated/dumped
+    if type(rv) is tuple:  # pylint: disable=unidiomatic-typecheck
         len_rv = len(rv)
 
         # a 3-tuple is unpacked directly
