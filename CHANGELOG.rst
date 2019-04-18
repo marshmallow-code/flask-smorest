@@ -1,7 +1,7 @@
 Changelog
 ---------
 
-0.14.1 (unreleased)
+0.14.1 (2019-04-18)
 +++++++++++++++++++
 
 Features:
@@ -16,6 +16,12 @@ Bug fixes:
   Thanks :user:`zedrdave` for reporting.
 - When no descrition is provided to ``Blueprint.response``, don't add an empty
   string as description in the docs.
+- Fix returning a ``tuple`` subclass from a view function. Only raw ``tuple``
+  instances are considered as Flask's (return value, status, headers).
+  ``tuple`` subclasses are treated as ``list`` and can be paginated/dumped.
+  Raw ``tuple`` return values should be cast to another type (e.g. ``list``)
+  to be distinguished from (return value, status, headers) tuple. (:issue:`52`)
+  Thanks :user:`asyncee` for reporting.
 
 0.14.0 (2019-03-08)
 +++++++++++++++++++
