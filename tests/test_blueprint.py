@@ -388,7 +388,6 @@ class TestBlueprint():
         api.register_blueprint(blp)
         spec = api.spec.to_dict()
         get = spec['paths']['/test/']['get']
-        print(get)
         assert get['requestBody']['content']['application/json'][
             'example'] == {'test': 123}
         assert get['responses']['200']['content']['application/json'][
