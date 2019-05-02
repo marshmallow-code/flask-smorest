@@ -23,8 +23,8 @@ class ResponseMixin:
 
         :param schema: :class:`Schema <marshmallow.Schema>` class or instance.
             If not None, will be used to serialize response data.
-        :param int code: HTTP status code (default: 200). Used if none is
-            returned from the view function.
+        :param int|str|HTTPStatus code: HTTP status code (default: 200).
+            Used if none is returned from the view function.
         :param str description: Description of the response (default: None).
         :param dict example: Example of response message.
         :param list examples: Examples of response message.
@@ -64,7 +64,7 @@ class ResponseMixin:
                 resp_doc['examples'] = examples
             if headers is not None:
                 resp_doc['headers'] = headers
-            doc = {'responses': {str(code): resp_doc}}
+            doc = {'responses': {code: resp_doc}}
             func._apidoc = deepupdate(getattr(func, '_apidoc', {}), doc)
 
             @wraps(func)

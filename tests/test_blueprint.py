@@ -1,6 +1,7 @@
 """Test Blueprint extra features"""
 
 import json
+import http
 import pytest
 
 import marshmallow as ma
@@ -431,6 +432,7 @@ class TestBlueprint():
         api = Api(app)
         blp = Blueprint('test', __name__, url_prefix='/test')
 
+        # This is a dummy example. In real-life, use 'example' parameter.
         doc_example = {
             'content': {'application/json': {'example': {'test': 123}}}}
 
@@ -441,7 +443,7 @@ class TestBlueprint():
         class Resource(MethodView):
 
             @blp.doc(**{'requestBody': doc_example})
-            @blp.doc(**{'responses': {'200': doc_example}})
+            @blp.doc(**{'responses': {200: doc_example}})
             @blp.arguments(ItemSchema)
             @blp.response(ItemSchema)
             def get(self):
@@ -452,8 +454,39 @@ class TestBlueprint():
         get = spec['paths']['/test/']['get']
         assert get['requestBody']['content']['application/json'][
             'example'] == {'test': 123}
-        assert get['responses']['200']['content']['application/json'][
-            'example'] == {'test': 123}
+        resp = get['responses']['200']
+        assert resp['content']['application/json']['example'] == {'test': 123}
+        assert 'schema' in resp['content']['application/json']
+
+    @pytest.mark.parametrize('status_code', (200, '200', http.HTTPStatus.OK))
+    def test_blueprint_response_status_code_cast_to_string(
+            self, app, status_code):
+        api = Api(app)
+        blp = Blueprint('test', __name__, url_prefix='/test')
+
+        # This is a dummy example. In real-life, use 'description' parameter.
+        doc_desc = {'description': 'Description'}
+
+        class ItemSchema(ma.Schema):
+            test = ma.fields.Int()
+
+        @blp.route('/')
+        class Resource(MethodView):
+
+            # When documenting a response, @blp.doc MUST use the same type
+            # to express the status code as the one used in @blp.response.
+            # (Default is 200 expressed as int.)
+            @blp.doc(**{'responses': {status_code: doc_desc}})
+            @blp.arguments(ItemSchema)
+            @blp.response(ItemSchema, code=status_code)
+            def get(self):
+                pass
+
+        api.register_blueprint(blp)
+        spec = api.spec.to_dict()
+        resp = spec['paths']['/test/']['get']['responses']['200']
+        assert resp['description'] == 'Description'
+        assert 'schema' in resp['content']['application/json']
 
     def test_blueprint_doc_info_from_docstring(self, app):
         api = Api(app)
