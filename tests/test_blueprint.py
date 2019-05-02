@@ -260,6 +260,52 @@ class TestBlueprint():
         assert get_2['responses']['200']['description'] == 'Test'
 
     @pytest.mark.parametrize('openapi_version', ('2.0', '3.0.2'))
+    def test_blueprint_response_example(self, app, openapi_version):
+        app.config['OPENAPI_VERSION'] = openapi_version
+        api = Api(app)
+        blp = Blueprint('test', 'test', url_prefix='/test')
+
+        example = {'name': 'One'}
+
+        @blp.route('/')
+        @blp.response(example=example)
+        def func():
+            pass
+
+        api.register_blueprint(blp)
+
+        get = api.spec.to_dict()['paths']['/test/']['get']
+        if openapi_version == '2.0':
+            assert get['responses']['200']['examples'][
+                'application/json'] == example
+        else:
+            assert get['responses']['200']['content'][
+                'application/json']['example'] == example
+
+    # This is only relevant to OAS3.
+    @pytest.mark.parametrize('openapi_version', ('3.0.2', ))
+    def test_blueprint_response_examples(self, app, openapi_version):
+        app.config['OPENAPI_VERSION'] = openapi_version
+        api = Api(app)
+        blp = Blueprint('test', 'test', url_prefix='/test')
+
+        examples = {
+            'example 1': {'summary': 'Example 1', 'value': {'name': 'One'}},
+            'example 2': {'summary': 'Example 2', 'value': {'name': 'Two'}},
+        }
+
+        @blp.route('/')
+        @blp.response(examples=examples)
+        def func():
+            pass
+
+        api.register_blueprint(blp)
+
+        get = api.spec.to_dict()['paths']['/test/']['get']
+        assert get['responses']['200']['content']['application/json'][
+            'examples'] == examples
+
+    @pytest.mark.parametrize('openapi_version', ('2.0', '3.0.2'))
     def test_blueprint_pagination(self, app, schemas, openapi_version):
         app.config['OPENAPI_VERSION'] = openapi_version
         api = Api(app)
