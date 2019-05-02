@@ -305,6 +305,22 @@ class TestBlueprint():
         assert get['responses']['200']['content']['application/json'][
             'examples'] == examples
 
+    def test_blueprint_response_headers(self, app):
+        api = Api(app)
+        blp = Blueprint('test', 'test', url_prefix='/test')
+
+        headers = {'X-Header': {'description': 'Custom header'}}
+
+        @blp.route('/')
+        @blp.response(headers=headers)
+        def func():
+            pass
+
+        api.register_blueprint(blp)
+
+        get = api.spec.to_dict()['paths']['/test/']['get']
+        assert get['responses']['200']['headers'] == headers
+
     @pytest.mark.parametrize('openapi_version', ('2.0', '3.0.2'))
     def test_blueprint_pagination(self, app, schemas, openapi_version):
         app.config['OPENAPI_VERSION'] = openapi_version
