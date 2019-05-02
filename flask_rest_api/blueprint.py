@@ -184,13 +184,20 @@ class Blueprint(
         versions: the OpenAPI version is not known when the decorators are
         applied but only at registration time when this method is called.
         """
-        if openapi_version.major >= 3:
+        if openapi_version.major < 3:
             if 'responses' in operation:
                 for resp in operation['responses'].values():
-                    if 'schema' in resp:
-                        resp['content'] = {
-                            'application/json': {
-                                'schema': resp.pop('schema')}}
+                    if 'example' in resp:
+                        resp['examples'] = {
+                            'application/json': resp.pop('example')}
+        else:
+            if 'responses' in operation:
+                for resp in operation['responses'].values():
+                    for field in ('schema', 'example', 'examples'):
+                        if field in resp:
+                            resp.setdefault('content', {})
+                            resp['content'].setdefault('application/json', {})[
+                                field] = resp.pop(field)
             if 'parameters' in operation:
                 for param in operation['parameters']:
                     if param['in'] == 'body':

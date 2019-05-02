@@ -15,7 +15,10 @@ from .compat import MARSHMALLOW_VERSION_MAJOR
 class ResponseMixin:
     """Extend Blueprint to add response handling"""
 
-    def response(self, schema=None, *, code=200, description=None):
+    def response(
+            self, schema=None, *, code=200, description=None,
+            example=None, examples=None, headers=None
+    ):
         """Decorator generating an endpoint response
 
         :param schema: :class:`Schema <marshmallow.Schema>` class or instance.
@@ -23,6 +26,9 @@ class ResponseMixin:
         :param int code: HTTP status code (default: 200). Used if none is
             returned from the view function.
         :param str description: Description of the response (default: None).
+        :param dict example: Example of response message.
+        :param list examples: Examples of response message.
+        :param dict headers: Headers returned by the response.
 
         The decorated function is expected to return the same types of value
         than a typical flask view function, except the body part may be an
@@ -31,6 +37,12 @@ class ResponseMixin:
 
         If the decorated function returns a ``Response`` object, the ``schema``
         and ``code`` parameters are only used to document the resource.
+
+        The `example` and `examples` parameters are mutually exclusive. The
+        latter should only be used with OpenAPI 3.
+
+        The `example`, `examples` and `headers` parameters are only used to
+        document the resource.
 
         See :doc:`Response <response>`.
         """
@@ -46,6 +58,12 @@ class ResponseMixin:
                 resp_doc['schema'] = doc_schema
             if description is not None:
                 resp_doc['description'] = description
+            if example is not None:
+                resp_doc['example'] = example
+            if examples is not None:
+                resp_doc['examples'] = examples
+            if headers is not None:
+                resp_doc['headers'] = headers
             doc = {'responses': {str(code): resp_doc}}
             func._apidoc = deepupdate(getattr(func, '_apidoc', {}), doc)
 
