@@ -195,26 +195,27 @@ class Blueprint(
                 for resp in operation['responses'].values():
                     for field in ('schema', 'example', 'examples'):
                         if field in resp:
-                            resp.setdefault('content', {})
-                            resp['content'].setdefault('application/json', {})[
-                                field] = resp.pop(field)
+                            (
+                                resp
+                                .setdefault('content', {})
+                                .setdefault('application/json', {})
+                                [field]
+                            ) = resp.pop(field)
             if 'parameters' in operation:
                 for param in operation['parameters']:
                     if param['in'] == 'body':
                         request_body = {
-                            **{
-                                'content': {
-                                    'application/json': {
-                                        'schema': param['schema']
-                                    }
-                                }
-                            },
-                            **{
-                                x: param[x]
-                                for x in ('description', 'required')
-                                if x in param
-                            }
+                            x: param[x] for x in ('description', 'required')
+                            if x in param
                         }
+                        for field in ('schema', 'example', 'examples'):
+                            if field in param:
+                                (
+                                    request_body
+                                    .setdefault('content', {})
+                                    .setdefault('application/json', {})
+                                    [field]
+                                ) = param.pop(field)
                         operation['requestBody'] = request_body
                         # There can be only one requestBody
                         continue

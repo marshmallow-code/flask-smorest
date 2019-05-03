@@ -13,7 +13,10 @@ class ArgumentsMixin:
 
     ARGUMENTS_PARSER = FlaskParser()
 
-    def arguments(self, schema, *, location='json', required=True, **kwargs):
+    def arguments(
+            self, schema, *, location='json', required=True,
+            example=None, examples=None, **kwargs
+    ):
         """Decorator specifying the schema used to deserialize parameters
 
         :param type|Schema schema: Marshmallow ``Schema`` class or instance
@@ -24,9 +27,14 @@ class ArgumentsMixin:
             expose the whole schema as a `required` parameter.
             For other locations, the schema is turned into an array of
             parameters and their required value is inferred from the schema.
+        :param dict example: Parameter example.
+        :param list examples: List of parameter examples.
         :param dict kwargs: Keyword arguments passed to the webargs
             :meth:`use_args <webargs.core.Parser.use_args>` decorator used
             internally.
+
+        The `example` and `examples` parameters are mutually exclusive and
+        should only be used with OpenAPI 3 and when location is `json`.
 
         See :doc:`Arguments <arguments>`.
         """
@@ -43,6 +51,10 @@ class ArgumentsMixin:
             'required': required,
             'schema': schema,
         }
+        if example is not None:
+            parameters['example'] = example
+        if examples is not None:
+            parameters['examples'] = examples
 
         def decorator(func):
             # Add parameter to parameters list in doc info in function object

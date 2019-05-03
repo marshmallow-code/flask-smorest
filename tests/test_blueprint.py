@@ -165,6 +165,39 @@ class TestBlueprint():
             'query_args': {'arg1': 'test'},
         }
 
+    # This is only relevant to OAS3.
+    @pytest.mark.parametrize('openapi_version', ('3.0.2', ))
+    def test_blueprint_arguments_examples(self, app, schemas, openapi_version):
+        app.config['OPENAPI_VERSION'] = openapi_version
+        api = Api(app)
+        blp = Blueprint('test', __name__, url_prefix='/test')
+
+        example = {'field': 12}
+        examples = {'example 1': {'field': 12}, 'example 2': {'field': 42}}
+
+        @blp.route('/example')
+        @blp.arguments(schemas.DocSchema, example=example)
+        def func_example():
+            """Dummy view func"""
+
+        @blp.route('/examples')
+        @blp.arguments(schemas.DocSchema, examples=examples)
+        def func_examples():
+            """Dummy view func"""
+
+        api.register_blueprint(blp)
+        spec = api.spec.to_dict()
+        get = spec['paths']['/test/example']['get']
+        assert (
+            get['requestBody']['content']['application/json']['example'] ==
+            example
+        )
+        get = spec['paths']['/test/examples']['get']
+        assert (
+            get['requestBody']['content']['application/json']['examples'] ==
+            examples
+        )
+
     @pytest.mark.parametrize('openapi_version', ('2.0', '3.0.2'))
     def test_blueprint_path_parameters(self, app, openapi_version):
         """Check auto and manual param docs are merged"""
