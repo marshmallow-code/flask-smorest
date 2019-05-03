@@ -1,5 +1,6 @@
 """Response processor"""
 
+from copy import deepcopy
 from functools import wraps
 
 from werkzeug.wrappers import BaseResponse
@@ -49,23 +50,22 @@ class ResponseMixin:
         if isinstance(schema, type):
             schema = schema()
 
-        def decorator(func):
+        # Document response (schema, description,...) in the API doc
+        resp_doc = {}
+        doc_schema = self._make_doc_response_schema(schema)
+        if doc_schema is not None:
+            resp_doc['schema'] = doc_schema
+        if description is not None:
+            resp_doc['description'] = description
+        if example is not None:
+            resp_doc['example'] = example
+        if examples is not None:
+            resp_doc['examples'] = examples
+        if headers is not None:
+            resp_doc['headers'] = headers
+        doc = {'responses': {code: resp_doc}}
 
-            # Document response (schema, description) in the API doc
-            resp_doc = {}
-            doc_schema = self._make_doc_response_schema(schema)
-            if doc_schema is not None:
-                resp_doc['schema'] = doc_schema
-            if description is not None:
-                resp_doc['description'] = description
-            if example is not None:
-                resp_doc['example'] = example
-            if examples is not None:
-                resp_doc['examples'] = examples
-            if headers is not None:
-                resp_doc['headers'] = headers
-            doc = {'responses': {code: resp_doc}}
-            func._apidoc = deepupdate(getattr(func, '_apidoc', {}), doc)
+        def decorator(func):
 
             @wraps(func)
             def wrapper(*args, **kwargs):
@@ -100,6 +100,11 @@ class ResponseMixin:
                     resp.status_code = code
 
                 return resp
+
+            # Store doc in wrapper function
+            # The deepcopy avoids modifying the wrapped function doc
+            wrapper._apidoc = deepupdate(
+                deepcopy(getattr(wrapper, '_apidoc', {})), doc)
 
             return wrapper
 
