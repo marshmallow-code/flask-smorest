@@ -3,6 +3,7 @@ import json
 
 from werkzeug.utils import cached_property
 from flask import Response
+from apispec.utils import build_reference
 
 
 class JSONResponse(Response):
@@ -40,7 +41,10 @@ class NoLoggingContext:
 
 
 def get_schemas(spec):
-    """Get schema components from spec"""
     if spec.openapi_version.major < 3:
-        return spec.to_dict().get('definitions')
-    return spec.to_dict()['components'].get('schemas')
+        return spec.to_dict()["definitions"]
+    return spec.to_dict()["components"]["schemas"]
+
+
+def build_ref(spec, component_type, obj):
+    return build_reference(component_type, spec.openapi_version.major, obj)

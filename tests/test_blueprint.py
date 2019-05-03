@@ -12,6 +12,8 @@ from flask.views import MethodView
 from flask_rest_api import Api, Blueprint, Page
 from flask_rest_api.exceptions import InvalidLocationError
 
+from .utils import build_ref
+
 
 LOCATIONS_MAPPING = (
     ('querystring', 'query',),
@@ -221,23 +223,25 @@ class TestBlueprint():
 
         paths = api.spec.to_dict()['paths']
 
+        schema_ref = build_ref(api.spec, 'schema', 'Doc')
+
         response = paths['/test/schema_many_false']['get']['responses']['200']
         if openapi_version == '2.0':
-            schema = response['schema']
-            assert schema == {'$ref': '#/definitions/Doc'}
+            assert response['schema'] == schema_ref
         else:
-            schema = (
-                response['content']['application/json']['schema'])
-            assert schema == {'$ref': '#/components/schemas/Doc'}
+            assert (
+                response['content']['application/json']['schema'] ==
+                schema_ref
+            )
 
         response = paths['/test/schema_many_true']['get']['responses']['200']
         if openapi_version == '2.0':
-            schema = response['schema']['items']
-            assert schema == {'$ref': '#/definitions/Doc'}
+            assert response['schema']['items'] == schema_ref
         else:
-            schema = (
-                response['content']['application/json']['schema']['items'])
-            assert schema == {'$ref': '#/components/schemas/Doc'}
+            assert (
+                response['content']['application/json']['schema']['items'] ==
+                schema_ref
+            )
 
     def test_blueprint_response_description(self, app):
         api = Api(app)
