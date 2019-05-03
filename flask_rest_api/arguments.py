@@ -30,11 +30,6 @@ class ArgumentsMixin:
 
         See :doc:`Arguments <arguments>`.
         """
-        # TODO: This shouldn't be needed. I think I did this because apispec
-        # worked better with instances, but this should have been solved since.
-        if isinstance(schema, type):
-            schema = schema()
-
         try:
             openapi_location = __location_map__[location]
         except KeyError:
