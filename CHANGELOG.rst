@@ -1,6 +1,43 @@
 Changelog
 ---------
 
+0.15.0 (unreleased)
++++++++++++++++++++
+
+Features:
+
+- Add parameters to pass examples and headers in ``Blueprint.response``
+  decorator (:pr:`63`).
+- Support status codes expressed as ``HTTPStatus`` in ``Blueprint.response``
+  decorator (:issue:`60`).
+  Thanks :user:`Regzand` for reporting.
+
+Other changes:
+
+- Bump minimum apispec version to 1.3.2.
+- Bump minimum werkzeug version to 0.15. With 0.14.x versions, `412` responses
+  are returned with no content.
+- *Backwards-incompatible*: When using ``Blueprint.doc`` decorator to provide
+  additional documentation to the response described in the
+  ``Blueprint.response`` decorator, the user must use the same format (``str``,
+  ``int`` or ``HTTPStatus``) to express the status code in both decorators.
+  This is a side-effect of (:issue:`60`). Now that headers and examples can
+  be described in ``Blueprint.response``, this should not be a common use case.
+
+.. code-block:: python
+
+    # This won't work because doc uses a string and response uses an int
+    @blp.doc(response={'201': {...}})
+    @blp.response(code=201)
+    def view_func():
+        ...
+
+    # This works because doc uses an int and response uses an int (default)
+    @blp.doc(response={200: {...}})
+    @blp.response()
+    def view_func():
+        ...
+
 0.14.1 (2019-04-18)
 +++++++++++++++++++
 
