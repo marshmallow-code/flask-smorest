@@ -42,7 +42,7 @@ setup(
         '': ['spec/templates/*'],
     },
     install_requires=[
-        'werkzeug>=0.11',
+        'werkzeug>=0.15',
         'flask>=1.0',
         'marshmallow>=2.15.2',
         'webargs>=1.5.2',

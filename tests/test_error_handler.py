@@ -27,11 +27,8 @@ class TestErrorHandler:
             response = client.get('/')
         assert response.status_code == code
 
-        # Since Werkzeug 0.14, the body of 412 responses if not sent
-        # https://github.com/pallets/werkzeug/issues/1231
-        if code != 412:
-            data = json.loads(response.get_data(as_text=True))
-            assert data['status'] == str(default_exceptions[code]())
+        data = json.loads(response.get_data(as_text=True))
+        assert data['status'] == str(default_exceptions[code]())
 
     def test_error_handler_payload(self, app):
 
