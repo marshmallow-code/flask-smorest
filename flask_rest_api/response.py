@@ -2,7 +2,7 @@
 
 from functools import wraps
 
-from werkzeug import BaseResponse
+from werkzeug.wrappers import BaseResponse
 from flask import jsonify
 
 from .utils import (
