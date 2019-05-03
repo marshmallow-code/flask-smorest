@@ -213,7 +213,7 @@ number.
 .. describe:: OPENAPI_REDOC_VERSION
 
    ReDoc version as string. Should be an existing version number, ``latest``
-   (latest 1.x verison) or ``next`` (latest 2.x version).
+   (latest 1.x version) or ``next`` (latest 2.x version).
 
    This is used to build the CDN URL if ``OPENAPI_REDOC_URL`` is ``None``.
 
