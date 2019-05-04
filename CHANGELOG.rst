@@ -8,6 +8,8 @@ Features:
 
 - Add parameters to pass examples and headers in ``Blueprint.response``
   decorator (:pr:`63`).
+- Add parameters to pass examples for ``requestBody`` in OpenAPI v3 in
+  ``Blueprint.arguments`` decorator (:pr:`68`).
 - Support status codes expressed as ``HTTPStatus`` in ``Blueprint.response``
   decorator (:issue:`60`).
   Thanks :user:`Regzand` for reporting.
