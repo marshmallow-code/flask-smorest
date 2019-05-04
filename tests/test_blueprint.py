@@ -412,11 +412,12 @@ class TestBlueprint():
     def test_blueprint_doc_function(self, app):
         api = Api(app)
         blp = Blueprint('test', __name__, url_prefix='/test')
+        client = app.test_client()
 
         @blp.route('/', methods=('PUT', 'PATCH', ))
         @blp.doc(summary='Dummy func', description='Do dummy stuff')
         def view_func():
-            pass
+            return jsonify({'Value': 'OK'})
 
         api.register_blueprint(blp)
         spec = api.spec.to_dict()
@@ -424,6 +425,10 @@ class TestBlueprint():
         for method in ('put', 'patch', ):
             assert path[method]['summary'] == 'Dummy func'
             assert path[method]['description'] == 'Do dummy stuff'
+
+        response = client.put('/test/')
+        assert response.status_code == 200
+        assert response.json == {'Value': 'OK'}
 
     def test_blueprint_doc_method_view(self, app):
         api = Api(app)
