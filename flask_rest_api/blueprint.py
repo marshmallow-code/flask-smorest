@@ -37,6 +37,7 @@ Documentation process works in several steps:
 """
 
 from collections import OrderedDict
+from functools import wraps
 from copy import deepcopy
 
 from flask import Blueprint as FlaskBlueprint
@@ -243,9 +244,16 @@ class Blueprint(
                     ...
         """
         def decorator(func):
+
+            @wraps(func)
+            def wrapper(*f_args, **f_kwargs):
+                return func(*f_args, **f_kwargs)
+
             # Don't merge manual doc with auto-documentation right now.
             # Store it in a separate attribute to merge it later.
-            func._api_manual_doc = deepupdate(
-                getattr(func, '_api_manual_doc', {}), kwargs)
-            return func
+            # The deepcopy avoids modifying the wrapped function doc
+            wrapper._api_manual_doc = deepupdate(
+                deepcopy(getattr(wrapper, '_api_manual_doc', {})), kwargs)
+            return wrapper
+
         return decorator
