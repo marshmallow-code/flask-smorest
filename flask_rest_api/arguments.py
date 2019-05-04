@@ -1,4 +1,6 @@
 """Arguments parsing"""
+from copy import deepcopy
+from functools import wraps
 import re
 
 from webargs import core
@@ -57,12 +59,20 @@ class ArgumentsMixin:
             parameters['examples'] = examples
 
         def decorator(func):
+
+            @wraps(func)
+            def wrapper(*f_args, **f_kwargs):
+                return func(*f_args, **f_kwargs)
+
             # Add parameter to parameters list in doc info in function object
-            func._apidoc = getattr(func, '_apidoc', {})
-            func._apidoc.setdefault('parameters', []).append(parameters)
+            # The deepcopy avoids modifying the wrapped function doc
+            wrapper._apidoc = deepcopy(getattr(wrapper, '_apidoc', {}))
+            wrapper._apidoc.setdefault('parameters', []).append(parameters)
+
             # Call use_args (from webargs) to inject params in function
             return self.ARGUMENTS_PARSER.use_args(
-                schema, locations=[location], **kwargs)(func)
+                schema, locations=[location], **kwargs)(wrapper)
+
         return decorator
 
 
