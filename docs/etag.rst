@@ -194,7 +194,7 @@ to pass an ETag schema to :meth:`set_etag <Blueprint.set_etag>` and
             blp.check_etag(pet, ['update_time'])
             Pet.delete(pet_id)
 
-ETag not checked warning
+ETag Not Checked Warning
 ------------------------
 
 It is up to the developer to call

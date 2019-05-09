@@ -34,8 +34,11 @@ specified as Flask application parameters:
    The OpenAPI version must be passed either as application parameter or at
    :class:`Api <Api>` initialization in ``spec_kwargs`` parameters.
 
-Add Documentation Information to the View Functions
----------------------------------------------------
+Add Documentation Information to Resources
+------------------------------------------
+
+Add Summary and Description
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 `flask-rest-api` uses view functions docstrings to fill the `summary` and
 `description` attributes of an `operation object`.
@@ -67,28 +70,22 @@ The example above produces the following documentation attributes:
         }
     }
 
-Any description attribute for a view function can be passed to the docs with
-the :meth:`Blueprint.doc <Blueprint.doc>` decorator. The following example
-illustrates how to pass `summary` and `description` using that decorator.
+Pass Extra Documentation Information
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. code-block:: python
+`flask-rest-api` tries to document the API as automatically as possible and to
+provide explicit means to pass extra-information that can't be inferred from
+the code, such as descriptions, examples, etc.
 
-    @blp.doc(description='Return pets based on ID',
-             summary='Find pets by ID')
-    def get(...):
-        """This method is used to find pets by ID"""
-        ...
+The :meth:`Blueprint.doc <Blueprint.doc>` decorator provides a means to pass
+extra documentation information. It comes in handy if an OpenAPI feature is not
+supported, but it suffers from a few limitations, and it should be considered
+a last resort solution until `flask-rest-api` is improved to fit the need.
 
-`summary` and `description` passed using the
-:meth:`Blueprint.doc <Blueprint.doc>` decorator override the ones from the
-docstring.
+Known issues and alternatives are discussed in issue :issue:`71`.
 
-`flask-rest-api` aims at providing all useful attributes automatically, so
-this decorator should not need to be used for general use cases. However, it
-comes in handy if an OpenAPI feature is not supported.
-
-Populating the root document object
------------------------------------
+Populate the Root Document Object
+---------------------------------
 
 Additional root document attributes can be passed either in the code, in
 :class:`Api <Api>` parameter ``spec_kwargs``, or as Flask app configuration
@@ -113,8 +110,8 @@ Note that ``app.config`` overrides ``spec_kwargs``. The example above produces
    flask parameter `APPLICATION_ROOT`. In OpenAPI v3, `basePath` is removed,
    and the `servers` attribute can only be set by the user.
 
-Register Definitions
---------------------
+Register Schemas
+----------------
 
 When a schema is used multiple times throughout the spec, it is better to
 add it to the spec's schema components so as to reference it rather than

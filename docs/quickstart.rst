@@ -22,7 +22,7 @@ A view function only has one successful response type and status code. All other
 possible responses are errors.
 
 
-Simple example
+Simple Example
 --------------
 
 Here is a basic "Petstore example", where The ``Pet`` class is an imaginary ORM.

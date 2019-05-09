@@ -41,7 +41,7 @@ The location defaults to ``'json'``, which means `body` parameter.
    decorator, :meth:`Blueprint.arguments <Blueprint.arguments>` only accepts a
    single location.
 
-Arguments injection
+Arguments Injection
 -------------------
 
 By default, arguments are passed as a single positional ``dict`` argument.

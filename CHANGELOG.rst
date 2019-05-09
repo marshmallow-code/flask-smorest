@@ -26,20 +26,6 @@ Other changes:
   This is a side-effect of (:issue:`60`). Now that headers and examples can
   be described in ``Blueprint.response``, this should not be a common use case.
 
-.. code-block:: python
-
-    # This won't work because doc uses a string and response uses an int
-    @blp.doc(response={'201': {...}})
-    @blp.response(code=201)
-    def view_func():
-        ...
-
-    # This works because doc uses an int and response uses an int (default)
-    @blp.doc(response={200: {...}})
-    @blp.response()
-    def view_func():
-        ...
-
 0.14.1 (2019-04-18)
 +++++++++++++++++++
 
