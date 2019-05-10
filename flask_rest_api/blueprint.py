@@ -66,9 +66,12 @@ class Blueprint(
         "files": "multipart/form-data",
     }
 
+    DOCSTRING_SEP = "---"
+
     def __init__(self, *args, **kwargs):
 
         self.description = kwargs.pop('description', '')
+        self.docstring_sep = kwargs.pop('docstring_sep', self.DOCSTRING_SEP)
 
         super().__init__(*args, **kwargs)
 
@@ -133,13 +136,15 @@ class Blueprint(
         endpoint_manual_doc = self._manual_docs.setdefault(
             endpoint, OrderedDict())
 
-        def store_method_docs(method, function):
+        def store_method_docs(method, function, sep='---'):
             """Add auto and manual doc to table for later registration"""
             # Get summary/description from docstring
             # and auto documentation from decorators
             # Get manual documentation from @doc decorator
             docstring = function.__doc__
-            auto_doc = load_info_from_docstring(docstring) if docstring else {}
+            auto_doc = {}
+            if docstring:
+                auto_doc = load_info_from_docstring(docstring, sep=sep)
             auto_doc.update(getattr(function, '_apidoc', {}))
             manual_doc = getattr(function, '_api_manual_doc', {})
             # Store function auto and manual docs for later registration
@@ -152,12 +157,12 @@ class Blueprint(
             for method in self.HTTP_METHODS:
                 if method in obj.methods:
                     func = getattr(obj, method.lower())
-                    store_method_docs(method, func)
+                    store_method_docs(method, func, sep=self.docstring_sep)
         # Function
         else:
             methods = options.pop('methods', None) or ['GET']
             for method in methods:
-                store_method_docs(method, obj)
+                store_method_docs(method, obj, sep=self.docstring_sep)
 
         endpoint_auto_doc['parameters'] = parameters
 

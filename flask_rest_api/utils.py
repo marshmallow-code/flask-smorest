@@ -32,19 +32,22 @@ def get_appcontext():
     return ctx.flask_rest_api
 
 
-def load_info_from_docstring(docstring):
+def load_info_from_docstring(docstring, sep="---"):
     """Load summary and description from docstring"""
     split_lines = trim_docstring(docstring).split('\n')
 
-    # Info is separated from rest of docstring by a '---' line
-    for index, line in enumerate(split_lines):
-        if line.lstrip().startswith('---'):
-            cut_at = index
-            break
-    else:
-        cut_at = index + 1
+    split_info_lines = split_lines
 
-    split_info_lines = split_lines[:cut_at]
+    if sep is not None:
+        # Info is separated from rest of docstring by a `sep` line
+        for index, line in enumerate(split_lines):
+            if line.lstrip().startswith(sep):
+                cut_at = index
+                break
+        else:
+            cut_at = index + 1
+
+        split_info_lines = split_lines[:cut_at]
 
     # Description is separated from summary by an empty line
     for index, line in enumerate(split_info_lines):

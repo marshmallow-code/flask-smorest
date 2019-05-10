@@ -576,6 +576,72 @@ class TestBlueprint():
         assert response.status_code == 200
         assert response.json == {'Value': 'OK'}
 
+    def test_blueprint_custom_docstring_separator(self, app):
+        api = Api(app)
+        blp = Blueprint('test', __name__, url_prefix='/test',
+                        docstring_sep="~~~")
+
+        @blp.route('/', methods=['PUT'])
+        def view_func():
+            """Summary
+
+            Long description
+            ~~~
+            Ignore
+            """
+            return jsonify({'Value': 'OK'})
+
+        api.register_blueprint(blp)
+        spec = api.spec.to_dict()
+        path = spec['paths']['/test/']
+        assert path['put']['description'] == 'Long description'
+
+    def test_blueprint_custom_docstring_separator_none(self, app):
+        api = Api(app)
+        blp = Blueprint('test', __name__, url_prefix='/test',
+                        docstring_sep=None)
+
+        @blp.route('/', methods=['PUT'])
+        def view_func():
+            """Summary
+
+            Long description
+            ~~~
+            Not Ignored
+            """
+            return jsonify({'Value': 'OK'})
+
+        api.register_blueprint(blp)
+        spec = api.spec.to_dict()
+        path = spec['paths']['/test/']
+        descr = path['put']['description']
+        assert descr == 'Long description\n~~~\nNot Ignored'
+
+
+    def test_bluprint_custom_docstring_separator_subclassed(self, app):
+
+        class MyBlueprint(Blueprint):
+            DOCSTRING_SEP = "~~~"
+
+        api = Api(app)
+        blp = MyBlueprint('test', __name__, url_prefix='/test')
+
+        @blp.route('/', methods=['PUT'])
+        def view_func():
+            """Summary
+
+            Long description
+            ~~~
+            Ignore
+            """
+            return jsonify({'Value': 'OK'})
+
+        api.register_blueprint(blp)
+        spec = api.spec.to_dict()
+        path = spec['paths']['/test/']
+        assert path['put']['description'] == 'Long description'
+
+
     def test_blueprint_doc_method_view(self, app):
         api = Api(app)
         blp = Blueprint('test', __name__, url_prefix='/test')

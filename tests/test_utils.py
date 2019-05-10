@@ -55,3 +55,53 @@ class TestUtils():
             'summary': 'Summary\nTwo-line summary is possible.',
             'description': 'Long description\nReally long description'
         }
+
+        # No separator
+        docstring = """Summary
+
+        Long description
+
+        Section
+        -------
+        Also included
+        """
+        assert load_info_from_docstring(docstring, sep=None) == {
+            'summary': 'Summary',
+            'description': ('Long description\n\n'
+                            'Section\n-------\nAlso included'),
+        }
+
+        # Custom separator
+        docstring = """Summary
+
+        Some description.
+
+        Section
+        -------
+        foo
+
+        ~~~
+
+        Ignored.
+        """
+        assert load_info_from_docstring(docstring, sep="~~~") == {
+            'summary': 'Summary',
+            'description': ('Some description.\n\n'
+                            'Section\n-------\n'
+                            'foo'
+                            ),
+        }
+
+        # Explicit Default separator
+        docstring = """Summary
+
+        Some description.
+
+        Section
+        -------
+        Ignored
+        """
+        assert load_info_from_docstring(docstring, sep="---") == {
+            'summary': 'Summary',
+            'description': 'Some description.\n\nSection',
+        }
