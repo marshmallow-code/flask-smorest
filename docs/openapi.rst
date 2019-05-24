@@ -110,23 +110,6 @@ Note that ``app.config`` overrides ``spec_kwargs``. The example above produces
    flask parameter `APPLICATION_ROOT`. In OpenAPI v3, `basePath` is removed,
    and the `servers` attribute can only be set by the user.
 
-Register Schemas
-----------------
-
-When a schema is used multiple times throughout the spec, it is better to
-add it to the spec's schema components so as to reference it rather than
-duplicate its content.
-
-To register a schema, use the :meth:`Api.schema` decorator:
-
-.. code-block:: python
-
-    api = Api()
-
-    @api.schema('Pet')
-    class Pet(Schema):
-        ...
-
 Register Custom Fields
 ----------------------
 
