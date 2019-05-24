@@ -188,38 +188,9 @@ class APISpecMixin(DocBlueprintMixin):
         # Register custom fields in spec
         for args in self._fields:
             self._register_field(*args)
-        # Register schemas in spec
-        for name, schema_cls, kwargs in self._schemas:
-            self.spec.components.schema(name, schema=schema_cls, **kwargs)
         # Register custom converters in spec
         for args in self._converters:
             self._register_converter(*args)
-
-    def schema(self, name):
-        """Decorator to register a Schema in the doc
-
-        This allows a schema to be defined once in the `schemas`
-        section of the spec and be referenced throughout the spec.
-
-        :param str name: Name of the schema in the spec
-
-            Example: ::
-
-                @api.schema('Pet')
-                class PetSchema(Schema):
-                    ...
-        """
-        def decorator(schema_cls, **kwargs):
-            self._schemas.append((name, schema_cls, kwargs))
-            # Register schema in spec if app is already initialized
-            if self.spec is not None:
-                self.spec.components.schema(name, schema=schema_cls, **kwargs)
-            return schema_cls
-        return decorator
-
-    def definition(self, name):
-        """Alias to :meth:`schema <Api.schema>`"""
-        return self.schema(name)
 
     def register_converter(self, converter, conv_type, conv_format=None):
         """Register custom path parameter converter
