@@ -41,6 +41,7 @@ setup(
     package_data={
         '': ['spec/templates/*'],
     },
+    python_requires='>=3.5',
     install_requires=[
         'werkzeug>=0.15',
         'flask>=1.0',
