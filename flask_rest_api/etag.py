@@ -114,7 +114,7 @@ class EtagMixin:
                 etag_schema = etag_schema()
             raw_data = etag_schema.dump(etag_data)
             if MARSHMALLOW_VERSION_MAJOR < 3:
-                raw_data = raw_data[0]
+                raw_data = raw_data.data
         if extra_data:
             raw_data = (raw_data, extra_data)
         # flask's json.dumps is needed here

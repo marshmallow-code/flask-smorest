@@ -86,7 +86,7 @@ class ResponseMixin:
                 else:
                     result_dump = schema.dump(result_raw)
                     if MARSHMALLOW_VERSION_MAJOR < 3:
-                        result_dump = result_dump[0]
+                        result_dump = result_dump.data
 
                 # Store result in appcontext (may be used for ETag computation)
                 appcontext = get_appcontext()
