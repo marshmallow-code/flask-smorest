@@ -73,7 +73,7 @@ def _pagination_parameters_schema_factory(
         )
 
         @ma.post_load
-        def make_paginator(self, data):
+        def make_paginator(self, data, **kwargs):
             return PaginationParameters(**data)
 
     return PaginationParametersSchema

@@ -51,12 +51,12 @@ class CounterSchema(Schema):
         cls.dump_count = 0
 
     @post_load(pass_many=True)
-    def increment_load_count(self, data, _):
+    def increment_load_count(self, data, many, **kwargs):
         self.__class__.load_count += 1
         return data
 
     @post_dump(pass_many=True)
-    def increment_dump_count(self, data, _):
+    def increment_dump_count(self, data, many, **kwargs):
         self.__class__.dump_count += 1
         return data
 
