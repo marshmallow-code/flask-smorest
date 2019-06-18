@@ -42,9 +42,9 @@ class ArgumentsMixin:
         """
         try:
             openapi_location = __location_map__[location]
-        except KeyError:
+        except KeyError as exc:
             raise InvalidLocationError(
-                "{} is not a valid location".format(location))
+                "{} is not a valid location".format(location)) from exc
 
         # At this stage, put schema instance in doc dictionary. Il will be
         # replaced later on by $ref or json.

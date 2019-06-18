@@ -22,15 +22,15 @@ class DatabaseMock:
     def _get_item_index(self, item):
         try:
             return self.items.index(item)
-        except ValueError:
-            raise ItemNotFound
+        except ValueError as exc:
+            raise ItemNotFound from exc
 
     def get_by_id(self, item_id):
         try:
             return next(
                 i for i in self.items if i['item_id'] == item_id)
-        except StopIteration:
-            raise ItemNotFound
+        except StopIteration as exc:
+            raise ItemNotFound from exc
 
     def post(self, new_item):
         new_item['item_id'] = self._get_next_id()
