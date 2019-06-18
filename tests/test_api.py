@@ -90,7 +90,7 @@ class TestApi():
             parameter.update(schema)
         else:
             parameter['schema'] = schema
-        assert spec['paths']['/test/{val}']['get']['parameters'] == [parameter]
+        assert spec['paths']['/test/{val}']['parameters'] == [parameter]
 
     @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.2'])
     def test_api_register_converter_before_and_after_init(
@@ -120,8 +120,8 @@ class TestApi():
 
         api.register_blueprint(blp)
         spec = api.spec.to_dict()
-        parameter_1 = spec['paths']['/test/1/{val}']['get']['parameters'][0]
-        parameter_2 = spec['paths']['/test/2/{val}']['get']['parameters'][0]
+        parameter_1 = spec['paths']['/test/1/{val}']['parameters'][0]
+        parameter_2 = spec['paths']['/test/2/{val}']['parameters'][0]
         if 'openapi_version' == '2.0':
             assert parameter_1['type'] == 'custom string 1'
             assert parameter_2['type'] == 'custom string 2'
