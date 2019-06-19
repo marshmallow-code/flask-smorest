@@ -15,8 +15,6 @@ Api
 .. autoclass:: flask_rest_api.Api
     :members:
 
-    .. automethod:: schema
-    .. automethod:: definition
     .. automethod:: register_converter
     .. automethod:: register_field
     .. automethod:: handle_http_exception
