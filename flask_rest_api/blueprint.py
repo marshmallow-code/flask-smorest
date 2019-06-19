@@ -77,13 +77,21 @@ class Blueprint(
         self._manual_docs = OrderedDict()
         self._endpoints = []
 
-    def route(self, rule, **options):
+    def route(self, rule, *, parameters=None, **options):
         """Decorator to register url rule in application
 
         Also stores doc info for later registration
 
         Use this to decorate a :class:`MethodView <flask.views.MethodView>` or
-        a resource function
+        a resource function.
+
+        :param str rule: URL rule as string.
+        :param str endpoint: Endpoint for the registered URL rule (defaults
+            to function name).
+        :param list parameters: List of parameters relevant to all operations
+            in this path, only used to document the resource.
+        :param dict options: Options to be forwarded to the underlying
+            :class:`werkzeug.routing.Rule <Rule>` object.
         """
         def decorator(func):
 
@@ -103,13 +111,13 @@ class Blueprint(
 
             # Add URL rule in Flask and store endpoint documentation
             self.add_url_rule(rule, endpoint, view_func, **options)
-            self._store_endpoint_docs(endpoint, func, **options)
+            self._store_endpoint_docs(endpoint, func, parameters, **options)
 
             return func
 
         return decorator
 
-    def _store_endpoint_docs(self, endpoint, obj, **kwargs):
+    def _store_endpoint_docs(self, endpoint, obj, parameters, **options):
         """Store view or function doc info"""
 
         endpoint_auto_doc = self._auto_docs.setdefault(
@@ -139,9 +147,11 @@ class Blueprint(
                     store_method_docs(method, func)
         # Function
         else:
-            methods = kwargs.pop('methods', None) or ['GET']
+            methods = options.pop('methods', None) or ['GET']
             for method in methods:
                 store_method_docs(method, obj)
+
+        endpoint_auto_doc['parameters'] = parameters
 
     def register_views_in_doc(self, app, spec):
         """Register views information in documentation
@@ -156,8 +166,9 @@ class Blueprint(
         # endpoint in self._[auto|manual]_docs to provide documentation for
         # corresponding route to the spec object.
         for endpoint, endpoint_auto_doc in self._auto_docs.items():
+            parameters = endpoint_auto_doc.pop('parameters')
             doc = OrderedDict()
-            for key, auto_doc in endpoint_auto_doc.items():
+            for method_l, auto_doc in endpoint_auto_doc.items():
                 # Deepcopy to avoid mutating the source
                 # Allows calling this function twice
                 endpoint_doc = deepcopy(auto_doc)
@@ -166,13 +177,13 @@ class Blueprint(
                 # Tag all operations with Blueprint name
                 endpoint_doc['tags'] = [self.name]
                 # Merge auto_doc and manual_doc into doc
-                manual_doc = self._manual_docs[endpoint][key]
-                doc[key] = deepupdate(endpoint_doc, manual_doc)
+                manual_doc = self._manual_docs[endpoint][method_l]
+                doc[method_l] = deepupdate(endpoint_doc, manual_doc)
 
             # Thanks to self.route, there can only be one rule per endpoint
             full_endpoint = '.'.join((self.name, endpoint))
             rule = next(app.url_map.iter_rules(full_endpoint))
-            spec.path(rule=rule, operations=doc)
+            spec.path(rule=rule, operations=doc, parameters=parameters)
 
     @staticmethod
     def _prepare_doc(operation, openapi_version):

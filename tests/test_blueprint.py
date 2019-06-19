@@ -199,14 +199,13 @@ class TestBlueprint():
         )
 
     @pytest.mark.parametrize('openapi_version', ('2.0', '3.0.2'))
-    def test_blueprint_path_parameters(self, app, openapi_version):
-        """Check auto and manual param docs are merged"""
+    def test_blueprint_route_path_parameters(self, app, openapi_version):
+        """Check path parameters docs are merged with auto docs"""
         app.config['OPENAPI_VERSION'] = openapi_version
         api = Api(app)
         blp = Blueprint('test', __name__, url_prefix='/test')
 
-        @blp.route('/<int:item_id>')
-        @blp.doc(parameters=[
+        @blp.route('/<int:item_id>', parameters=[
             {'name': 'item_id', 'in': 'path', 'description': 'Item ID'}
         ])
         def get(item_id):
@@ -214,7 +213,7 @@ class TestBlueprint():
 
         api.register_blueprint(blp)
         spec = api.spec.to_dict()
-        params = spec['paths']['/test/{item_id}']['get']['parameters']
+        params = spec['paths']['/test/{item_id}']['parameters']
         assert len(params) == 1
         if openapi_version == '2.0':
             assert params == [{
@@ -227,6 +226,31 @@ class TestBlueprint():
                 'description': 'Item ID',
                 'schema': {'format': 'int32', 'type': 'integer'}
             }]
+
+    @pytest.mark.parametrize('as_method_view', (True, False))
+    def test_blueprint_route_path_parameter_default(self, app, as_method_view):
+        api = Api(app)
+        blp = Blueprint('test', __name__, url_prefix='/test')
+
+        if as_method_view:
+            @blp.route('/<int:user_id>')
+            @blp.route('/', defaults={'user_id': 1})
+            class Resource(MethodView):
+
+                def get(self, user_id):
+                    pass
+
+        else:
+            @blp.route('/<int:user_id>')
+            @blp.route('/', defaults={'user_id': 1})
+            def func(user_id):
+                pass
+
+        api.register_blueprint(blp)
+        paths = api.spec.to_dict()['paths']
+
+        assert 'parameters' not in paths['/test/']
+        assert paths['/test/{user_id}']['parameters'][0]['name'] == 'user_id'
 
     @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.2'])
     def test_blueprint_response_schema(self, app, openapi_version, schemas):
@@ -635,32 +659,6 @@ class TestBlueprint():
 
         assert 'get' in paths['/test/route_1']
         assert 'get' in paths['/test/route_2']
-
-    @pytest.mark.parametrize('as_method_view', (True, False))
-    def test_blueprint_route_path_parameter_default(self, app, as_method_view):
-        api = Api(app)
-        blp = Blueprint('test', __name__, url_prefix='/test')
-
-        if as_method_view:
-            @blp.route('/<int:user_id>')
-            @blp.route('/', defaults={'user_id': 1})
-            class Resource(MethodView):
-
-                def get(self, user_id):
-                    pass
-
-        else:
-            @blp.route('/<int:user_id>')
-            @blp.route('/', defaults={'user_id': 1})
-            def func(user_id):
-                pass
-
-        api.register_blueprint(blp)
-        paths = api.spec.to_dict()['paths']
-
-        assert 'parameters' not in paths['/test/']['get']
-        assert paths['/test/{user_id}']['get']['parameters'][0][
-            'name'] == 'user_id'
 
     def test_blueprint_response_tuple(self, app):
         api = Api(app)
