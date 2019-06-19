@@ -89,8 +89,10 @@ is inferred from the path parameter converter used in the URL rule. Custom path
 parameters should be registered for their type to be correctly determined (see
 below).
 
-Additional documentation such as examples can be provided as ``parameters``
-argument to the :meth:`Blueprint.route <Blueprint.route>` method.
+The :meth:`Blueprint.route <Blueprint.route>` method takes a ``parameters``
+argument to pass documentation for parameters that are shared by all operations
+of a path. It can be used to pass extra documentation, such as examples, for
+path parameters.
 
 Pass Extra Documentation Information
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
