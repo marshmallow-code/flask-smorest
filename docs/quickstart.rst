@@ -47,7 +47,6 @@ Define a marshmallow :class:`Schema <marshmallow.Schema>` to expose the model.
 
 .. code-block:: python
 
-    @api.schema('Pet')
     class PetSchema(ma.Schema):
 
         class Meta:

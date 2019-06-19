@@ -1,7 +1,5 @@
 """Test Api class"""
 
-from unittest import mock
-
 import pytest
 
 from flask import jsonify
@@ -18,41 +16,6 @@ from .utils import get_schemas
 
 class TestApi():
     """Test Api class"""
-
-    def test_api_schema(self, app, schemas):
-        DocSchema = schemas.DocSchema
-        api = Api(app)
-        with mock.patch.object(apispec.core.Components, 'schema') as mock_def:
-            ret = api.schema('Document')(DocSchema)
-        assert ret is DocSchema
-        mock_def.assert_called_once_with('Document', schema=DocSchema)
-
-    def test_api_definition(self, app, schemas):
-        """Compatibility: definition is an alias for schema"""
-        DocSchema = schemas.DocSchema
-        api = Api(app)
-        with mock.patch.object(apispec.core.Components, 'schema') as mock_def:
-            ret = api.definition('Document')(DocSchema)
-        assert ret is DocSchema
-        mock_def.assert_called_once_with('Document', schema=DocSchema)
-
-    @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.2'])
-    def test_api_schema_before_and_after_init(self, app, openapi_version):
-        app.config['OPENAPI_VERSION'] = openapi_version
-        api = Api()
-
-        @api.schema('Schema_1')
-        class Schema_1(ma.Schema):
-            int_1 = ma.fields.Int()
-
-        api.init_app(app)
-
-        @api.schema('Schema_2')
-        class Schema_2(ma.Schema):
-            int_2 = ma.fields.Int()
-
-        schema_defs = get_schemas(api.spec)
-        assert {'Schema_1', 'Schema_2'}.issubset(schema_defs)
 
     @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.2'])
     @pytest.mark.parametrize('view_type', ['function', 'method'])
@@ -134,7 +97,7 @@ class TestApi():
         ('custom string', None),
         (ma.fields.Integer, ),
     ])
-    def test_api_register_field(self, app, mapping):
+    def test_api_register_field_parameters(self, app, mapping):
         api = Api(app)
 
         class CustomField(ma.fields.Field):
@@ -142,9 +105,10 @@ class TestApi():
 
         api.register_field(CustomField, *mapping)
 
-        @api.schema('Document')
         class Document(ma.Schema):
             field = CustomField()
+
+        api.spec.components.schema('Document', schema=Document)
 
         if len(mapping) == 2:
             properties = {'field': {'type': 'custom string'}}
@@ -170,19 +134,19 @@ class TestApi():
             pass
 
         api.register_field(CustomField_1, 'custom string', 'custom')
+        api.init_app(app)
+        api.register_field(CustomField_2, 'custom string', 'custom')
 
-        @api.schema('Schema_1')
         class Schema_1(ma.Schema):
             int_1 = ma.fields.Int()
             custom_1 = CustomField_1()
 
-        api.init_app(app)
-        api.register_field(CustomField_2, 'custom string', 'custom')
-
-        @api.schema('Schema_2')
         class Schema_2(ma.Schema):
             int_2 = ma.fields.Int()
             custom_2 = CustomField_2()
+
+        api.spec.components.schema('Schema_1', schema=Schema_1)
+        api.spec.components.schema('Schema_2', schema=Schema_2)
 
         schema_defs = get_schemas(api.spec)
         assert schema_defs['Schema_1']['properties']['custom_1'] == {
@@ -209,7 +173,7 @@ class TestApi():
                 return {'dummy': 'whatever'}
 
         api = Api(app, spec_kwargs={'extra_plugins': (MyPlugin(), )})
-        api.schema('Pet')(schemas.DocSchema)
+        api.spec.components.schema('Pet', schema=schemas.DocSchema)
         assert get_schemas(api.spec)['Pet']['dummy'] == 'whatever'
 
     @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.2'])
