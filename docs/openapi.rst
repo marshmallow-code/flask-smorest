@@ -5,12 +5,9 @@ OpenAPI
 =======
 
 `flask-rest-api` automatically generates an OpenAPI documentation (formerly
-known as Swagger) for the API. It does so by inspecting
-the :class:`Schema <marshmallow.Schema>` used to deserialiaze the parameters
-and deserialize the responses. A few manual steps are required to complete the
-generated documentation.
+known as Swagger) for the API.
 
-The documentation can be made accessible as a JSON file, along with a nice web
+That documentation can be made accessible as a JSON file, along with a nice web
 interface such as ReDoc_ or `Swagger UI`_.
 
 Specify Versions
@@ -70,6 +67,31 @@ The example above produces the following documentation attributes:
         }
     }
 
+Document Operations Parameters and Responses
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Schemas passed in :meth:`Blueprint.arguments <Blueprint.arguments>` to
+deserialize arguments are parsed automatically to generate corresponding
+documentation. Additional ``example`` and ``examples`` parameters can be used
+to provide examples (those are only valid for OpenAPI v3).
+
+Likewise, schemas passed in :meth:`Blueprint.response <Blueprint.response>` to
+serialize responses are parsed automatically to generate corresponding
+documentation. Additional ``example`` and ``examples`` parameters can be used
+to provide examples (``examples`` is only valid for OpenAPI v3). Additional
+``headers`` parameters can be used to document response headers.
+
+Document Path Parameters
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+Path parameters are automatically documented. The type in the documentation
+is inferred from the path parameter converter used in the URL rule. Custom path
+parameters should be registered for their type to be correctly determined (see
+below).
+
+Additional documentation such as examples can be provided as ``parameters``
+argument to the :meth:`Blueprint.route <Blueprint.route>` method.
+
 Pass Extra Documentation Information
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -109,6 +131,21 @@ Note that ``app.config`` overrides ``spec_kwargs``. The example above produces
    When using OpenAPI v2, `basePath` is automatically set from the value of the
    flask parameter `APPLICATION_ROOT`. In OpenAPI v3, `basePath` is removed,
    and the `servers` attribute can only be set by the user.
+
+Document Top-level Components
+-----------------------------
+
+Documentation components can be passed by accessing the internal apispec
+:class:`Components <apispec.core.Components>` object.
+
+.. code-block:: python
+
+    api = Api(app)
+    api.spec.components.parameter(
+      'Pet name',
+      'query',
+      {'description': 'Item ID', 'format': 'int32', 'required': True}
+   )
 
 Register Custom Fields
 ----------------------
