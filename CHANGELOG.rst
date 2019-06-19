@@ -1,6 +1,25 @@
 Changelog
 ---------
 
+0.16.0 (unreleased)
++++++++++++++++++++
+
+Features:
+
+- Add ``parameters`` argument to ``Blueprint.route`` to pass documentation for
+  parameters that are shared by all operations of a path (:pr:`78`).
+
+Other changes:
+
+- Bump minimum apispec version to 2.0.0.
+- *Backwards-incompatible*: Path parameters documentation passed in
+  ``Blueprint.doc`` is no longer merged with automatic documentation. It should
+  be passed in ``Blueprint.route`` instead.
+- *Backwards-incompatible*: Remove ``Api.schema`` and ``Api.definition``.
+  Those methods are useless since ``Schema`` components are automatically
+  registered by apispec. Manual component registration is still possible using
+  the internal apispec ``Components`` object. (:pr:`75`)
+
 0.15.1 (2019-06-18)
 +++++++++++++++++++
 
@@ -102,7 +121,7 @@ Features:
 
 - *Backwards-incompatible*: ``Api.register_converter`` doesn't register
   converter in Flask app anymore. It should be registered manually using
-  `app.url_map.converters['converter_name'] = Converter`.
+  ``app.url_map.converters['converter_name'] = Converter``.
 - ``Api.definition``, ``Api.register_field`` and ``Api.register_converter`` can
   be called before app initialization. The information is buffered and passed
   to the internal ``APISpec`` object when it is created, in ``Api.init_app``.
