@@ -1,7 +1,7 @@
 Changelog
 ---------
 
-0.16.0 (unreleased)
+0.16.0 (2019-06-20)
 +++++++++++++++++++
 
 Features:
@@ -11,7 +11,7 @@ Features:
 
 Other changes:
 
-- Bump minimum apispec version to 2.0.0.
+- *Backwards-incompatible*: Bump minimum apispec version to 2.0.0.
 - *Backwards-incompatible*: Path parameters documentation passed in
   ``Blueprint.doc`` is no longer merged with automatic documentation. It should
   be passed in ``Blueprint.route`` instead.
