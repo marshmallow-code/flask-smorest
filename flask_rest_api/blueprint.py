@@ -165,13 +165,14 @@ class Blueprint(
         # This method uses the documentation information associated with each
         # endpoint in self._[auto|manual]_docs to provide documentation for
         # corresponding route to the spec object.
-        for endpoint, endpoint_auto_doc in self._auto_docs.items():
+        # Deepcopy to avoid mutating the source
+        # Allows registering blueprint multiple times (e.g. when creating
+        # multiple apps during tests)
+        auto_docs = deepcopy(self._auto_docs)
+        for endpoint, endpoint_auto_doc in auto_docs.items():
             parameters = endpoint_auto_doc.pop('parameters')
             doc = OrderedDict()
-            for method_l, auto_doc in endpoint_auto_doc.items():
-                # Deepcopy to avoid mutating the source
-                # Allows calling this function twice
-                endpoint_doc = deepcopy(auto_doc)
+            for method_l, endpoint_doc in endpoint_auto_doc.items():
                 # Format operations documentation in OpenAPI structure
                 self._prepare_doc(endpoint_doc, spec.openapi_version)
                 # Tag all operations with Blueprint name

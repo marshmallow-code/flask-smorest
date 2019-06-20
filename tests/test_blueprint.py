@@ -68,6 +68,28 @@ class TestBlueprint():
             blp.arguments(schemas.DocSchema, location='invalid')
 
     @pytest.mark.parametrize('openapi_version', ('2.0', '3.0.2'))
+    def test_blueprint_multiple_registrations(self, app, openapi_version):
+        """Check blueprint can be registered multiple times
+
+        The internal doc structure is modified during the reigistration
+        process. If it is not deepcopied, the second registration fails.
+        """
+        app.config['OPENAPI_VERSION'] = openapi_version
+        blp = Blueprint('test', __name__, url_prefix='/test')
+
+        @blp.route('/')
+        def func():
+            pass
+
+        api = Api(app)
+        api.register_blueprint(blp)
+        spec_1 = api.spec.to_dict()
+        api = Api(app)
+        api.register_blueprint(blp)
+        spec_2 = api.spec.to_dict()
+        assert spec_1 == spec_2
+
+    @pytest.mark.parametrize('openapi_version', ('2.0', '3.0.2'))
     @pytest.mark.parametrize('location_map', LOCATIONS_MAPPING)
     @pytest.mark.parametrize('required', (True, False, None))
     def test_blueprint_arguments_required(
