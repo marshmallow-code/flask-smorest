@@ -221,14 +221,15 @@ class TestBlueprint():
         )
 
     @pytest.mark.parametrize('openapi_version', ('2.0', '3.0.2'))
-    def test_blueprint_route_path_parameters(self, app, openapi_version):
+    def test_blueprint_route_parameters(self, app, openapi_version):
         """Check path parameters docs are merged with auto docs"""
         app.config['OPENAPI_VERSION'] = openapi_version
         api = Api(app)
         blp = Blueprint('test', __name__, url_prefix='/test')
 
         @blp.route('/<int:item_id>', parameters=[
-            {'name': 'item_id', 'in': 'path', 'description': 'Item ID'}
+            'TestParameter',
+            {'name': 'item_id', 'in': 'path', 'description': 'Item ID'},
         ])
         def get(item_id):
             pass
@@ -236,18 +237,25 @@ class TestBlueprint():
         api.register_blueprint(blp)
         spec = api.spec.to_dict()
         params = spec['paths']['/test/{item_id}']['parameters']
-        assert len(params) == 1
+        assert len(params) == 2
         if openapi_version == '2.0':
-            assert params == [{
-                'name': 'item_id', 'in': 'path', 'required': True,
-                'description': 'Item ID',
-                'format': 'int32', 'type': 'integer'}]
+            assert params == [
+                build_ref(api.spec, 'parameter', 'TestParameter'),
+                {
+                    'name': 'item_id', 'in': 'path', 'required': True,
+                    'description': 'Item ID',
+                    'format': 'int32', 'type': 'integer'
+                },
+            ]
         else:
-            assert params == [{
-                'name': 'item_id', 'in': 'path', 'required': True,
-                'description': 'Item ID',
-                'schema': {'format': 'int32', 'type': 'integer'}
-            }]
+            assert params == [
+                build_ref(api.spec, 'parameter', 'TestParameter'),
+                {
+                    'name': 'item_id', 'in': 'path', 'required': True,
+                    'description': 'Item ID',
+                    'schema': {'format': 'int32', 'type': 'integer'}
+                },
+            ]
 
     @pytest.mark.parametrize('as_method_view', (True, False))
     def test_blueprint_route_path_parameter_default(self, app, as_method_view):

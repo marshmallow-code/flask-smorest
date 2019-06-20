@@ -3,6 +3,7 @@
 Heavily copied from apispec
 """
 
+from collections.abc import Mapping
 import re
 
 import werkzeug.routing
@@ -83,8 +84,14 @@ class FlaskPlugin(BasePlugin):
             # If a parameter with same name and location is already
             # documented, update. Otherwise, append as new parameter.
             p_doc = next(
-                (p for p in parameters
-                 if p['in'] == 'path' and p['name'] == path_p['name']),
+                (
+                    p for p in parameters
+                    if (
+                        isinstance(p, Mapping) and
+                        p['in'] == 'path' and
+                        p['name'] == path_p['name']
+                    )
+                ),
                 None
             )
             if p_doc is not None:
