@@ -42,12 +42,14 @@ from copy import deepcopy
 
 from flask import Blueprint as FlaskBlueprint
 from flask.views import MethodViewType
+from apispec.ext.marshmallow.openapi import __location_map__
 
 from .utils import deepupdate, load_info_from_docstring
 from .arguments import ArgumentsMixin
 from .response import ResponseMixin
 from .pagination import PaginationMixin
 from .etag import EtagMixin
+from .exceptions import InvalidLocationError
 
 
 class Blueprint(
@@ -216,7 +218,7 @@ class Blueprint(
                             ) = resp.pop(field)
             if 'parameters' in operation:
                 for param in operation['parameters']:
-                    if param['in'] == 'body':
+                    if param['in'] == 'json':
                         request_body = {
                             x: param[x] for x in ('description', 'required')
                             if x in param
@@ -235,6 +237,15 @@ class Blueprint(
                         if not operation['parameters']:
                             del operation['parameters']
                         break
+
+        if 'parameters' in operation:
+            for param in operation['parameters']:
+                try:
+                    param['in'] = __location_map__[param['in']]
+                except KeyError as exc:
+                    raise InvalidLocationError(
+                        "{} is not a valid location".format(param['in'])
+                    ) from exc
 
     @staticmethod
     def doc(**kwargs):

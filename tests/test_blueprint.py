@@ -62,10 +62,20 @@ class TestBlueprint():
             assert 'parameters' not in get
             assert 'requestBody' in get
 
-    def test_blueprint_arguments_location_invalid(self, app, schemas):
+    @pytest.mark.parametrize('openapi_version', ('2.0', '3.0.2'))
+    def test_blueprint_arguments_location_invalid(
+            self, app, schemas, openapi_version):
+        app.config['OPENAPI_VERSION'] = openapi_version
+        api = Api(app)
         blp = Blueprint('test', __name__, url_prefix='/test')
+
+        @blp.route('/')
+        @blp.arguments(schemas.DocSchema, location='invalid')
+        def func():
+            """Dummy view func"""
+
         with pytest.raises(InvalidLocationError):
-            blp.arguments(schemas.DocSchema, location='invalid')
+            api.register_blueprint(blp)
 
     @pytest.mark.parametrize('openapi_version', ('2.0', '3.0.2'))
     def test_blueprint_multiple_registrations(self, app, openapi_version):
