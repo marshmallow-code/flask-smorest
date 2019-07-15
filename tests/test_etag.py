@@ -19,7 +19,6 @@ from flask_rest_api.utils import get_appcontext
 from flask_rest_api.compat import MARSHMALLOW_VERSION_MAJOR
 
 from .mocks import ItemNotFound
-from .utils import NoLoggingContext
 
 
 HTTP_METHODS = ['OPTIONS', 'HEAD', 'GET', 'POST', 'PUT', 'PATCH', 'DELETE']
@@ -267,16 +266,15 @@ class TestEtag():
         app.config['TESTING'] = testing
         blp = Blueprint('test', __name__)
 
-        with NoLoggingContext(app):
-            with app.test_request_context('/', method=method):
-                if (debug or testing) and method in ['PUT', 'PATCH', 'DELETE']:
-                    with pytest.raises(
-                            CheckEtagNotCalledError,
-                            match='ETag not checked in endpoint'
-                    ):
-                        blp._verify_check_etag()
-                else:
+        with app.test_request_context('/', method=method):
+            if (debug or testing) and method in ['PUT', 'PATCH', 'DELETE']:
+                with pytest.raises(
+                        CheckEtagNotCalledError,
+                        match='ETag not checked in endpoint'
+                ):
                     blp._verify_check_etag()
+            else:
+                blp._verify_check_etag()
 
     @pytest.mark.parametrize('etag_disabled', (True, False))
     def test_etag_set_etag(self, app, schemas, etag_disabled):
