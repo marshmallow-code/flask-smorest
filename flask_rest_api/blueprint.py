@@ -48,7 +48,8 @@ from .arguments import ArgumentsMixin
 from .response import ResponseMixin
 from .pagination import PaginationMixin
 from .etag import EtagMixin
-from .spec import DEFAULT_REQUEST_BODY_CONTENT_TYPE
+from .spec import (
+    DEFAULT_REQUEST_BODY_CONTENT_TYPE, DEFAULT_RESPONSE_CONTENT_TYPE)
 
 
 class Blueprint(
@@ -209,7 +210,7 @@ class Blueprint(
                 for resp in operation['responses'].values():
                     if 'example' in resp:
                         resp['examples'] = {
-                            'application/json': resp.pop('example')}
+                            DEFAULT_RESPONSE_CONTENT_TYPE: resp.pop('example')}
             if 'parameters' in operation:
                 for param in operation['parameters']:
                     if param['in'] in (
@@ -231,7 +232,7 @@ class Blueprint(
                             (
                                 resp
                                 .setdefault('content', {})
-                                .setdefault('application/json', {})
+                                .setdefault(DEFAULT_RESPONSE_CONTENT_TYPE, {})
                                 [field]
                             ) = resp.pop(field)
             if 'parameters' in operation:
