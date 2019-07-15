@@ -11,10 +11,6 @@ class OpenAPIVersionNotSpecified(FlaskRestApiError):
     """OpenAPI version was not specified"""
 
 
-class InvalidLocationError(FlaskRestApiError):
-    """Parameter location is not a valid location"""
-
-
 class CheckEtagNotCalledError(FlaskRestApiError):
     """ETag enabled on resource but check_etag not called"""
 

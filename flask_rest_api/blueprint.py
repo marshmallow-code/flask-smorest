@@ -216,7 +216,7 @@ class Blueprint(
                             ) = resp.pop(field)
             if 'parameters' in operation:
                 for param in operation['parameters']:
-                    if param['in'] == 'body':
+                    if param['in'] == 'json':
                         request_body = {
                             x: param[x] for x in ('description', 'required')
                             if x in param

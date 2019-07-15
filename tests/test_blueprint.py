@@ -10,7 +10,6 @@ from flask import jsonify
 from flask.views import MethodView
 
 from flask_rest_api import Api, Blueprint, Page
-from flask_rest_api.exceptions import InvalidLocationError
 
 from .utils import build_ref
 
@@ -61,11 +60,6 @@ class TestBlueprint():
             # In OpenAPI v3, 'body' parameter is in 'requestBody'
             assert 'parameters' not in get
             assert 'requestBody' in get
-
-    def test_blueprint_arguments_location_invalid(self, app, schemas):
-        blp = Blueprint('test', __name__, url_prefix='/test')
-        with pytest.raises(InvalidLocationError):
-            blp.arguments(schemas.DocSchema, location='invalid')
 
     @pytest.mark.parametrize('openapi_version', ('2.0', '3.0.2'))
     def test_blueprint_multiple_registrations(self, app, openapi_version):
