@@ -231,15 +231,10 @@ class Blueprint(
                                 ) = param.pop(field)
                         operation['requestBody'] = request_body
                         # There can be only one requestBody
-                        continue
-                parameters = [
-                    param for param in operation['parameters']
-                    if not param['in'] == 'body'
-                ]
-                if parameters:
-                    operation['parameters'] = parameters
-                else:
-                    del operation['parameters']
+                        operation['parameters'].remove(param)
+                        if not operation['parameters']:
+                            del operation['parameters']
+                        break
 
     @staticmethod
     def doc(**kwargs):
