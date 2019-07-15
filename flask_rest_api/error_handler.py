@@ -1,7 +1,7 @@
 """Exception handler"""
 
 from werkzeug.exceptions import HTTPException
-from flask import jsonify, current_app
+from flask import jsonify
 
 
 class ErrorHandlerMixin:
@@ -34,30 +34,10 @@ class ErrorHandlerMixin:
         Extra information expected by this handler:
 
         - `message` (``str``): a comment
-        - `errors` (``dict``): errors, typically validation issues on a form
+        - `errors` (``dict``): errors, typically validation errors in
+            parameters and request body
         - `headers` (``dict``): additional headers
-
-        If the error was triggered by ``abort``, this handler logs it with
-        ``INF0`` level. Otherwise, it is an unhandled exception and it is
-        already logged as ``ERROR`` by Flask.
         """
-        # TODO: use an error Schema
-        # TODO: add a parameter to enable/disable logging?
-
-        # Don't log unhandled exceptions as Flask already logs them
-        # Unhandled exceptions are attached to the InternalServerError
-        # passed to the handler.
-        # https://flask.palletsprojects.com/en/1.1.x/changelog/#version-1-1-0
-        do_log = not hasattr(error, 'original_exception')
-
-        payload, headers = self._prepare_error_response_content(error)
-        if do_log:
-            self._log_error(error, payload)
-        return jsonify(payload), error.code, headers
-
-    @staticmethod
-    def _prepare_error_response_content(error):
-        """Build payload and headers from error"""
         headers = {}
         payload = {'code': error.code, 'status': error.name}
 
@@ -82,12 +62,4 @@ class ErrorHandlerMixin:
             if 'headers' in data:
                 headers = data['headers']
 
-        return payload, headers
-
-    @staticmethod
-    def _log_error(error, payload):
-        """Log error as INFO, including payload content"""
-        log_string_content = [str(error.code), ]
-        log_string_content.extend([
-            str(payload[k]) for k in ('message', 'errors') if k in payload])
-        current_app.logger.info(' '.join(log_string_content))
+        return jsonify(payload), error.code, headers

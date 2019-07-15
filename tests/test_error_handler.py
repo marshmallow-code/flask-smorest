@@ -1,12 +1,7 @@
-import json
-from unittest import mock
-
 import pytest
 
 from werkzeug.exceptions import default_exceptions, InternalServerError
 from flask_rest_api import Api, abort
-
-from .utils import NoLoggingContext
 
 
 class TestErrorHandler:
@@ -15,77 +10,32 @@ class TestErrorHandler:
     def test_error_handler_on_abort(self, app, code):
 
         client = app.test_client()
-        logger = app.logger
 
-        message = 'What a bad request.'
-        errors = {
-            'dimensions': ['Too tall', 'Too wide'],
-            'color': ['Too bright']
-        }
-
-        @app.route('/abort_no_kwargs')
-        def test_abort_no_kwargs():
+        @app.route('/abort')
+        def test_abort():
             abort(code)
-
-        @app.route('/abort_kwargs')
-        def test_abort_kwargs():
-            abort(code, message=message, errors=errors)
 
         Api(app)
 
-        # Test error handler logs as INFO with payload content
-        with mock.patch.object(logger, 'info') as mock_info:
-            response = client.get('/abort_no_kwargs')
-            assert mock_info.called
-            args, kwargs = mock_info.call_args
-
-        assert args == (str(code), )
-        assert kwargs == {}
-
+        response = client.get('/abort')
         assert response.status_code == code
-        data = json.loads(response.get_data(as_text=True))
-        assert data['code'] == code
-        assert data['status'] == default_exceptions[code]().name
-
-        with mock.patch.object(logger, 'info') as mock_info:
-            response = client.get('/abort_kwargs')
-            assert mock_info.called
-            args, kwargs = mock_info.call_args
-
-        assert args == (' '.join([str(code), message, str(errors)]), )
-        assert kwargs == {}
+        assert response.json['code'] == code
+        assert response.json['status'] == default_exceptions[code]().name
 
     def test_error_handler_on_unhandled_error(self, app):
 
         client = app.test_client()
-        logger = app.logger
-
-        uncaught_exc = Exception('Oops, something really bad happened.')
 
         @app.route('/uncaught')
         def test_uncaught():
-            raise uncaught_exc
+            raise Exception('Oops, something really bad happened.')
 
         Api(app)
 
-        # Test Flask logs uncaught exception as ERROR
-        # and handle_http_exception does not log is as INFO
-        with mock.patch.object(logger, 'error') as mock_error:
-            with mock.patch.object(logger, 'info') as mock_info:
-                response = client.get('/uncaught')
-                assert mock_error.called
-                args, kwargs = mock_error.call_args
-                assert not mock_info.called
-
-        assert args == ('Exception on /uncaught [GET]', )
-        exc_info = kwargs['exc_info']
-        _, exc_value, _ = exc_info
-        assert exc_value == uncaught_exc
-
+        response = client.get('/uncaught')
         assert response.status_code == 500
-        data = json.loads(response.get_data(as_text=True))
-        assert data['code'] == 500
-        assert data['status'] == InternalServerError().name
+        assert response.json['code'] == 500
+        assert response.json['status'] == InternalServerError().name
 
     def test_error_handler_payload(self, app):
 
@@ -116,28 +66,20 @@ class TestErrorHandler:
 
         Api(app)
 
-        with NoLoggingContext(app):
-            response = client.get('/message')
+        response = client.get('/message')
         assert response.status_code == 404
-        data = json.loads(response.get_data(as_text=True))
-        assert data['message'] == 'Resource not found'
+        assert response.json['message'] == 'Resource not found'
 
-        with NoLoggingContext(app):
-            response = client.get('/messages')
+        response = client.get('/messages')
         assert response.status_code == 422
-        data = json.loads(response.get_data(as_text=True))
-        assert data['errors'] == messages
+        assert response.json['errors'] == messages
 
-        with NoLoggingContext(app):
-            response = client.get('/errors')
+        response = client.get('/errors')
         assert response.status_code == 422
-        data = json.loads(response.get_data(as_text=True))
-        assert data['errors'] == errors
+        assert response.json['errors'] == errors
 
-        with NoLoggingContext(app):
-            response = client.get('/headers')
+        response = client.get('/headers')
         assert response.status_code == 401
         assert (
             response.headers['WWW-Authenticate'] == 'Basic realm="My Server"')
-        data = json.loads(response.get_data(as_text=True))
-        assert data['message'] == 'Access denied'
+        assert response.json['message'] == 'Access denied'
