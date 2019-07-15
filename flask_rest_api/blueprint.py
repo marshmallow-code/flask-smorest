@@ -48,6 +48,7 @@ from .arguments import ArgumentsMixin
 from .response import ResponseMixin
 from .pagination import PaginationMixin
 from .etag import EtagMixin
+from .spec import DEFAULT_REQUEST_BODY_CONTENT_TYPE
 
 
 class Blueprint(
@@ -209,6 +210,18 @@ class Blueprint(
                     if 'example' in resp:
                         resp['examples'] = {
                             'application/json': resp.pop('example')}
+            if 'parameters' in operation:
+                for param in operation['parameters']:
+                    if param['in'] in (
+                            self.DEFAULT_LOCATION_CONTENT_TYPE_MAPPING
+                    ):
+                        content_type = (
+                            self.DEFAULT_LOCATION_CONTENT_TYPE_MAPPING[
+                                param['in']])
+                        if content_type != DEFAULT_REQUEST_BODY_CONTENT_TYPE:
+                            operation['consumes'] = [content_type, ]
+                        # body and formData are mutually exclusive
+                        break
         # OAS 3
         else:
             if 'responses' in operation:

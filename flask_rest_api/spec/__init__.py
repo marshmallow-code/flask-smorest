@@ -16,6 +16,9 @@ def _add_leading_slash(string):
     return string if string.startswith('/') else '/' + string
 
 
+DEFAULT_REQUEST_BODY_CONTENT_TYPE = 'application/json'
+
+
 class DocBlueprintMixin:
     """Extend Api to serve the spec in a dedicated blueprint."""
 
@@ -173,7 +176,8 @@ class APISpecMixin(DocBlueprintMixin):
             base_path = self._app.config.get('APPLICATION_ROOT')
             options.setdefault('basePath', base_path)
             options.setdefault('produces', ['application/json', ])
-            options.setdefault('consumes', ['application/json', ])
+            options.setdefault(
+                'consumes', [DEFAULT_REQUEST_BODY_CONTENT_TYPE, ])
         options.update(self._app.config.get('API_SPEC_OPTIONS', {}))
 
         # Instantiate spec

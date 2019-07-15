@@ -71,6 +71,11 @@ class TestBlueprint():
             loc = get['parameters'][0]['in']
             assert loc == openapi_location
             assert 'requestBody' not in get
+            if location in REQUEST_BODY_CONTENT_TYPE and location != 'json':
+                assert get['consumes'] == [
+                    REQUEST_BODY_CONTENT_TYPE[location], ]
+            else:
+                assert 'consumes' not in get
 
     @pytest.mark.parametrize('openapi_version', ('2.0', '3.0.2'))
     def test_blueprint_multiple_registrations(self, app, openapi_version):
