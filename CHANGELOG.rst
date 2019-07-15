@@ -12,6 +12,9 @@ Features:
   achieved in application code by overriding ``handle_http_exception``.
   Remove ``_prepare_error_response_content``. Reponse payload is computed in
   ``handle_http_exception``. (:pr:`85`)
+- *Backwards-incompatible*: Remove ``InvalidLocationError``. The mapping from
+  webargs locations to OAS locations is done in apispec and no exception is
+  raised if an invalid location is passed. (:pr:`81`)
 
 0.16.1 (2019-07-15)
 +++++++++++++++++++
