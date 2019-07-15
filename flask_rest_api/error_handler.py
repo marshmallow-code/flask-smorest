@@ -59,7 +59,7 @@ class ErrorHandlerMixin:
     def _prepare_error_response_content(error):
         """Build payload and headers from error"""
         headers = {}
-        payload = {'status': str(error), }
+        payload = {'code': error.code, 'status': error.name}
 
         # Get additional info passed as kwargs when calling abort
         # data may not exist if
