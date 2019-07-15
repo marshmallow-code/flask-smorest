@@ -44,7 +44,8 @@ class TestErrorHandler:
 
         assert response.status_code == code
         data = json.loads(response.get_data(as_text=True))
-        assert data['status'] == str(default_exceptions[code]())
+        assert data['code'] == code
+        assert data['status'] == default_exceptions[code]().name
 
         with mock.patch.object(logger, 'info') as mock_info:
             response = client.get('/abort_kwargs')
@@ -83,7 +84,8 @@ class TestErrorHandler:
 
         assert response.status_code == 500
         data = json.loads(response.get_data(as_text=True))
-        assert data['status'] == str(InternalServerError())
+        assert data['code'] == 500
+        assert data['status'] == InternalServerError().name
 
     def test_error_handler_payload(self, app):
 
