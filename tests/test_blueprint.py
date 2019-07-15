@@ -23,6 +23,12 @@ LOCATIONS_MAPPING = (
     ('files', 'formData',),
 )
 
+REQUEST_BODY_CONTENT_TYPE = {
+    "json": "application/json",
+    "form": "application/x-www-form-urlencoded",
+    "files": "multipart/form-data",
+}
+
 
 class TestBlueprint():
     """Test Blueprint class"""
@@ -48,18 +54,23 @@ class TestBlueprint():
             @blp.arguments(schemas.DocSchema)
             def func():
                 """Dummy view func"""
+        location = location or 'json'
 
         api.register_blueprint(blp)
         spec = api.spec.to_dict()
         get = spec['paths']['/test/']['get']
-        if openapi_location != 'body' or openapi_version == '2.0':
+        if (
+                openapi_version == '3.0.2' and
+                location in REQUEST_BODY_CONTENT_TYPE
+        ):
+            assert 'parameters' not in get
+            assert 'requestBody' in get
+            assert REQUEST_BODY_CONTENT_TYPE[location] in get[
+                'requestBody']['content']
+        else:
             loc = get['parameters'][0]['in']
             assert loc == openapi_location
             assert 'requestBody' not in get
-        else:
-            # In OpenAPI v3, 'body' parameter is in 'requestBody'
-            assert 'parameters' not in get
-            assert 'requestBody' in get
 
     @pytest.mark.parametrize('openapi_version', ('2.0', '3.0.2'))
     def test_blueprint_multiple_registrations(self, app, openapi_version):
@@ -107,21 +118,26 @@ class TestBlueprint():
 
         api.register_blueprint(blp)
         get = api.spec.to_dict()['paths']['/test/']['get']
-        if location == 'json':
-            if openapi_version == '2.0':
-                parameters = get['parameters']
-                # One parameter: the schema
-                assert len(parameters) == 1
-                assert 'schema' in parameters[0]
-                assert 'requestBody' not in get
-                # Check required defaults to True
-                assert parameters[0]['required'] == (required is not False)
-            else:
-                # Body parameter in 'requestBody'
-                assert 'requestBody' in get
-                # Check required defaults to True
-                assert get['requestBody']['required'] == (
-                    required is not False)
+        # OAS3 / json, form, files
+        if (
+                openapi_version == '3.0.2' and
+                location in REQUEST_BODY_CONTENT_TYPE
+        ):
+            # Body parameter in 'requestBody'
+            assert 'requestBody' in get
+            # Check required defaults to True
+            assert get['requestBody']['required'] == (
+                required is not False)
+        # OAS2 / json
+        elif location == 'json':
+            parameters = get['parameters']
+            # One parameter: the schema
+            assert len(parameters) == 1
+            assert 'schema' in parameters[0]
+            assert 'requestBody' not in get
+            # Check required defaults to True
+            assert parameters[0]['required'] == (required is not False)
+        # OAS2-3 / all
         else:
             parameters = get['parameters']
             # One parameter: the 'field' field in DocSchema
