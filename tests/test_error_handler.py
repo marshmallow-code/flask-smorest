@@ -43,9 +43,8 @@ class TestErrorHandler:
         assert kwargs == {}
 
         assert response.status_code == code
-        data = json.loads(response.get_data(as_text=True))
-        assert data['code'] == code
-        assert data['status'] == default_exceptions[code]().name
+        assert response.json['code'] == code
+        assert response.json['status'] == default_exceptions[code]().name
 
         with mock.patch.object(logger, 'info') as mock_info:
             response = client.get('/abort_kwargs')
@@ -83,9 +82,8 @@ class TestErrorHandler:
         assert exc_value == uncaught_exc
 
         assert response.status_code == 500
-        data = json.loads(response.get_data(as_text=True))
-        assert data['code'] == 500
-        assert data['status'] == InternalServerError().name
+        assert response.json['code'] == 500
+        assert response.json['status'] == InternalServerError().name
 
     def test_error_handler_payload(self, app):
 
@@ -119,25 +117,21 @@ class TestErrorHandler:
         with NoLoggingContext(app):
             response = client.get('/message')
         assert response.status_code == 404
-        data = json.loads(response.get_data(as_text=True))
-        assert data['message'] == 'Resource not found'
+        assert response.json['message'] == 'Resource not found'
 
         with NoLoggingContext(app):
             response = client.get('/messages')
         assert response.status_code == 422
-        data = json.loads(response.get_data(as_text=True))
-        assert data['errors'] == messages
+        assert response.json['errors'] == messages
 
         with NoLoggingContext(app):
             response = client.get('/errors')
         assert response.status_code == 422
-        data = json.loads(response.get_data(as_text=True))
-        assert data['errors'] == errors
+        assert response.json['errors'] == errors
 
         with NoLoggingContext(app):
             response = client.get('/headers')
         assert response.status_code == 401
         assert (
             response.headers['WWW-Authenticate'] == 'Basic realm="My Server"')
-        data = json.loads(response.get_data(as_text=True))
-        assert data['message'] == 'Access denied'
+        assert response.json['message'] == 'Access denied'
