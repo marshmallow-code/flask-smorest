@@ -1,6 +1,18 @@
 Changelog
 ---------
 
+0.17.0 (unreleased)
++++++++++++++++++++
+
+Features:
+
+- *Backwards-incompatible*: Only return status code and short name in error
+  handler (:pr:`84`).
+- *Backwards-incompatible*: Remove logging from error handler. Logging can be
+  achieved in application code by overriding ``handle_http_exception``.
+  Remove ``_prepare_error_response_content``. Reponse payload is computed in
+  ``handle_http_exception``. (:pr:`85`)
+
 0.16.1 (2019-07-15)
 +++++++++++++++++++
 
