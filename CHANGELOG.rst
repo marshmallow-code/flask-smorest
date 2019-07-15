@@ -1,6 +1,20 @@
 Changelog
 ---------
 
+0.16.1 (2019-07-15)
++++++++++++++++++++
+
+Bug fixes:
+
+- Fix detection of unhandled exceptions in error handler for Flask=>1.1.0
+  (:pr:`82`).
+
+Other changes:
+
+- Bump minimum Flask version to 1.1.0. From this version on, uncaught
+  exceptions are passed to the error handler as ``InternalServerError`` with
+  the exception attached as ``original_exception`` attribute. (:pr:`82`)
+
 0.16.0 (2019-06-20)
 +++++++++++++++++++
 
