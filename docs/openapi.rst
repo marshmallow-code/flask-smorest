@@ -149,6 +149,36 @@ Documentation components can be passed by accessing the internal apispec
       {'description': 'Item ID', 'format': 'int32', 'required': True}
    )
 
+Use Swagger OAuth2 Authentication
+---------------------------------
+
+Swagger can automatically redirect to OAuth2 URLs and retrieve a token for use as an Authentication Header. See the `Swagger OAuth2 Docs`_ for more information. Your redirect to supply to your OAuth provider will be ``{HOST}://{OPENAPI_URL_PREFIX}/{OPENAPI_SWAGGER_UI_PATH}/oauth2-redirect``. You can also specify the template URL for the redirect page directly with the ``SWAGGER_OAUTH_REDIRECT_TEMPLATE_URL`` config property. If not specified, it will default to ``https://raw.githubusercontent.com/swagger-api/swagger-ui/master/dist/oauth2-redirect.html``. The code below is an example of what should be supplied as config to app in order to activate this feature.
+
+.. code-block:: python
+
+  app.config['API_SPEC_OPTIONS'] = {'components': 
+    {
+      'securitySchemes': {
+        },
+        'OAuth2': {
+          'type': 'oauth2',
+          'flows': {
+            'implicit': {
+              'authorizationUrl': self.AUTHORIZATION_URL,
+              'scopes': {
+                'openid': 'openid token'
+              }
+            }
+          }
+        }
+      }
+    },
+    'security': [{
+      'OAuth2': []
+    }]
+  }
+
+
 Register Custom Fields
 ----------------------
 
@@ -276,3 +306,4 @@ number.
 
 .. _ReDoc: https://github.com/Rebilly/ReDoc
 .. _Swagger UI: https://swagger.io/tools/swagger-ui/
+.. _Swagger OAuth2 Docs: https://swagger.io/docs/specification/authentication/oauth2/
