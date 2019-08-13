@@ -124,7 +124,9 @@ class DocBlueprintMixin:
                     endpoint='openapi_swagger_ui',
                     view_func=self._openapi_swagger_ui)
                 blueprint.add_url_rule(
-                    _add_leading_slash('{}/oauth2-redirect'.format(swagger_ui_path)),
+                    _add_leading_slash(
+                        '{}/oauth2-redirect'.format(swagger_ui_path)
+                    ),
                     endpoint='openapi_swagger_ui_redirect',
                     view_func=self._openapi_swagger_ui_redirect)
 
