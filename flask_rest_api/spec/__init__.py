@@ -11,7 +11,6 @@ from flask_rest_api.exceptions import OpenAPIVersionNotSpecified
 from .plugins import FlaskPlugin
 
 from urllib.request import urlopen
-from urllib.parse import urljoin
 
 
 def _add_leading_slash(string):
@@ -22,17 +21,17 @@ def _add_leading_slash(string):
 class DocBlueprintMixin:
     """Extend Api to serve the spec in a dedicated blueprint."""
 
-
     def _get_swagger_ui_oauth_redirect_template(self):
         swagger_ui_version = self._app.config.get(
             'OPENAPI_SWAGGER_UI_VERSION', 'master')
 
         url = self._app.config.get('SWAGGER_OAUTH_REDIRECT_TEMPLATE_URL',
-            'https://raw.githubusercontent.com/swagger-api/swagger-ui/' + \
-            '{version}/dist/oauth2-redirect.html'.format(
-                version=swagger_ui_version
+                'https://raw.githubusercontent.com/' +  # noqa: E128
+                'swagger-api/swagger-ui/' +  # noqa: E128
+                '{version}/dist/oauth2-redirect.html'.format(
+                    version=swagger_ui_version
+                )
             )
-        )
         try:
             t = urlopen(url)
             if t.getcode() is None or t.getcode() == 200:
@@ -181,7 +180,7 @@ class DocBlueprintMixin:
             template_response = flask.render_template_string(
                 self.template_body
             )
-        except Exception as e:
+        except Exception:
             pass
         return template_response
 
