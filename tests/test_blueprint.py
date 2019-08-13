@@ -65,6 +65,7 @@ class TestBlueprint():
         ):
             assert 'parameters' not in get
             assert 'requestBody' in get
+            assert len(get['requestBody']['content']) == 1
             assert REQUEST_BODY_CONTENT_TYPE[location] in get[
                 'requestBody']['content']
         else:
@@ -72,8 +73,35 @@ class TestBlueprint():
             assert loc == openapi_location
             assert 'requestBody' not in get
             if location in REQUEST_BODY_CONTENT_TYPE and location != 'json':
-                assert get['consumes'] == [
-                    REQUEST_BODY_CONTENT_TYPE[location], ]
+                assert get['consumes'] == [REQUEST_BODY_CONTENT_TYPE[location]]
+            else:
+                assert 'consumes' not in get
+
+    @pytest.mark.parametrize('openapi_version', ('2.0', '3.0.2'))
+    @pytest.mark.parametrize('location', REQUEST_BODY_CONTENT_TYPE.keys())
+    @pytest.mark.parametrize('content_type', ('application/x-custom', None))
+    def test_blueprint_arguments_content_type(
+            self, app, schemas, location, content_type, openapi_version):
+        app.config['OPENAPI_VERSION'] = openapi_version
+        api = Api(app)
+        blp = Blueprint('test', __name__, url_prefix='/test')
+        content_type = content_type or REQUEST_BODY_CONTENT_TYPE[location]
+
+        @blp.route('/')
+        @blp.arguments(
+            schemas.DocSchema, location=location, content_type=content_type)
+        def func():
+            """Dummy view func"""
+
+        api.register_blueprint(blp)
+        spec = api.spec.to_dict()
+        get = spec['paths']['/test/']['get']
+        if openapi_version == '3.0.2':
+            assert len(get['requestBody']['content']) == 1
+            assert content_type in get['requestBody']['content']
+        else:
+            if content_type != 'application/json':
+                assert get['consumes'] == [content_type]
             else:
                 assert 'consumes' not in get
 

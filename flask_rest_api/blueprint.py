@@ -217,8 +217,10 @@ class Blueprint(
                             self.DEFAULT_LOCATION_CONTENT_TYPE_MAPPING
                     ):
                         content_type = (
+                            param.pop('content_type', None) or
                             self.DEFAULT_LOCATION_CONTENT_TYPE_MAPPING[
-                                param['in']])
+                                param['in']]
+                        )
                         if content_type != DEFAULT_REQUEST_BODY_CONTENT_TYPE:
                             operation['consumes'] = [content_type, ]
                         # body and formData are mutually exclusive
@@ -240,21 +242,22 @@ class Blueprint(
                     if param['in'] in (
                             self.DEFAULT_LOCATION_CONTENT_TYPE_MAPPING
                     ):
-                        content_type = (
-                            self.DEFAULT_LOCATION_CONTENT_TYPE_MAPPING[
-                                param['in']])
                         request_body = {
-                            x: param[x] for x in ('description', 'required')
+                            x: param[x]
+                            for x in ('description', 'required')
                             if x in param
                         }
-                        for field in ('schema', 'example', 'examples'):
-                            if field in param:
-                                (
-                                    request_body
-                                    .setdefault('content', {})
-                                    .setdefault(content_type, {})
-                                    [field]
-                                ) = param.pop(field)
+                        fields = {
+                            x: param.pop(x)
+                            for x in ('schema', 'example', 'examples')
+                            if x in param
+                        }
+                        content_type = (
+                            param.pop('content_type', None) or
+                            self.DEFAULT_LOCATION_CONTENT_TYPE_MAPPING[
+                                param['in']]
+                        )
+                        request_body['content'] = {content_type: fields}
                         operation['requestBody'] = request_body
                         # There can be only one requestBody
                         operation['parameters'].remove(param)
