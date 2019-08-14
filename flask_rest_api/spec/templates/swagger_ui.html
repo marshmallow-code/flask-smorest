@@ -15,7 +15,9 @@
    <script>
      window.onload = function() {
        const ui = SwaggerUIBundle({
+         {% if swagger_ui_enable_oauth is True %}
          oauth2RedirectUrl: "{{ url_for('api-docs.openapi_swagger_ui_redirect',_external=True) }}",
+         {% endif %}
          url: "{{ url_for('api-docs.openapi_json') }}",
          dom_id: '#swagger-ui-container',
          deepLinking: true,

@@ -10,8 +10,6 @@ from apispec.ext.marshmallow import MarshmallowPlugin
 from flask_rest_api.exceptions import OpenAPIVersionNotSpecified
 from .plugins import FlaskPlugin
 
-from urllib.request import urlopen
-
 
 def _add_leading_slash(string):
     """Add leading slash to a string if there is None"""
@@ -20,24 +18,6 @@ def _add_leading_slash(string):
 
 class DocBlueprintMixin:
     """Extend Api to serve the spec in a dedicated blueprint."""
-
-    def _get_swagger_ui_oauth_redirect_template(self):
-        swagger_ui_version = self._app.config.get(
-            'OPENAPI_SWAGGER_UI_VERSION', 'master')
-
-        url = self._app.config.get('SWAGGER_OAUTH_REDIRECT_TEMPLATE_URL',
-                'https://raw.githubusercontent.com/' +  # noqa: E128
-                'swagger-api/swagger-ui/' +  # noqa: E128
-                '{version}/dist/oauth2-redirect.html'.format(
-                    version=swagger_ui_version
-                )
-            )
-        try:
-            t = urlopen(url)
-            if t.getcode() is None or t.getcode() == 200:
-                return t.read().decode('utf-8')
-        except IOError:
-            pass
 
     def _register_doc_blueprint(self):
         """Register a blueprint in the application to expose the spec
@@ -64,7 +44,6 @@ class DocBlueprintMixin:
             self._register_redoc_rule(blueprint)
             self._register_swagger_ui_rule(blueprint)
             self._app.register_blueprint(blueprint)
-            self.template_body = self._get_swagger_ui_oauth_redirect_template()
 
     def _register_redoc_rule(self, blueprint):
         """Register ReDoc rule
@@ -169,20 +148,18 @@ class DocBlueprintMixin:
         return flask.render_template(
             'swagger_ui.html', title=self._app.name,
             swagger_ui_url=self._swagger_ui_url,
+            swagger_ui_enable_oauth=self._app.config.get(
+                'OPENAPI_SWAGGER_UI_ENABLE_OAUTH', False),
             swagger_ui_supported_submit_methods=(
                 self._swagger_ui_supported_submit_methods)
         )
 
     def _openapi_swagger_ui_redirect(self):
         """Expose OpenAPI redirect url with Swagger UI"""
-        template_response = ""
-        try:
-            template_response = flask.render_template_string(
-                self.template_body
-            )
-        except Exception:
-            pass
-        return template_response
+        return flask.render_template(
+            'swagger_ui_redirect.html'
+        )
+
 
 
 class APISpecMixin(DocBlueprintMixin):
