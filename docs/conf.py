@@ -47,7 +47,7 @@ intersphinx_mapping = {
     'marshmallow': ('http://marshmallow.readthedocs.io/en/latest/', None),
     'apispec': ('http://apispec.readthedocs.io/en/latest/', None),
     'webargs': ('http://webargs.readthedocs.io/en/latest/', None),
-    'flask': ('http://flask.readthedocs.io/en/latest/', None),
+    'flask': ('http://flask.readthedocs.io/', None),
     'sqlalchemy': ('http://docs.sqlalchemy.org/en/latest/', None),
     'mongoengine': ('http://docs.mongoengine.org/', None),
 }
