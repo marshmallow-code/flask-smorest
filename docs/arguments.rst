@@ -8,9 +8,6 @@ To inject arguments into a view function, use the :meth:`Blueprint.arguments
 <Blueprint.arguments>` decorator. It allows to specify a :class:`Schema
 <marshmallow.Schema>` to deserialize and validate the parameters.
 
-It uses webargs's :meth:`use_args <webargs.core.Parser.use_args>` decorator
-internally.
-
 When processing a request, the input data is deserialized, validated, and
 injected in the view function.
 
@@ -33,12 +30,21 @@ injected in the view function.
 Arguments Location
 ------------------
 
-The list of available locations is available in `webargs documentation 
-<https://webargs.readthedocs.io/en/latest/quickstart.html#request-locations>`_.
-The location defaults to ``'json'``, which means `body` parameter.
+The following locations are allowed:
 
-.. note:: Unlike webargs's :meth:`use_args <webargs.core.Parser.use_args>`
-   decorator, :meth:`Blueprint.arguments <Blueprint.arguments>` only accepts a
+    - ``"json"``
+    - ``"query"`` (or ``"querystring"``)
+    - ``"path"``
+    - ``"form"``
+    - ``"headers"``
+    - ``"cookies"``
+    - ``"files"``
+
+The location defaults to ``"json"``, which means `body` parameter.
+
+.. note:: :meth:`Blueprint.arguments <Blueprint.arguments>` uses webargs's
+   :meth:`use_args <webargs.core.Parser.use_args>` decorator internally, but   
+   unlike :meth:`use_args <webargs.core.Parser.use_args>`, it only accepts a
    single location.
 
 Arguments Injection
