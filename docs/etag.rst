@@ -1,5 +1,5 @@
 .. _etag:
-.. module:: flask_rest_api
+.. currentmodule:: flask_rest_api
 
 ETag
 ====

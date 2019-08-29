@@ -1,5 +1,5 @@
 .. _quickstart:
-.. module:: flask_rest_api
+.. currentmodule:: flask_rest_api
 
 Quickstart
 ==========
