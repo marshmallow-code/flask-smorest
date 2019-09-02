@@ -80,3 +80,24 @@ view function.
         @blp.arguments(QueryArgsSchema, location='query')
         def post(pet_data, query_args):
             return Pet.create(pet_data, **query_args)
+
+Content Type
+------------
+
+When using body arguments, a default content type is assumed depending on the
+location. The location / content type mapping can be customized by modifying
+``Blueprint.DEFAULT_LOCATION_CONTENT_TYPE_MAPPING``.
+
+.. code-block:: python
+
+    DEFAULT_LOCATION_CONTENT_TYPE_MAPPING = {
+        "json": "application/json",
+        "form": "application/x-www-form-urlencoded",
+        "files": "multipart/form-data",
+
+It is also possible to override those defaults in a single resource by passing
+a string as ``content_type`` argument to :meth:`Blueprint.arguments
+<Blueprint.arguments>`.
+
+.. note:: The content type is only used for documentation purpose and has no
+   impact on request parsing.
