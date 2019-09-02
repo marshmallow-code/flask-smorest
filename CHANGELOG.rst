@@ -15,6 +15,14 @@ Features:
 - *Backwards-incompatible*: Remove ``InvalidLocationError``. The mapping from
   webargs locations to OAS locations is done in apispec and no exception is
   raised if an invalid location is passed. (:pr:`81`)
+- Add ``content_type`` argument to ``Blueprint.arguments`` and provide
+  reasonable default content type for ``form`` and ``files`` (:pr:`83`).
+
+Bug fixes:
+
+- Fix documentation of ``form`` and ``files`` arguments: use ``requestBody``
+  in OAS3, document content type (:pr:`83`).
+
 
 0.16.1 (2019-07-15)
 +++++++++++++++++++
