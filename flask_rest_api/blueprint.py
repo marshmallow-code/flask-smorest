@@ -48,6 +48,8 @@ from .arguments import ArgumentsMixin
 from .response import ResponseMixin
 from .pagination import PaginationMixin
 from .etag import EtagMixin
+from .spec import (
+    DEFAULT_REQUEST_BODY_CONTENT_TYPE, DEFAULT_RESPONSE_CONTENT_TYPE)
 
 
 class Blueprint(
@@ -57,6 +59,12 @@ class Blueprint(
 
     # Order in which the methods are presented in the spec
     HTTP_METHODS = ['OPTIONS', 'HEAD', 'GET', 'POST', 'PUT', 'PATCH', 'DELETE']
+
+    DEFAULT_LOCATION_CONTENT_TYPE_MAPPING = {
+        "json": "application/json",
+        "form": "application/x-www-form-urlencoded",
+        "files": "multipart/form-data",
+    }
 
     def __init__(self, *args, **kwargs):
 
@@ -186,8 +194,7 @@ class Blueprint(
             rule = next(app.url_map.iter_rules(full_endpoint))
             spec.path(rule=rule, operations=doc, parameters=parameters)
 
-    @staticmethod
-    def _prepare_doc(operation, openapi_version):
+    def _prepare_doc(self, operation, openapi_version):
         """Format operation documentation in OpenAPI structure
 
         The decorators store all documentation information in a dict structure
@@ -197,12 +204,28 @@ class Blueprint(
         versions: the OpenAPI version is not known when the decorators are
         applied but only at registration time when this method is called.
         """
+        # OAS 2
         if openapi_version.major < 3:
             if 'responses' in operation:
                 for resp in operation['responses'].values():
                     if 'example' in resp:
                         resp['examples'] = {
-                            'application/json': resp.pop('example')}
+                            DEFAULT_RESPONSE_CONTENT_TYPE: resp.pop('example')}
+            if 'parameters' in operation:
+                for param in operation['parameters']:
+                    if param['in'] in (
+                            self.DEFAULT_LOCATION_CONTENT_TYPE_MAPPING
+                    ):
+                        content_type = (
+                            param.pop('content_type', None) or
+                            self.DEFAULT_LOCATION_CONTENT_TYPE_MAPPING[
+                                param['in']]
+                        )
+                        if content_type != DEFAULT_REQUEST_BODY_CONTENT_TYPE:
+                            operation['consumes'] = [content_type, ]
+                        # body and formData are mutually exclusive
+                        break
+        # OAS 3
         else:
             if 'responses' in operation:
                 for resp in operation['responses'].values():
@@ -211,24 +234,30 @@ class Blueprint(
                             (
                                 resp
                                 .setdefault('content', {})
-                                .setdefault('application/json', {})
+                                .setdefault(DEFAULT_RESPONSE_CONTENT_TYPE, {})
                                 [field]
                             ) = resp.pop(field)
             if 'parameters' in operation:
                 for param in operation['parameters']:
-                    if param['in'] == 'json':
+                    if param['in'] in (
+                            self.DEFAULT_LOCATION_CONTENT_TYPE_MAPPING
+                    ):
                         request_body = {
-                            x: param[x] for x in ('description', 'required')
+                            x: param[x]
+                            for x in ('description', 'required')
                             if x in param
                         }
-                        for field in ('schema', 'example', 'examples'):
-                            if field in param:
-                                (
-                                    request_body
-                                    .setdefault('content', {})
-                                    .setdefault('application/json', {})
-                                    [field]
-                                ) = param.pop(field)
+                        fields = {
+                            x: param.pop(x)
+                            for x in ('schema', 'example', 'examples')
+                            if x in param
+                        }
+                        content_type = (
+                            param.pop('content_type', None) or
+                            self.DEFAULT_LOCATION_CONTENT_TYPE_MAPPING[
+                                param['in']]
+                        )
+                        request_body['content'] = {content_type: fields}
                         operation['requestBody'] = request_body
                         # There can be only one requestBody
                         operation['parameters'].remove(param)
