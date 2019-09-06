@@ -1,5 +1,4 @@
-"""API specification using Open API"""
-
+"""API specification using OpenAPI"""
 import json
 
 import flask
@@ -9,6 +8,7 @@ from apispec.ext.marshmallow import MarshmallowPlugin
 
 from flask_rest_api.exceptions import OpenAPIVersionNotSpecified
 from .plugins import FlaskPlugin
+from .field_converters import uploadfield2properties
 
 
 def _add_leading_slash(string):
@@ -197,6 +197,8 @@ class APISpecMixin(DocBlueprintMixin):
         # Register custom converters in spec
         for args in self._converters:
             self._register_converter(*args)
+        # Register Upload field properties function
+        self.ma_plugin.converter.add_attribute_function(uploadfield2properties)
 
     def register_converter(self, converter, conv_type, conv_format=None):
         """Register custom path parameter converter
