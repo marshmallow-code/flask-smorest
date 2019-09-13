@@ -14,7 +14,7 @@ class ArgumentsMixin:
 
     def arguments(
             self, schema, *, location='json', content_type=None, required=True,
-            example=None, examples=None, **kwargs
+            description=None, example=None, examples=None, **kwargs
     ):
         """Decorator specifying the schema used to deserialize parameters
 
@@ -28,15 +28,18 @@ class ArgumentsMixin:
             ``Blueprint.DEFAULT_LOCATION_CONTENT_TYPE_MAPPING``.
             This is only used for documentation purpose.
         :param bool required: Whether argument is required (default: True).
-            This only affects `body` arguments as, in this case, the docs
-            expose the whole schema as a `required` parameter.
-            For other locations, the schema is turned into an array of
-            parameters and their required value is inferred from the schema.
+        :param str description: Argument description.
         :param dict example: Parameter example.
         :param list examples: List of parameter examples.
         :param dict kwargs: Keyword arguments passed to the webargs
             :meth:`use_args <webargs.core.Parser.use_args>` decorator used
             internally.
+
+        The `required` and `description` only affect `body` arguments
+        (OpenAPI 2) or `requestBody` (OpenAPI 3), because the docs expose the
+        whole schema. For other locations, the schema is turned into an array
+        of parameters and the required/description value of each parameter item
+        is taken from the corresponding field in the schema.
 
         The `example` and `examples` parameters are mutually exclusive and
         should only be used with OpenAPI 3 and when location is ``json``.
@@ -56,6 +59,8 @@ class ArgumentsMixin:
             parameters['example'] = example
         if examples is not None:
             parameters['examples'] = examples
+        if description is not None:
+            parameters['description'] = description
 
         def decorator(func):
 
