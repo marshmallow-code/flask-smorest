@@ -182,6 +182,57 @@ class TestBlueprint():
             assert parameters[0]['required'] is False
 
     @pytest.mark.parametrize('openapi_version', ('2.0', '3.0.2'))
+    @pytest.mark.parametrize('location_map', LOCATIONS_MAPPING)
+    @pytest.mark.parametrize('description', ('Description', None))
+    def test_blueprint_arguments_description(
+            self, app, schemas, description, location_map, openapi_version):
+        app.config['OPENAPI_VERSION'] = openapi_version
+        api = Api(app)
+        blp = Blueprint('test', __name__, url_prefix='/test')
+        location, _ = location_map
+
+        @blp.route('/')
+        @blp.arguments(
+            schemas.DocSchema, description=description, location=location)
+        def func():
+            pass
+
+        api.register_blueprint(blp)
+        get = api.spec.to_dict()['paths']['/test/']['get']
+        # OAS3 / json, form, files
+        if (
+                openapi_version == '3.0.2' and
+                location in REQUEST_BODY_CONTENT_TYPE
+        ):
+            # Body parameter in 'requestBody'
+            assert 'requestBody' in get
+            if description is not None:
+                assert get['requestBody']['description'] == description
+            else:
+                assert 'description' not in get['requestBody']
+        # OAS2 / json
+        elif location == 'json':
+            parameters = get['parameters']
+            # One parameter: the schema
+            assert len(parameters) == 1
+            assert 'schema' in parameters[0]
+            assert 'requestBody' not in get
+            if description is not None:
+                assert parameters[0]['description'] == description
+            else:
+                assert 'description' not in parameters[0]
+        # OAS2-3 / all
+        else:
+            parameters = get['parameters']
+            # One parameter: the 'field' field in DocSchema
+            assert len(parameters) == 1
+            assert parameters[0]['name'] == 'field'
+            assert 'requestBody' not in get
+            # Check the description parameter has no impact.
+            # Only the description attribute of the field matters
+            assert 'description' not in parameters[0]
+
+    @pytest.mark.parametrize('openapi_version', ('2.0', '3.0.2'))
     def test_blueprint_arguments_multiple(self, app, schemas, openapi_version):
         app.config['OPENAPI_VERSION'] = openapi_version
         api = Api(app)
