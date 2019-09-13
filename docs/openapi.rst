@@ -67,6 +67,11 @@ The example above produces the following documentation attributes:
         }
     }
 
+The delimiter line is the line starting with the delimiter string defined in
+``Blueprint.DOCSTRING_INFO_DELIMITER``. This string defaults to ``"---"`` and
+can be customized in a subclass. ``None`` means "no delimiter": the whole
+docstring is included in the docs.
+
 Document Operations Parameters and Responses
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

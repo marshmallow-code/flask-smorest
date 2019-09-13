@@ -12,3 +12,4 @@ Contributors (chronological)
 ============================
 
 - Ryan Yin `@ryan4yin <https://github.com/ryan4yin>`_
+- Douglas Thor `@dougthor42 <https://github.com/dougthor42>`_

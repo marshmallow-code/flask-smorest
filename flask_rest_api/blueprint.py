@@ -66,6 +66,8 @@ class Blueprint(
         "files": "multipart/form-data",
     }
 
+    DOCSTRING_INFO_DELIMITER = "---"
+
     def __init__(self, *args, **kwargs):
 
         self.description = kwargs.pop('description', '')
@@ -135,12 +137,16 @@ class Blueprint(
 
         def store_method_docs(method, function):
             """Add auto and manual doc to table for later registration"""
-            # Get summary/description from docstring
-            # and auto documentation from decorators
+            # Get auto documentation from decorators
+            # and summary/description from docstring
             # Get manual documentation from @doc decorator
-            docstring = function.__doc__
-            auto_doc = load_info_from_docstring(docstring) if docstring else {}
-            auto_doc.update(getattr(function, '_apidoc', {}))
+            auto_doc = getattr(function, '_apidoc', {})
+            auto_doc.update(
+                load_info_from_docstring(
+                    function.__doc__,
+                    delimiter=self.DOCSTRING_INFO_DELIMITER
+                )
+            )
             manual_doc = getattr(function, '_api_manual_doc', {})
             # Store function auto and manual docs for later registration
             method_l = method.lower()

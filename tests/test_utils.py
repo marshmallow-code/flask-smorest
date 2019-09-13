@@ -32,6 +32,8 @@ class TestUtils():
         }
 
     def test_load_info_from_docstring(self):
+        assert (load_info_from_docstring(None)) == {}
+        assert (load_info_from_docstring(None, delimiter="---")) == {}
         assert (load_info_from_docstring('')) == {}
 
         docstring = """
@@ -51,7 +53,22 @@ class TestUtils():
         ---
         Ignore this.
         """
-        assert load_info_from_docstring(docstring) == {
-            'summary': 'Summary\nTwo-line summary is possible.',
-            'description': 'Long description\nReally long description'
-        }
+        assert (
+            load_info_from_docstring(docstring) ==
+            load_info_from_docstring(docstring, delimiter="---") ==
+            {
+                'summary': 'Summary\nTwo-line summary is possible.',
+                'description': 'Long description\nReally long description',
+            }
+        )
+        assert (
+            load_info_from_docstring(docstring, delimiter=None) ==
+            load_info_from_docstring(docstring, delimiter="~~~") ==
+            {
+                'summary': 'Summary\nTwo-line summary is possible.',
+                'description': (
+                    'Long description\nReally long description\n---\n'
+                    'Ignore this.'
+                )
+            }
+        )

@@ -676,43 +676,50 @@ class TestBlueprint():
         assert resp['description'] == 'Description'
         assert 'schema' in resp['content']['application/json']
 
-    def test_blueprint_doc_info_from_docstring(self, app):
+    @pytest.mark.parametrize('delimiter', (False, None, "---"))
+    def test_blueprint_doc_info_from_docstring(self, app, delimiter):
         api = Api(app)
-        blp = Blueprint('test', __name__, url_prefix='/test')
+
+        class MyBlueprint(Blueprint):
+            # Check delimiter default value
+            if delimiter is not False:
+                DOCSTRING_INFO_DELIMITER = delimiter
+
+        blp = MyBlueprint('test', __name__, url_prefix='/test')
 
         @blp.route('/')
         class Resource(MethodView):
 
             def get(self):
-                """Docstring get summary"""
+                """Get summary"""
 
             def put(self):
-                """Docstring put summary
+                """Put summary
 
-                Docstring put description
+                Put description
+                ---
+                Private docstring
                 """
 
-            @blp.doc(
-                summary='Decorator patch summary',
-                description='Decorator patch description'
-            )
             def patch(self):
-                """Docstring patch summary
-
-                Docstring patch description
-                """
+                pass
 
         api.register_blueprint(blp)
         spec = api.spec.to_dict()
         path = spec['paths']['/test/']
 
-        assert path['get']['summary'] == 'Docstring get summary'
+        assert path['get']['summary'] == 'Get summary'
         assert 'description' not in path['get']
-        assert path['put']['summary'] == 'Docstring put summary'
-        assert path['put']['description'] == 'Docstring put description'
-        # @doc decorator overrides docstring
-        assert path['patch']['summary'] == 'Decorator patch summary'
-        assert path['patch']['description'] == 'Decorator patch description'
+        assert path['put']['summary'] == 'Put summary'
+        if delimiter is None:
+            assert (
+                path['put']['description'] ==
+                'Put description\n---\nPrivate docstring'
+            )
+        else:
+            assert path['put']['description'] == 'Put description'
+        assert 'summary' not in path['patch']
+        assert 'description' not in path['patch']
 
     @pytest.mark.parametrize('http_methods', (
         ['OPTIONS', 'HEAD', 'GET', 'POST', 'PUT', 'PATCH', 'DELETE'],

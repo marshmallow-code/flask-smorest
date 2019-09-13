@@ -32,28 +32,33 @@ def get_appcontext():
     return ctx.flask_rest_api
 
 
-def load_info_from_docstring(docstring):
-    """Load summary and description from docstring"""
+def load_info_from_docstring(docstring, *, delimiter="---"):
+    """Load summary and description from docstring
+
+    :param str delimiter: Summary and description information delimiter.
+    If a line starts with this string, this line and the lines after are
+    ignored. Defaults to "---".
+    """
     split_lines = trim_docstring(docstring).split('\n')
 
-    # Info is separated from rest of docstring by a '---' line
-    for index, line in enumerate(split_lines):
-        if line.lstrip().startswith('---'):
-            cut_at = index
-            break
-    else:
-        cut_at = index + 1
-
-    split_info_lines = split_lines[:cut_at]
+    if delimiter is not None:
+        # Info is separated from rest of docstring by a `delimiter` line
+        for index, line in enumerate(split_lines):
+            if line.lstrip().startswith(delimiter):
+                cut_at = index
+                break
+        else:
+            cut_at = index + 1
+        split_lines = split_lines[:cut_at]
 
     # Description is separated from summary by an empty line
-    for index, line in enumerate(split_info_lines):
+    for index, line in enumerate(split_lines):
         if line.strip() == '':
-            summary_lines = split_info_lines[:index]
-            description_lines = split_info_lines[index + 1:]
+            summary_lines = split_lines[:index]
+            description_lines = split_lines[index + 1:]
             break
     else:
-        summary_lines = split_info_lines
+        summary_lines = split_lines
         description_lines = []
 
     info = {}

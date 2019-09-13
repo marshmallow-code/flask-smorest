@@ -19,6 +19,7 @@ Features:
   reasonable default content type for ``form`` and ``files`` (:pr:`83`).
 - Add ``description`` parameter to ``Blueprint.arguments`` to pass description
   for ``requestBody`` (:pr:`93`).
+- Allow customization of docstring delimiter string (:issue:`49`).
 
 Bug fixes:
 
