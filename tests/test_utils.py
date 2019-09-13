@@ -32,6 +32,8 @@ class TestUtils():
         }
 
     def test_load_info_from_docstring(self):
+        assert (load_info_from_docstring(None)) == {}
+        assert (load_info_from_docstring(None, delimiter="---")) == {}
         assert (load_info_from_docstring('')) == {}
 
         docstring = """
@@ -51,57 +53,22 @@ class TestUtils():
         ---
         Ignore this.
         """
-        assert load_info_from_docstring(docstring) == {
-            'summary': 'Summary\nTwo-line summary is possible.',
-            'description': 'Long description\nReally long description'
-        }
-
-        # No separator
-        docstring = """Summary
-
-        Long description
-
-        Section
-        -------
-        Also included
-        """
-        assert load_info_from_docstring(docstring, sep=None) == {
-            'summary': 'Summary',
-            'description': ('Long description\n\n'
-                            'Section\n-------\nAlso included'),
-        }
-
-        # Custom separator
-        docstring = """Summary
-
-        Some description.
-
-        Section
-        -------
-        foo
-
-        ~~~
-
-        Ignored.
-        """
-        assert load_info_from_docstring(docstring, sep="~~~") == {
-            'summary': 'Summary',
-            'description': ('Some description.\n\n'
-                            'Section\n-------\n'
-                            'foo'
-                            ),
-        }
-
-        # Explicit Default separator
-        docstring = """Summary
-
-        Some description.
-
-        Section
-        -------
-        Ignored
-        """
-        assert load_info_from_docstring(docstring, sep="---") == {
-            'summary': 'Summary',
-            'description': 'Some description.\n\nSection',
-        }
+        assert (
+            load_info_from_docstring(docstring) ==
+            load_info_from_docstring(docstring, delimiter="---") ==
+            {
+                'summary': 'Summary\nTwo-line summary is possible.',
+                'description': 'Long description\nReally long description',
+            }
+        )
+        assert (
+            load_info_from_docstring(docstring, delimiter=None) ==
+            load_info_from_docstring(docstring, delimiter="~~~") ==
+            {
+                'summary': 'Summary\nTwo-line summary is possible.',
+                'description': (
+                    'Long description\nReally long description\n---\n'
+                    'Ignore this.'
+                )
+            }
+        )

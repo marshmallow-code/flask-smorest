@@ -66,12 +66,11 @@ class Blueprint(
         "files": "multipart/form-data",
     }
 
-    DOCSTRING_SEP = "---"
+    DOCSTRING_INFO_DELIMITER = "---"
 
     def __init__(self, *args, **kwargs):
 
         self.description = kwargs.pop('description', '')
-        self.docstring_sep = kwargs.pop('docstring_sep', self.DOCSTRING_SEP)
 
         super().__init__(*args, **kwargs)
 
@@ -136,16 +135,18 @@ class Blueprint(
         endpoint_manual_doc = self._manual_docs.setdefault(
             endpoint, OrderedDict())
 
-        def store_method_docs(method, function, sep='---'):
+        def store_method_docs(method, function):
             """Add auto and manual doc to table for later registration"""
-            # Get summary/description from docstring
-            # and auto documentation from decorators
+            # Get auto documentation from decorators
+            # and summary/description from docstring
             # Get manual documentation from @doc decorator
-            docstring = function.__doc__
-            auto_doc = {}
-            if docstring:
-                auto_doc = load_info_from_docstring(docstring, sep=sep)
-            auto_doc.update(getattr(function, '_apidoc', {}))
+            auto_doc = getattr(function, '_apidoc', {})
+            auto_doc.update(
+                load_info_from_docstring(
+                    function.__doc__,
+                    delimiter=self.DOCSTRING_INFO_DELIMITER
+                )
+            )
             manual_doc = getattr(function, '_api_manual_doc', {})
             # Store function auto and manual docs for later registration
             method_l = method.lower()
@@ -157,12 +158,12 @@ class Blueprint(
             for method in self.HTTP_METHODS:
                 if method in obj.methods:
                     func = getattr(obj, method.lower())
-                    store_method_docs(method, func, sep=self.docstring_sep)
+                    store_method_docs(method, func)
         # Function
         else:
             methods = options.pop('methods', None) or ['GET']
             for method in methods:
-                store_method_docs(method, obj, sep=self.docstring_sep)
+                store_method_docs(method, obj)
 
         endpoint_auto_doc['parameters'] = parameters
 

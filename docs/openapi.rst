@@ -67,62 +67,10 @@ The example above produces the following documentation attributes:
         }
     }
 
-The separator ``'---'`` can be customized by setting ``docstring_sep``
-when initializing the blueprint, or by subclassing ``Blueprint``:
-
-.. code-block:: python
-
-    blp = Blueprint('foo', __name__, docstring_sep='~~~')
-
-    def get(...):
-        """Find pets by ID
-
-        Return pets based on ID.
-        ~~~
-        Internal comment not meant to be exposed.
-        """
-
-    # This does the same thing:
-    class MyBlueprint('foo', __name__):
-        DOCSTRING_SEP = "~~~"
-
-Produces:
-
-.. code-block:: python
-
-    {
-        'get': {
-            'summary': 'Find pets by ID',
-            'description': 'Return pets based on ID',
-        }
-    }
-
-Setting ``docstring_sep`` to ``None`` will result in the entire docstring
-being included in the `description`:
-
-.. code-block:: python
-
-    blp = Blueprint('foo', __name__, docstring_sep=None)
-
-    def get(...):
-        """Find pets by ID
-
-        Return pets based on ID.
-        ---
-        Even this is included.
-        """
-
-Produces:
-
-.. code-block:: python
-
-    {
-        'get': {
-            'summary': 'Find pets by ID',
-            'description': ('Return pets based on ID\n---\n'
-                            'Even this is included.'),
-        }
-    }
+The delimiter line is the line starting with the delimiter string defined in
+``Blueprint.DOCSTRING_INFO_DELIMITER``. This string defaults to ``"---"`` and
+can be customized in a subclass. ``None`` means "no delimiter": the whole
+docstring is included in the docs.
 
 Document Operations Parameters and Responses
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
