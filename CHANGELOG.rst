@@ -25,6 +25,10 @@ Bug fixes:
 - Fix documentation of ``form`` and ``files`` arguments: use ``requestBody``
   in OAS3, document content type (:pr:`83`).
 
+Other changes:
+
+- *Backwards-incompatible*: Don't republish ``NestedQueryArgsParser`` anymore.
+  This belongs to user code and can be copied from webargs doc (:pr:`94`).
 
 0.16.1 (2019-07-15)
 +++++++++++++++++++
