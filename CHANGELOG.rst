@@ -17,6 +17,8 @@ Features:
   raised if an invalid location is passed. (:pr:`81`)
 - Add ``content_type`` argument to ``Blueprint.arguments`` and provide
   reasonable default content type for ``form`` and ``files`` (:pr:`83`).
+- Add ``description`` parameter to ``Blueprint.arguments`` to pass description
+  for ``requestBody`` (:pr:`93`).
 
 Bug fixes:
 
