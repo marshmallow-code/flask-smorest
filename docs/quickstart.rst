@@ -50,7 +50,6 @@ Define a marshmallow :class:`Schema <marshmallow.Schema>` to expose the model.
     class PetSchema(ma.Schema):
 
         class Meta:
-            strict = True
             ordered = True
 
         id = ma.fields.Int(dump_only=True)
@@ -65,7 +64,6 @@ query arguments.
     class PetQueryArgsSchema(ma.Schema):
 
         class Meta:
-            strict = True
             ordered = True
 
         name = ma.fields.String()
