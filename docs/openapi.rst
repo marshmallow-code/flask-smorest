@@ -225,7 +225,7 @@ This is typically done in a base class:
         surname = ma.fields.String()
 
 Passing ``ordered`` Meta attribute is not necessary when using a Python version
-for which dictionaries are always ordered (>= 3.7 or CPyhton 3.6).
+for which dictionaries are always ordered (>= 3.7 or CPython 3.6).
 
 Serve the OpenAPI Documentation
 -------------------------------
