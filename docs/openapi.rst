@@ -197,6 +197,11 @@ The :meth:`Api.register_converter` allows to register a converter in the
 Enforce Order in OpenAPI Specification File
 -------------------------------------------
 
+When a :class:`Blueprint <Blueprint>` is registered, a `tag` is created with
+the ``Blueprint`` name. The display order in the interface is the ``Blueprint``
+registration order. And the display order inside a `tag` is the order in which
+the resources are defined in the ``Blueprint``.
+
 In the OpenAPI specification file, the fields of a ``Schema`` are documented as
 schema `properties`. Although objects are not ordered in JSON, OpenAPI
 graphical interfaces tend to respect the order in which the `properties` are
@@ -219,10 +224,8 @@ This is typically done in a base class:
         name = ma.fields.String()
         surname = ma.fields.String()
 
-Also, when a :class:`Blueprint <Blueprint>` is registered, a `tag` is created
-with the ``Blueprint`` name. The display order in the interface is the
-``Blueprint`` registration order. And the display order inside a `tag` is the
-order in which the resources are defined in the ``Blueprint``.
+Passing ``ordered`` Meta attribute is not necessary when using a Python version
+for which dictionaries are always ordered (>= 3.7 or CPyhton 3.6).
 
 Serve the OpenAPI Documentation
 -------------------------------
