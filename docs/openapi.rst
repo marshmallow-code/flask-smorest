@@ -194,8 +194,8 @@ The :meth:`Api.register_converter` allows to register a converter in the
     @blp.route('/pets/{objectid:pet_id}')
         ...
 
-Enforce Field Order in Documentation
-------------------------------------
+Enforce Order in OpenAPI Specification File
+-------------------------------------------
 
 In the OpenAPI specification file, the fields of a ``Schema`` are documented as
 schema `properties`. Although objects are not ordered in JSON, OpenAPI
@@ -218,6 +218,11 @@ This is typically done in a base class:
     class User(MyBaseSchema):
         name = ma.fields.String()
         surname = ma.fields.String()
+
+Also, when a :class:`Blueprint <Blueprint>` is registered, a `tag` is created
+with the ``Blueprint`` name. The display order in the interface is the
+``Blueprint`` registration order. And the display order inside a `tag` is the
+order in which the resources are defined in the ``Blueprint``.
 
 Serve the OpenAPI Documentation
 -------------------------------
