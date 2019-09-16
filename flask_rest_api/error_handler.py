@@ -1,7 +1,6 @@
 """Exception handler"""
 
 from werkzeug.exceptions import HTTPException
-from flask import jsonify
 
 
 class ErrorHandlerMixin:
@@ -62,4 +61,4 @@ class ErrorHandlerMixin:
             if 'headers' in data:
                 headers = data['headers']
 
-        return jsonify(payload), error.code, headers
+        return payload, error.code, headers

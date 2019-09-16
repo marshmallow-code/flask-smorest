@@ -2,7 +2,6 @@
 
 import pytest
 
-from flask import jsonify
 from flask.views import MethodView
 from werkzeug.routing import BaseConverter
 import marshmallow as ma
@@ -34,12 +33,12 @@ class TestApi():
         if view_type == 'function':
             @blp.route('/<custom_str:val>')
             def test_func(val):
-                return jsonify(val)
+                pass
         else:
             @blp.route('/<custom_str:val>')
             class TestMethod(MethodView):
                 def get(self, val):
-                    return jsonify(val)
+                    pass
 
         api.register_blueprint(blp)
         spec = api.spec.to_dict()
@@ -75,11 +74,11 @@ class TestApi():
 
         @blp.route('/1/<custom_str_1:val>')
         def test_func_1(val):
-            return jsonify(val)
+            pass
 
         @blp.route('/2/<custom_str_2:val>')
         def test_func_2(val):
-            return jsonify(val)
+            pass
 
         api.register_blueprint(blp)
         spec = api.spec.to_dict()
@@ -195,7 +194,7 @@ class TestApi():
 
         @blp.route('/')
         def test_func():
-            return jsonify('OK')
+            return {'response': 'OK'}
 
         api.register_blueprint(blp, url_prefix='/test2')
 
@@ -208,7 +207,7 @@ class TestApi():
         assert response.status_code == 404
         response = client.get('/test2/')
         assert response.status_code == 200
-        assert response.json == 'OK'
+        assert response.json == {'response': 'OK'}
 
     @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.2'])
     @pytest.mark.parametrize('base_path', [None, '/', '/v1'])

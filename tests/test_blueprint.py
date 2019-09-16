@@ -6,7 +6,6 @@ import pytest
 
 import marshmallow as ma
 
-from flask import jsonify
 from flask.views import MethodView
 
 from flask_rest_api import Api, Blueprint, Page
@@ -243,10 +242,7 @@ class TestBlueprint():
         @blp.arguments(schemas.DocSchema)
         @blp.arguments(schemas.QueryArgsSchema, location='query')
         def func(document, query_args):
-            return jsonify({
-                'document': document,
-                'query_args': query_args,
-            })
+            return {'document': document, 'query_args': query_args}
 
         api.register_blueprint(blp)
         spec = api.spec.to_dict()
@@ -563,7 +559,7 @@ class TestBlueprint():
         @blp.route('/', methods=('PUT', 'PATCH', ))
         @blp.doc(summary='Dummy func', description='Do dummy stuff')
         def view_func():
-            return jsonify({'Value': 'OK'})
+            return {'Value': 'OK'}
 
         api.register_blueprint(blp)
         spec = api.spec.to_dict()
@@ -943,7 +939,7 @@ class TestBlueprint():
         # Schema is ignored when response object is returned
         @blp.response(schemas.DocSchema, code=200)
         def func_response():
-            return jsonify({}), 201, {'X-header': 'test'}
+            return {}, 201, {'X-header': 'test'}
 
         api.register_blueprint(blp)
 
