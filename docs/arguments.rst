@@ -101,3 +101,31 @@ a string as ``content_type`` argument to :meth:`Blueprint.arguments
 
 .. note:: The content type is only used for documentation purpose and has no
    impact on request parsing.
+
+File Upload
+-----------
+
+File uploads as `multipart/form-data` are supported for both
+`OpenAPI 3 <https://swagger.io/docs/specification/describing-request-body/file-upload/>`_
+and
+`OpenAPI 2 <https://swagger.io/docs/specification/2-0/file-upload/>`_.
+
+The arguments ``Schema`` should contain :class:`Upload <fields.Upload>`
+fields. The files are injected in the view function as a ``dict`` of werkzeug
+:class:`FileStorage <werkzeug.datastructures.FileStorage>` instances.
+
+.. code-block:: python
+
+    from werkzeug.utils import secure_filename
+    from flask_rest_api.fields import Upload
+
+    class MultipartFileSchema(ma.Schema):
+        file_1 = Upload()
+
+    @blp.route('/', methods=['POST'])
+    @blp.arguments(MultipartFileSchema, location='files')
+    @blp.response(code=201)
+    def func(files):
+        base_dir = '/path/to/storage/dir/'
+        file_1 = files['file_1']
+        file_1.save(secure_filename(file_1.filename))

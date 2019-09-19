@@ -1,7 +1,9 @@
 """Test Blueprint extra features"""
 
+import io
 import json
 import http
+
 import pytest
 
 import marshmallow as ma
@@ -10,6 +12,7 @@ from flask import jsonify
 from flask.views import MethodView
 
 from flask_rest_api import Api, Blueprint, Page
+from flask_rest_api.fields import Upload
 
 from .utils import build_ref
 
@@ -280,6 +283,61 @@ class TestBlueprint():
             'document': {'db_field': 12},
             'query_args': {'arg1': 'test'},
         }
+
+    @pytest.mark.parametrize('openapi_version', ('2.0', '3.0.2'))
+    def test_blueprint_arguments_files_multipart(
+            self, app, schemas, openapi_version):
+        app.config['OPENAPI_VERSION'] = openapi_version
+        api = Api(app)
+        blp = Blueprint('test', __name__, url_prefix='/test')
+        client = app.test_client()
+
+        class MultipartSchema(ma.Schema):
+            file_1 = Upload()
+            file_2 = Upload()
+
+        @blp.route('/', methods=['POST'])
+        @blp.arguments(MultipartSchema, location='files')
+        def func(files):
+            return jsonify(
+                files['file_1'].read().decode(),
+                files['file_2'].read().decode(),
+            )
+
+        api.register_blueprint(blp)
+        spec = api.spec.to_dict()
+
+        files = {
+            'file_1': (io.BytesIO('Test 1'.encode()), 'file_1.txt'),
+            'file_2': (io.BytesIO('Test 2'.encode()), 'file_2.txt'),
+        }
+
+        response = client.post('/test/', data=files)
+        assert response.json == ['Test 1', 'Test 2']
+
+        if openapi_version == '2.0':
+            for param in spec['paths']['/test/']['post']['parameters']:
+                assert param['in'] == 'formData'
+                assert param['type'] == 'file'
+        else:
+            assert (
+                spec['paths']['/test/']['post']['requestBody']['content'] ==
+                {
+                    'multipart/form-data': {
+                        'schema': {'$ref': '#/components/schemas/Multipart'}
+                    }
+                }
+            )
+            assert (
+                spec['components']['schemas']['Multipart'] ==
+                {
+                    'type': 'object',
+                    'properties': {
+                        'file_1': {'type': 'string', 'format': 'binary'},
+                        'file_2': {'type': 'string', 'format': 'binary'},
+                    }
+                }
+            )
 
     # This is only relevant to OAS3.
     @pytest.mark.parametrize('openapi_version', ('3.0.2', ))
