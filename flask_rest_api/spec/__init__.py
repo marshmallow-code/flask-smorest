@@ -127,6 +127,16 @@ class DocBlueprintMixin:
                     _add_leading_slash(swagger_ui_path),
                     endpoint='openapi_swagger_ui',
                     view_func=self._openapi_swagger_ui)
+                if (self._app.config.get(
+                        'OPENAPI_SWAGGER_UI_ENABLE_OAUTH', False)):
+                    blueprint.add_url_rule(
+                        _add_leading_slash(
+                            '{}/oauth2-redirect'.format(
+                                swagger_ui_path
+                            )
+                        ),
+                        endpoint='openapi_swagger_ui_redirect',
+                        view_func=self._openapi_swagger_ui_redirect)
 
     def _openapi_json(self):
         """Serve JSON spec file"""
@@ -146,8 +156,16 @@ class DocBlueprintMixin:
         return flask.render_template(
             'swagger_ui.html', title=self._app.name,
             swagger_ui_url=self._swagger_ui_url,
+            swagger_ui_enable_oauth=self._app.config.get(
+                'OPENAPI_SWAGGER_UI_ENABLE_OAUTH', False),
             swagger_ui_supported_submit_methods=(
                 self._swagger_ui_supported_submit_methods)
+        )
+
+    def _openapi_swagger_ui_redirect(self):
+        """Expose OpenAPI redirect url with Swagger UI"""
+        return flask.render_template(
+            'swagger_ui_redirect.html'
         )
 
 
