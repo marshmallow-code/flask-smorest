@@ -295,10 +295,10 @@ class TestBlueprint():
         @blp.route('/', methods=['POST'])
         @blp.arguments(MultipartSchema, location='files')
         def func(files):
-            return jsonify(
-                files['file_1'].read().decode(),
-                files['file_2'].read().decode(),
-            )
+            return {
+                'file_1': files['file_1'].read().decode(),
+                'file_2': files['file_2'].read().decode(),
+            }
 
         api.register_blueprint(blp)
         spec = api.spec.to_dict()
@@ -309,7 +309,7 @@ class TestBlueprint():
         }
 
         response = client.post('/test/', data=files)
-        assert response.json == ['Test 1', 'Test 2']
+        assert response.json == {'file_1': 'Test 1', 'file_2': 'Test 2'}
 
         if openapi_version == '2.0':
             for param in spec['paths']['/test/']['post']['parameters']:
