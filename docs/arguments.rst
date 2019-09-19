@@ -102,6 +102,12 @@ a string as ``content_type`` argument to :meth:`Blueprint.arguments
 .. note:: The content type is only used for documentation purpose and has no
    impact on request parsing.
 
+.. note:: Multipart requests with mixed types (file, form, etc.) are not
+   supported. They can be achieved but the documentation is not correctly
+   generated. ``arguments`` decorator can be called multiple times on the same
+   view function but it should not be called with more that one request body
+   location. This limitation is discussed in :issue:`46`.
+
 File Upload
 -----------
 
