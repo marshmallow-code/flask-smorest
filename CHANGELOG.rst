@@ -20,6 +20,7 @@ Features:
 - Add ``description`` parameter to ``Blueprint.arguments`` to pass description
   for ``requestBody`` (:pr:`93`).
 - Allow customization of docstring delimiter string (:issue:`49`).
+- Support file uploads as `multipart/form-data` (:pr:`97`).
 
 Bug fixes:
 
@@ -30,6 +31,7 @@ Other changes:
 
 - *Backwards-incompatible*: Don't republish ``NestedQueryArgsParser`` anymore.
   This belongs to user code and can be copied from webargs doc (:pr:`94`).
+- *Backwards-incompatible*: Bump minimum apispec version to 3.0.0.
 
 0.16.1 (2019-07-15)
 +++++++++++++++++++
