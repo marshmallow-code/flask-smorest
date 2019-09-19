@@ -39,3 +39,10 @@ Pagination
     :members:
 .. autoclass:: flask_rest_api.pagination.PaginationParameters
     :members:
+
+
+Fields
+======
+
+.. automodule:: flask_rest_api.fields
+     :members:

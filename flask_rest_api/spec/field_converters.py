@@ -3,7 +3,7 @@ from flask_rest_api.fields import Upload
 
 
 def uploadfield2properties(self, field, **kwargs):
-    """Document Upload field"""
+    """Document Upload field properties in the API spec"""
     ret = {}
     if isinstance(field, Upload):
         if self.openapi_version.major < 3:
