@@ -22,7 +22,7 @@ from collections import OrderedDict
 import flask_rest_api
 
 project = 'flask-rest-api'
-copyright = '2018, Nobatek'
+copyright = '2019, Nobatek/INEF4 and contributors'
 
 version = release = flask_rest_api.__version__
 
