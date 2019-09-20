@@ -1,5 +1,5 @@
 .. _quickstart:
-.. currentmodule:: flask_rest_api
+.. currentmodule:: flask_smorest
 
 Quickstart
 ==========
@@ -7,7 +7,7 @@ Quickstart
 Introduction
 ------------
 
-``flask-rest-api`` makes a few assumptions about how the code should be structured.
+``flask-smorest`` makes a few assumptions about how the code should be structured.
 
 The application should be split in :class:`Blueprint <Blueprint>`.
 It is possible to use basic Flask view functions but it is generally a good idea
@@ -35,7 +35,7 @@ First instantiate an :class:`Api <Api>` with a :class:`Flask <flask.Flask>` appl
     from flask import Flask
     from flask.views import MethodView
     import marshmallow as ma
-    from flask_rest_api import Api, Blueprint, abort
+    from flask_smorest import Api, Blueprint, abort
 
     from .model import Pet
 

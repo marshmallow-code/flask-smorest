@@ -7,11 +7,11 @@ with open('README.rst', encoding='utf-8') as f:
     long_description = f.read()
 
 setup(
-    name='flask-rest-api',
+    name='flask-smorest',
     version='0.17.0',
     description='Build a REST API with Flask',
     long_description=long_description,
-    url='https://github.com/Nobatek/flask-rest-api',
+    url='https://github.com/marshmallow-code/flask-smorest',
     author='Jérôme Lafréchoux',
     author_email='jlafrechoux@nobatek.com',
     license='MIT',

@@ -6,7 +6,7 @@ from flask import current_app
 import apispec
 from apispec.ext.marshmallow import MarshmallowPlugin
 
-from flask_rest_api.exceptions import OpenAPIVersionNotSpecified
+from flask_smorest.exceptions import OpenAPIVersionNotSpecified
 from .plugins import FlaskPlugin
 from .field_converters import uploadfield2properties
 

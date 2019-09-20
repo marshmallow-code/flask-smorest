@@ -1,10 +1,10 @@
 .. _openapi:
-.. currentmodule:: flask_rest_api
+.. currentmodule:: flask_smorest
 
 OpenAPI
 =======
 
-`flask-rest-api` automatically generates an OpenAPI documentation (formerly
+`flask-smorest` automatically generates an OpenAPI documentation (formerly
 known as Swagger) for the API.
 
 That documentation can be made accessible as a JSON file, along with a nice web
@@ -37,7 +37,7 @@ Add Documentation Information to Resources
 Add Summary and Description
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`flask-rest-api` uses view functions docstrings to fill the `summary` and
+`flask-smorest` uses view functions docstrings to fill the `summary` and
 `description` attributes of an `operation object`.
 
 .. code-block:: python
@@ -102,14 +102,14 @@ path parameters.
 Pass Extra Documentation Information
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`flask-rest-api` tries to document the API as automatically as possible and to
+`flask-smorest` tries to document the API as automatically as possible and to
 provide explicit means to pass extra-information that can't be inferred from
 the code, such as descriptions, examples, etc.
 
 The :meth:`Blueprint.doc <Blueprint.doc>` decorator provides a means to pass
 extra documentation information. It comes in handy if an OpenAPI feature is not
 supported, but it suffers from a few limitations, and it should be considered
-a last resort solution until `flask-rest-api` is improved to fit the need.
+a last resort solution until `flask-smorest` is improved to fit the need.
 
 Known issues and alternatives are discussed in issue :issue:`71`.
 
@@ -132,7 +132,7 @@ Note that ``app.config`` overrides ``spec_kwargs``. The example above produces
 
     {'host': 'example.com', 'x-internal-id': '2', ...}
 
-.. note:: Again, flask-rest-api tries to provide as much information as
+.. note:: Again, flask-smorest tries to provide as much information as
    possible, but some values can only by provided by the user.
 
    When using OpenAPI v2, `basePath` is automatically set from the value of the
@@ -231,7 +231,7 @@ Serve the OpenAPI Documentation
 -------------------------------
 
 Now that that the documentation is generated, it should be made available to
-the clients. `flask-rest-api` can define routes to provide both the
+the clients. `flask-smorest` can define routes to provide both the
 documentation as a JSON file and a nice web interface to browse it
 interactively. This feature is accessible through Flask app parameters.
 
@@ -250,7 +250,7 @@ interactively. This feature is accessible through Flask app parameters.
 
 Both ReDoc_ and `Swagger UI`_ interfaces are available to present the API.
 
-Their configuration logics are similar. If a path is set, then `flask-rest-api`
+Their configuration logics are similar. If a path is set, then `flask-smorest`
 creates a route in the application to serve the interface page, using the JS
 script from a user defined URL, if any, or from a CDN URL built with the version
 number.
@@ -309,7 +309,7 @@ number.
 
    Default: ``['get', 'put', 'post', 'delete', 'options', 'head', 'patch', 'trace']``
 
-.. warning:: The version strings are not checked by `flask-rest-api`. They are
+.. warning:: The version strings are not checked by `flask-smorest`. They are
    used as is to build the URL pointing to the UI script. Typos won't be caught.
 
 .. _ReDoc: https://github.com/Rebilly/ReDoc

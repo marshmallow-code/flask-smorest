@@ -17,7 +17,7 @@ Documentation process works in several steps:
 
   - The ``Blueprint.doc`` decorator stores additional information in a separate
     ``_api_manual_doc``. It allows the user to specify documentation
-    information that flask-rest-api can not - or does not yet - infer from the
+    information that flask-smorest can not - or does not yet - infer from the
     code.
 
   - The ``Blueprint.route`` decorator registers the endpoint in the Blueprint

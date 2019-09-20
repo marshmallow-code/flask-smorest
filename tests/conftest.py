@@ -6,7 +6,7 @@ from marshmallow import Schema, fields, post_load, post_dump
 
 from flask import Flask
 
-from flask_rest_api.compat import MARSHMALLOW_VERSION_MAJOR
+from flask_smorest.compat import MARSHMALLOW_VERSION_MAJOR
 
 from .mocks import DatabaseMock
 from .utils import JSONResponse

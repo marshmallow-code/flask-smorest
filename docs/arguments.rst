@@ -1,5 +1,5 @@
 .. _arguments:
-.. currentmodule:: flask_rest_api
+.. currentmodule:: flask_smorest
 
 Arguments
 =========
@@ -123,7 +123,7 @@ fields. The files are injected in the view function as a ``dict`` of werkzeug
 .. code-block:: python
 
     from werkzeug.utils import secure_filename
-    from flask_rest_api.fields import Upload
+    from flask_smorest.fields import Upload
 
     class MultipartFileSchema(ma.Schema):
         file_1 = Upload()

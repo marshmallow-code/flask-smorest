@@ -4,15 +4,15 @@
 API Reference
 *************
 
-.. module:: flask_rest_api
-.. autofunction:: flask_rest_api.abort
+.. module:: flask_smorest
+.. autofunction:: flask_smorest.abort
 
 
 Api
 ===
 
 
-.. autoclass:: flask_rest_api.Api
+.. autoclass:: flask_smorest.Api
     :members:
 
     .. automethod:: register_converter
@@ -22,7 +22,7 @@ Api
 Blueprint
 =========
 
-.. autoclass:: flask_rest_api.Blueprint
+.. autoclass:: flask_smorest.Blueprint
     :members:
 
     .. automethod:: arguments
@@ -35,14 +35,14 @@ Blueprint
 Pagination
 ==========
 
-.. autoclass:: flask_rest_api.Page
+.. autoclass:: flask_smorest.Page
     :members:
-.. autoclass:: flask_rest_api.pagination.PaginationParameters
+.. autoclass:: flask_smorest.pagination.PaginationParameters
     :members:
 
 
 Fields
 ======
 
-.. automodule:: flask_rest_api.fields
+.. automodule:: flask_smorest.fields
      :members:

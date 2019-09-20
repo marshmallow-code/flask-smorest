@@ -10,8 +10,8 @@ import marshmallow as ma
 
 from flask.views import MethodView
 
-from flask_rest_api import Api, Blueprint, Page
-from flask_rest_api.fields import Upload
+from flask_smorest import Api, Blueprint, Page
+from flask_smorest.fields import Upload
 
 from .utils import build_ref
 
@@ -668,7 +668,8 @@ class TestBlueprint():
         assert path['get']['summary'] == 'Dummy func'
         assert path['get']['description'] == 'Do dummy stuff'
 
-    # Regression test for https://github.com/Nobatek/flask-rest-api/issues/19
+    # Regression test for
+    # https://github.com/marshmallow-code/flask-smorest/issues/19
     def test_blueprint_doc_merged_after_prepare_doc(self, app):
         app.config['OPENAPI_VERSION'] = '3.0.2'
         api = Api(app)

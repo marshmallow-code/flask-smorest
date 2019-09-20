@@ -9,7 +9,7 @@ if "%SPHINXBUILD%" == "" (
 )
 set SOURCEDIR=.
 set BUILDDIR=_build
-set SPHINXPROJ=flask-rest-api
+set SPHINXPROJ=flask-smorest
 
 if "%1" == "" goto help
 

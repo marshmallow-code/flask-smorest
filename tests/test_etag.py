@@ -10,13 +10,13 @@ import pytest
 from flask import jsonify, Response
 from flask.views import MethodView
 
-from flask_rest_api import Api, Blueprint, abort
-from flask_rest_api.etag import _get_etag_ctx
-from flask_rest_api.exceptions import (
+from flask_smorest import Api, Blueprint, abort
+from flask_smorest.etag import _get_etag_ctx
+from flask_smorest.exceptions import (
     CheckEtagNotCalledError,
     NotModified, PreconditionRequired, PreconditionFailed)
-from flask_rest_api.utils import get_appcontext
-from flask_rest_api.compat import MARSHMALLOW_VERSION_MAJOR
+from flask_smorest.utils import get_appcontext
+from flask_smorest.compat import MARSHMALLOW_VERSION_MAJOR
 
 from .mocks import ItemNotFound
 
