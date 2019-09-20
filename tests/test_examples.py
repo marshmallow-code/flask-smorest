@@ -1,4 +1,4 @@
-"""Test flask-rest-api on more or less realistic examples"""
+"""Test flask-smorest on more or less realistic examples"""
 
 import json
 from contextlib import contextmanager
@@ -7,7 +7,7 @@ import pytest
 
 from flask.views import MethodView
 
-from flask_rest_api import Api, Blueprint, abort, Page
+from flask_smorest import Api, Blueprint, abort, Page
 
 from .mocks import ItemNotFound
 

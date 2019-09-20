@@ -25,7 +25,7 @@ class ErrorHandlerMixin:
         - When an exception is not caught in a view, Flask makes it an
           ``InternalServerError`` and calls this handler.
 
-        flask_rest_api republishes webargs's
+        flask-smorest republishes webargs's
         :func:`abort <webargs.flaskparser.abort>`. This ``abort`` allows the
         caller to pass kwargs and stores them in ``exception.data`` so that the
         error handler can use them to populate the response payload.

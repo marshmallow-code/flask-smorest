@@ -19,7 +19,7 @@ class Api(APISpecMixin, ErrorHandlerMixin):
     :param dict spec_kwargs: kwargs to pass to internal APISpec instance
 
     The ``spec_kwargs`` dictionary is passed as kwargs to the internal APISpec
-    instance. **flask-rest-api** adds a few parameters to the original
+    instance. **flask-smorest** adds a few parameters to the original
     parameters documented in :class:`apispec.APISpec <apispec.APISpec>`:
 
     :param apispec.BasePlugin flask_plugin: Flask plugin
@@ -51,9 +51,9 @@ class Api(APISpecMixin, ErrorHandlerMixin):
 
         self._app = app
 
-        # Register flask-rest-api in app extensions
+        # Register flask-smorest in app extensions
         app.extensions = getattr(app, 'extensions', {})
-        ext = app.extensions.setdefault('flask-rest-api', {})
+        ext = app.extensions.setdefault('flask-smorest', {})
         ext['ext_obj'] = self
 
         # Initialize spec

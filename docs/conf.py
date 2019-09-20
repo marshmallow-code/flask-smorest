@@ -19,12 +19,12 @@
 
 from collections import OrderedDict
 
-import flask_rest_api
+import flask_smorest
 
-project = 'flask-rest-api'
+project = 'flask-smorest'
 copyright = '2019, Nobatek/INEF4 and contributors'
 
-version = release = flask_rest_api.__version__
+version = release = flask_smorest.__version__
 
 
 # -- General configuration ---------------------------------------------------
@@ -53,7 +53,7 @@ intersphinx_mapping = {
     'mongoengine': ('http://docs.mongoengine.org/', None),
 }
 
-issues_github_path = 'Nobatek/flask-rest-api'
+issues_github_path = 'marshmallow-code/flask-smorest'
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -90,14 +90,20 @@ html_theme = 'alabaster'
 html_theme_options = {
     'description': 'Build a REST API on Flask using Marshmallow',
     'description_font_style': 'italic',
-    'github_user': 'Nobatek',
-    'github_repo': 'flask-rest-api',
+    'github_user': 'marshmallow-code',
+    'github_repo': 'flask-smorest',
     'github_button': False,
     'github_banner': True,
     'travis_button': True,
     'code_font_size': '0.8em',
     'extra_nav_links': OrderedDict([
-        ('flask-rest-api@PyPI', 'http://pypi.python.org/pypi/flask-rest-api'),
-        ('flask-rest-api@GitHub', 'http://github.com/Nobatek/flask-rest-api'),
+        (
+            'flask-smorest@PyPI',
+            'http://pypi.python.org/pypi/flask-smorest'
+        ),
+        (
+            'flask-smorest@GitHub',
+            'http://github.com/marshmallow-code/flask-smorest'
+        ),
     ]),
 }

@@ -9,8 +9,8 @@ import pytest
 
 from flask.views import MethodView
 
-from flask_rest_api import Api, Blueprint, Page
-from flask_rest_api.pagination import PaginationParameters
+from flask_smorest import Api, Blueprint, Page
+from flask_smorest.pagination import PaginationParameters
 
 
 CUSTOM_PAGINATION_PARAMS = (2, 5, 10)

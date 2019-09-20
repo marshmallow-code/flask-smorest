@@ -1,4 +1,4 @@
-from flask_rest_api.utils import deepupdate, load_info_from_docstring
+from flask_smorest.utils import deepupdate, load_info_from_docstring
 
 
 class TestUtils():

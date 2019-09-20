@@ -1,9 +1,9 @@
-flask-rest-api: build a REST API on Flask using Marshmallow
+flask-smorest: build a REST API on Flask using Marshmallow
 ===========================================================
 
 Release v\ |version|. (:ref:`Changelog <changelog>`)
 
-**flask-rest-api** is a framework library for creating REST APIs.
+**flask-smorest** is a framework library for creating REST APIs.
 
 It uses Flask as a webserver, and marshmallow_ to serialize and deserialize data.
 It relies extensively on the marshmallow ecosystem, using webargs_ to get arguments
@@ -14,11 +14,11 @@ automatically as possible.
 Install
 =======
 
-flask-rest-api requires Python >= 3.5.
+flask-smorest requires Python >= 3.5.
 
 .. code-block:: bash
 
-    $ pip install flask-rest-api
+    $ pip install flask-smorest
 
 
 Guide

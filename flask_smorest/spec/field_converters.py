@@ -1,5 +1,5 @@
 """Custom field properties functions"""
-from flask_rest_api.fields import Upload
+from flask_smorest.fields import Upload
 
 
 def uploadfield2properties(self, field, **kwargs):

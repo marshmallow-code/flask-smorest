@@ -7,8 +7,8 @@ from werkzeug.routing import BaseConverter
 import marshmallow as ma
 import apispec
 
-from flask_rest_api import Api, Blueprint
-from flask_rest_api.exceptions import OpenAPIVersionNotSpecified
+from flask_smorest import Api, Blueprint
+from flask_smorest.exceptions import OpenAPIVersionNotSpecified
 
 from .utils import get_schemas
 

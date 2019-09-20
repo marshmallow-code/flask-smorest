@@ -1,5 +1,5 @@
 .. _response:
-.. currentmodule:: flask_rest_api
+.. currentmodule:: flask_smorest
 
 Response
 ========

@@ -1,7 +1,7 @@
 import pytest
 
 from werkzeug.exceptions import default_exceptions, InternalServerError
-from flask_rest_api import Api, abort
+from flask_smorest import Api, abort
 
 
 class TestErrorHandler:

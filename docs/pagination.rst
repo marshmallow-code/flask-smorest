@@ -1,5 +1,5 @@
 .. _pagination:
-.. currentmodule:: flask_rest_api
+.. currentmodule:: flask_smorest
 
 Pagination
 ==========
@@ -29,7 +29,7 @@ as ``item_count`` attribute of the `PaginationParameters` object.
 .. code-block:: python
     :emphasize-lines: 7,8,9,10,11,12
 
-    from flask_rest_api import set_item_count
+    from flask_smorest import set_item_count
 
     @blp.route('/')
     class Pets(MethodView):
@@ -62,7 +62,7 @@ Cursor Pager
 ^^^^^^^^^^^^
 
 In this case, :meth:`Blueprint.paginate <Blueprint.paginate>` must be passed a
-pager class to take care of the pagination. `flask-rest-api` provides a pager
+pager class to take care of the pagination. `flask-smorest` provides a pager
 for `list`-like objects: :class:`Page <Page>`. For other types, a custom pager
 may have to be defined.
 
@@ -74,7 +74,7 @@ Mongoengine's :class:`QuerySet <mongoengine.queryset.QuerySet>`,...
 
 .. code-block:: python
 
-    from flask_rest_api import Page
+    from flask_smorest import Page
 
     class CursorPage(Page):
         @property

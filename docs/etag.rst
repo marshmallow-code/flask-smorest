@@ -1,5 +1,5 @@
 .. _etag:
-.. currentmodule:: flask_rest_api
+.. currentmodule:: flask_smorest
 
 ETag
 ====
@@ -18,7 +18,7 @@ The ETag featured is available through the
 :meth:`Blueprint.etag <Blueprint.etag>` decorator. It can be disabled globally
 with the `ETAG_DISABLED` application parameter.
 
-`flask-rest-api` provides helpers to compute ETag, but ultimately, only the
+`flask-smorest` provides helpers to compute ETag, but ultimately, only the
 developer knows what data is relevant to use as ETag source, so there can be
 manual work involved.
 

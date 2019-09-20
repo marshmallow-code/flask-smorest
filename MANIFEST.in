@@ -1,6 +1,6 @@
 include *.rst LICENSE
 
-graft flask_rest_api
+graft flask_smorest
 
 graft docs
 prune docs/_build
