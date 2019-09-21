@@ -1,9 +1,10 @@
-flask-smorest: build a REST API on Flask using Marshmallow
-===========================================================
+flask-smorest: Flask/Marshmallow-based REST API framework
+=========================================================
 
 Release v\ |version|. (:ref:`Changelog <changelog>`)
 
-**flask-smorest** is a framework library for creating REST APIs.
+**flask-smorest** (formerly known as flask-rest-api) is a database-agnostic
+framework library for creating REST APIs.
 
 It uses Flask as a webserver, and marshmallow_ to serialize and deserialize data.
 It relies extensively on the marshmallow ecosystem, using webargs_ to get arguments

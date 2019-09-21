@@ -1,6 +1,6 @@
-==============
-flask-smorest
-==============
+=============
+flask-smorest 
+=============
 
 .. image:: https://img.shields.io/pypi/v/flask-smorest.svg
     :target: https://pypi.org/project/flask-smorest/
@@ -34,15 +34,19 @@ flask-smorest
     :target: http://flask-smorest.readthedocs.io/
     :alt: Documentation
 
-Build a REST API with Flask and marshmallow.
+'cause everybody wants s'more
+=============================
 
-**flask-smorest** relies on `marshmallow <https://github.com/marshmallow-code/marshmallow>`_, `webargs <https://github.com/sloria/webargs>`_ and `apispec <https://github.com/marshmallow-code/apispec/>`_ to provide a complete REST API framework.
-
-Features
-========
+**flask-smorest** (formerly known as flask-rest-api) is a REST API framework
+built upon `Flask <https://palletsprojects.com/p/flask/>`_ and
+`marshmallow <https://github.com/marshmallow-code/marshmallow>`_.
 
 - Serialization, deserialization and validation using marshmallow ``Schema``.
-- OpenAPI (Swagger) specification automatically generated, and exposed with `ReDoc <https://github.com/Rebilly/ReDoc>`_ or `Swagger UI <https://swagger.io/tools/swagger-ui/>`_.
+- Explicit validation error messages returned in response.
+- Database-agnostic
+- OpenAPI (Swagger) specification automatically generated, and exposed with
+  `ReDoc <https://github.com/Rebilly/ReDoc>`_ or
+  `Swagger UI <https://swagger.io/tools/swagger-ui/>`_.
 - Pagination.
 - ETag.
 
@@ -62,8 +66,6 @@ Full documentation is available at http://flask-smorest.readthedocs.io/.
 
 Support flask-smorest
 ======================
-
-flask-smorest is built on marshmallow, webargs and apispec.
 
 If you'd like to support the future of the project, please consider
 contributing to marshmallow's Open Collective:
