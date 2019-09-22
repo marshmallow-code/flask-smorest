@@ -41,14 +41,14 @@ flask-smorest
 built upon `Flask <https://palletsprojects.com/p/flask/>`_ and
 `marshmallow <https://github.com/marshmallow-code/marshmallow>`_.
 
-- Serialization, deserialization and validation using marshmallow ``Schema``.
-- Explicit validation error messages returned in response.
+- Serialization, deserialization and validation using marshmallow ``Schema``
+- Explicit validation error messages returned in response
 - Database-agnostic
-- OpenAPI (Swagger) specification automatically generated, and exposed with
+- OpenAPI (Swagger) specification automatically generated and exposed with
   `ReDoc <https://github.com/Rebilly/ReDoc>`_ or
-  `Swagger UI <https://swagger.io/tools/swagger-ui/>`_.
-- Pagination.
-- ETag.
+  `Swagger UI <https://swagger.io/tools/swagger-ui/>`_
+- Pagination
+- ETag
 
 Install
 =======
