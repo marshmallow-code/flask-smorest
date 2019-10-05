@@ -174,6 +174,14 @@ class TestApi():
         # app config overrides Api spec_kwargs parameters
         assert spec['basePath'] == '/v2'
 
+    def test_api_extra_spec_kwargs_init_app_update_init(self, app):
+        """Test empty APISpec kwargs passed in init_app update init kwargs"""
+        api = Api(spec_kwargs={'basePath': '/v1', 'host': 'example.com'})
+        api.init_app(app, spec_kwargs={'basePath': '/v2'})
+        spec = api.spec.to_dict()
+        assert spec['host'] == 'example.com'
+        assert spec['basePath'] == '/v2'
+
     @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.2'])
     def test_api_extra_spec_plugins(self, app, schemas, openapi_version):
         """Test extra plugins can be passed to internal APISpec instance"""
