@@ -153,10 +153,22 @@ class TestApi():
         assert schema_defs['Schema_2']['properties']['custom_2'] == {
             'type': 'custom string', 'format': 'custom'}
 
-    def test_api_extra_spec_kwargs(self, app):
+    @pytest.mark.parametrize('step', ('at_once', 'init', 'init_app'))
+    def test_api_extra_spec_kwargs(self, app, step):
         """Test APISpec kwargs can be passed in Api init or app config"""
         app.config['API_SPEC_OPTIONS'] = {'basePath': '/v2'}
-        api = Api(app, spec_kwargs={'basePath': '/v1', 'host': 'example.com'})
+        if step == 'at_once':
+            api = Api(
+                app, spec_kwargs={'basePath': '/v1', 'host': 'example.com'}
+            )
+        elif step == 'init':
+            api = Api(spec_kwargs={'basePath': '/v1', 'host': 'example.com'})
+            api.init_app(app)
+        elif step == 'init_app':
+            api = Api()
+            api.init_app(
+                app, spec_kwargs={'basePath': '/v1', 'host': 'example.com'}
+            )
         spec = api.spec.to_dict()
         assert spec['host'] == 'example.com'
         # app config overrides Api spec_kwargs parameters

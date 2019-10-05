@@ -39,6 +39,7 @@ class Api(APISpecMixin, ErrorHandlerMixin):
     """
     def __init__(self, app=None, *, spec_kwargs=None):
         self._app = app
+        self._spec_kwargs = spec_kwargs
         self.spec = None
         # Use lists to enforce order
         self._fields = []
@@ -57,7 +58,7 @@ class Api(APISpecMixin, ErrorHandlerMixin):
         ext['ext_obj'] = self
 
         # Initialize spec
-        self._init_spec(**(spec_kwargs or {}))
+        self._init_spec(**(spec_kwargs or self._spec_kwargs or {}))
 
         # Initialize blueprint serving spec
         self._register_doc_blueprint()
