@@ -39,16 +39,20 @@ class Api(APISpecMixin, ErrorHandlerMixin):
     """
     def __init__(self, app=None, *, spec_kwargs=None):
         self._app = app
+        self._spec_kwargs = spec_kwargs or {}
         self.spec = None
         # Use lists to enforce order
         self._fields = []
         self._converters = []
         if app is not None:
-            self.init_app(app, spec_kwargs=spec_kwargs)
+            self.init_app(app)
 
     def init_app(self, app, *, spec_kwargs=None):
-        """Initialize Api with application"""
+        """Initialize Api with application
 
+        :param dict spec_kwargs: kwargs to pass to internal APISpec instance.
+            Updates ``spec_kwargs`` passed in ``Api`` init.
+        """
         self._app = app
 
         # Register flask-smorest in app extensions
@@ -57,7 +61,7 @@ class Api(APISpecMixin, ErrorHandlerMixin):
         ext['ext_obj'] = self
 
         # Initialize spec
-        self._init_spec(**(spec_kwargs or {}))
+        self._init_spec(**{**self._spec_kwargs, **(spec_kwargs or {})})
 
         # Initialize blueprint serving spec
         self._register_doc_blueprint()
