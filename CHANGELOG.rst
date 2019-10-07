@@ -1,6 +1,14 @@
 Changelog
 ---------
 
+0.18.1 (2019-10-07)
++++++++++++++++++++
+
+Bug fixes:
+
+- Fix passing ``spec_kwargs`` in ``Api.__init__`` and ``app`` in
+  ``Api.init_app`` (:issue:`103`).
+
 0.18.0 (2019-09-22)
 +++++++++++++++++++
 
