@@ -9,7 +9,6 @@ from flask import Flask
 from flask_smorest.compat import MARSHMALLOW_VERSION_MAJOR
 
 from .mocks import DatabaseMock
-from .utils import JSONResponse
 
 
 class AppConfig:
@@ -31,7 +30,6 @@ def collection(request):
 @pytest.fixture(params=[AppConfig])
 def app(request):
     _app = Flask('API Test')
-    _app.response_class = JSONResponse
     _app.config.from_object(request.param)
     return _app
 
