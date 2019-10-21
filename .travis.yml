@@ -9,18 +9,18 @@ jobs:
 
   include:
 
-    - { python: '3.6', env: TOXENV=lint }
+    - { python: '3.7', env: TOXENV=lint }
     - { python: '3.5', env: TOXENV=py35-ma2 }
     - { python: '3.5', env: TOXENV=py35-ma3 }
-    - { python: '3.6', env: TOXENV=py36-ma2 }
     - { python: '3.6', env: TOXENV=py36-ma3 }
-    - { python: '3.7', env: TOXENV=py37-ma2 }
     - { python: '3.7', env: TOXENV=py37-ma3 }
+    - { python: '3.8', env: TOXENV=py38-ma2 }
+    - { python: '3.8', env: TOXENV=py38-ma3 }
 
     - stage: PyPI Release
       if: tag IS present
-      python: '3.6'
-      env: TOXENV=py36-ma3
+      python: '3.7'
+      env: TOXENV=py37-ma3
       install: skip
       script: echo "Releasing to PyPI..."
       deploy:
