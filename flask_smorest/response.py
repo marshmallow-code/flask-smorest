@@ -114,6 +114,9 @@ class ResponseMixin:
                     )
                 }
 
+            # Document default error response
+            doc['responses']['default'] = 'DefaultError'
+
             # Store doc in wrapper function
             # The deepcopy avoids modifying the wrapped function doc
             wrapper._apidoc = deepcopy(getattr(wrapper, '_apidoc', {}))
