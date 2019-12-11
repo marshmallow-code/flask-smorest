@@ -369,6 +369,25 @@ class TestBlueprint():
         )
 
     @pytest.mark.parametrize('openapi_version', ('2.0', '3.0.2'))
+    def test_blueprint_arguments_document_422_error(
+            self, app, schemas, openapi_version
+    ):
+        app.config['OPENAPI_VERSION'] = openapi_version
+        api = Api(app)
+        blp = Blueprint('test', __name__, url_prefix='/test')
+
+        @blp.route('/')
+        @blp.arguments(schemas.DocSchema)
+        def func():
+            """Dummy view func"""
+
+        api.register_blueprint(blp)
+        spec = api.spec.to_dict()
+        assert spec['paths']['/test/']['get']['responses']['422'] == build_ref(
+            api.spec, 'response', 'UnprocessableEntity'
+        )
+
+    @pytest.mark.parametrize('openapi_version', ('2.0', '3.0.2'))
     def test_blueprint_route_parameters(self, app, openapi_version):
         """Check path parameters docs are merged with auto docs"""
         app.config['OPENAPI_VERSION'] = openapi_version
