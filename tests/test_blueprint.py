@@ -581,6 +581,22 @@ class TestBlueprint():
         get = api.spec.to_dict()['paths']['/test/']['get']
         assert get['responses']['200']['headers'] == headers
 
+    def test_blueprint_response_default_error(self, app):
+        api = Api(app)
+        blp = Blueprint('test', 'test', url_prefix='/test')
+
+        @blp.route('/')
+        @blp.response()
+        def func():
+            pass
+
+        api.register_blueprint(blp)
+
+        get = api.spec.to_dict()['paths']['/test/']['get']
+        assert get['responses']['default'] == build_ref(
+            api.spec, 'response', 'DefaultError'
+        )
+
     @pytest.mark.parametrize('openapi_version', ('2.0', '3.0.2'))
     def test_blueprint_pagination(self, app, schemas, openapi_version):
         app.config['OPENAPI_VERSION'] = openapi_version
