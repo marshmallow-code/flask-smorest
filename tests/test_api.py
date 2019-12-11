@@ -10,7 +10,7 @@ import apispec
 from flask_smorest import Api, Blueprint
 from flask_smorest.exceptions import OpenAPIVersionNotSpecified
 
-from .utils import get_schemas
+from .utils import get_schemas, get_responses
 
 
 class TestApi():
@@ -264,3 +264,12 @@ class TestApi():
                 match='The OpenAPI version must be specified'
         ):
             Api(app)
+
+    @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.2'])
+    def test_api_registers_error_responses(self, app, openapi_version):
+        """Test default errors are registered"""
+        app.config['OPENAPI_VERSION'] = openapi_version
+        api = Api(app)
+        assert 'Error' in get_schemas(api.spec)
+        assert 'DefaultError' in get_responses(api.spec)
+        assert 'UnprocessableEntity' in get_responses(api.spec)
