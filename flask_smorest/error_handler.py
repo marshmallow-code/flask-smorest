@@ -1,10 +1,25 @@
 """Exception handler"""
 
 from werkzeug.exceptions import HTTPException
+import marshmallow as ma
+
+
+class ErrorSchema(ma.Schema):
+    """Schema describing the error payload
+
+    Not actually used to dump payload, but only for documentation purposes
+    """
+    code = ma.fields.Integer(description='Error code')
+    status = ma.fields.String(description='Error name')
+    message = ma.fields.String(description='Error message')
+    errors = ma.fields.Dict(description='Errors')
 
 
 class ErrorHandlerMixin:
     """Extend Api to manage error handling."""
+
+    # Should match payload structure in handle_http_exception
+    ERROR_SCHEMA = ErrorSchema
 
     def _register_error_handlers(self):
         """Register error handlers in Flask app
