@@ -1,4 +1,6 @@
 """Arguments parsing"""
+
+from collections import abc
 from copy import deepcopy
 from functools import wraps
 
@@ -85,50 +87,54 @@ class ArgumentsMixin:
         # This callback should run first as it overrides existing parameters
         # in doc. Following callbacks should append to parameters list.
         operation = doc_info.get('arguments', {})
+
+        parameters = [
+            p for p in operation.get('parameters', [])
+            if isinstance(p, abc.Mapping)
+        ]
+
         # OAS 2
         if spec.openapi_version.major < 3:
-            if 'parameters' in operation:
-                for param in operation['parameters']:
-                    if param['in'] in (
-                            self.DEFAULT_LOCATION_CONTENT_TYPE_MAPPING
-                    ):
-                        content_type = (
-                            param.pop('content_type', None) or
-                            self.DEFAULT_LOCATION_CONTENT_TYPE_MAPPING[
-                                param['in']]
-                        )
-                        if content_type != DEFAULT_REQUEST_BODY_CONTENT_TYPE:
-                            operation['consumes'] = [content_type, ]
-                        # body and formData are mutually exclusive
-                        break
+            for param in parameters:
+                if param['in'] in (
+                        self.DEFAULT_LOCATION_CONTENT_TYPE_MAPPING
+                ):
+                    content_type = (
+                        param.pop('content_type', None) or
+                        self.DEFAULT_LOCATION_CONTENT_TYPE_MAPPING[
+                            param['in']]
+                    )
+                    if content_type != DEFAULT_REQUEST_BODY_CONTENT_TYPE:
+                        operation['consumes'] = [content_type, ]
+                    # body and formData are mutually exclusive
+                    break
         # OAS 3
         else:
-            if 'parameters' in operation:
-                for param in operation['parameters']:
-                    if param['in'] in (
-                            self.DEFAULT_LOCATION_CONTENT_TYPE_MAPPING
-                    ):
-                        request_body = {
-                            x: param[x]
-                            for x in ('description', 'required')
-                            if x in param
-                        }
-                        fields = {
-                            x: param.pop(x)
-                            for x in ('schema', 'example', 'examples')
-                            if x in param
-                        }
-                        content_type = (
-                            param.pop('content_type', None) or
-                            self.DEFAULT_LOCATION_CONTENT_TYPE_MAPPING[
-                                param['in']]
-                        )
-                        request_body['content'] = {content_type: fields}
-                        operation['requestBody'] = request_body
-                        # There can be only one requestBody
-                        operation['parameters'].remove(param)
-                        if not operation['parameters']:
-                            del operation['parameters']
-                        break
+            for param in parameters:
+                if param['in'] in (
+                        self.DEFAULT_LOCATION_CONTENT_TYPE_MAPPING
+                ):
+                    request_body = {
+                        x: param[x]
+                        for x in ('description', 'required')
+                        if x in param
+                    }
+                    fields = {
+                        x: param.pop(x)
+                        for x in ('schema', 'example', 'examples')
+                        if x in param
+                    }
+                    content_type = (
+                        param.pop('content_type', None) or
+                        self.DEFAULT_LOCATION_CONTENT_TYPE_MAPPING[
+                            param['in']]
+                    )
+                    request_body['content'] = {content_type: fields}
+                    operation['requestBody'] = request_body
+                    # There can be only one requestBody
+                    operation['parameters'].remove(param)
+                    if not operation['parameters']:
+                        del operation['parameters']
+                    break
         doc = deepupdate(doc, operation)
         return doc
