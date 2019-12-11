@@ -2,7 +2,7 @@
 
 from webargs.flaskparser import abort  # noqa
 
-from .spec import APISpecMixin
+from .spec import APISpecMixin, DEFAULT_RESPONSE_CONTENT_TYPE
 from .blueprint import Blueprint  # noqa
 from .pagination import Page  # noqa
 from .error_handler import ErrorHandlerMixin
@@ -68,6 +68,34 @@ class Api(APISpecMixin, ErrorHandlerMixin):
 
         # Register error handlers
         self._register_error_handlers()
+
+        # Resister error responses
+        self._register_response(
+            'DefaultError',
+            {
+                'description': 'Default error response',
+                'schema': self.ERROR_SCHEMA,
+            }
+        )
+        self._register_response(
+            'UnprocessableEntity',
+            {
+                'description': 'Unprocessable entity',
+                'schema': self.ERROR_SCHEMA,
+            }
+        )
+
+    def _register_response(self, component_id, component):
+        """Register a response component
+
+        Abstracts OpenAPI version and content type.
+        """
+        if self.spec.openapi_version.major >= 3:
+            if 'schema' in component:
+                component['content'] = {
+                    DEFAULT_RESPONSE_CONTENT_TYPE: {
+                        'schema': component.pop('schema')}}
+        self.spec.components.response(component_id, component)
 
     def register_blueprint(self, blp, **options):
         """Register a blueprint in the application
