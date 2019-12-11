@@ -64,6 +64,11 @@ class ArgumentsMixin:
         if description is not None:
             parameters['description'] = description
 
+        error_status_code = kwargs.get(
+            'error_status_code',
+            self.ARGUMENTS_PARSER.DEFAULT_VALIDATION_STATUS
+        )
+
         def decorator(func):
 
             @wraps(func)
@@ -75,6 +80,9 @@ class ArgumentsMixin:
             wrapper._apidoc = deepcopy(getattr(wrapper, '_apidoc', {}))
             docs = wrapper._apidoc.setdefault('arguments', {})
             docs.setdefault('parameters', []).append(parameters)
+            docs.setdefault('responses', {})[
+                error_status_code
+            ] = 'UnprocessableEntity'
 
             # Call use_args (from webargs) to inject params in function
             return self.ARGUMENTS_PARSER.use_args(
