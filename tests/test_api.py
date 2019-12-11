@@ -20,7 +20,9 @@ class TestApi():
     @pytest.mark.parametrize('view_type', ['function', 'method'])
     @pytest.mark.parametrize('custom_format', ['custom', None])
     def test_api_register_converter(
-            self, app, view_type, custom_format, openapi_version):
+            self, app, view_type, custom_format, openapi_version
+    ):
+        app.config['OPENAPI_VERSION'] = openapi_version
         api = Api(app)
         blp = Blueprint('test', 'test', url_prefix='/test')
 
@@ -48,7 +50,7 @@ class TestApi():
         if custom_format is not None:
             schema['format'] = 'custom'
         parameter = {'in': 'path', 'name': 'val', 'required': True}
-        if 'openapi_version' == '2.0':
+        if openapi_version == '2.0':
             parameter.update(schema)
         else:
             parameter['schema'] = schema
@@ -56,7 +58,9 @@ class TestApi():
 
     @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.2'])
     def test_api_register_converter_before_and_after_init(
-            self, app, openapi_version):
+            self, app, openapi_version
+    ):
+        app.config['OPENAPI_VERSION'] = openapi_version
         api = Api()
         blp = Blueprint('test', 'test', url_prefix='/test')
 
@@ -84,7 +88,7 @@ class TestApi():
         spec = api.spec.to_dict()
         parameter_1 = spec['paths']['/test/1/{val}']['parameters'][0]
         parameter_2 = spec['paths']['/test/2/{val}']['parameters'][0]
-        if 'openapi_version' == '2.0':
+        if openapi_version == '2.0':
             assert parameter_1['type'] == 'custom string 1'
             assert parameter_2['type'] == 'custom string 2'
         else:
@@ -122,7 +126,8 @@ class TestApi():
 
     @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.2'])
     def test_api_register_field_before_and_after_init(
-            self, app, openapi_version):
+            self, app, openapi_version
+    ):
         app.config['OPENAPI_VERSION'] = openapi_version
         api = Api()
 
