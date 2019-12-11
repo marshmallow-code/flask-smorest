@@ -1,5 +1,6 @@
 """Response processor"""
 
+from collections import abc
 from copy import deepcopy
 from functools import wraps
 import http
@@ -156,24 +157,29 @@ class ResponseMixin:
     @staticmethod
     def _prepare_response_doc(doc, doc_info, spec, **kwargs):
         operation = doc_info.get('response', {})
+
+        responses = {
+            c: r for c, r in operation.get('responses', {}).items()
+            if isinstance(r, abc.Mapping)
+        }
+
         # OAS 2
         if spec.openapi_version.major < 3:
-            if 'responses' in operation:
-                for resp in operation['responses'].values():
-                    if 'example' in resp:
-                        resp['examples'] = {
-                            DEFAULT_RESPONSE_CONTENT_TYPE: resp.pop('example')}
+            for resp in responses.values():
+                if 'example' in resp:
+                    resp['examples'] = {
+                        DEFAULT_RESPONSE_CONTENT_TYPE: resp.pop('example')
+                    }
         # OAS 3
         else:
-            if 'responses' in operation:
-                for resp in operation['responses'].values():
-                    for field in ('schema', 'example', 'examples'):
-                        if field in resp:
-                            (
-                                resp
-                                .setdefault('content', {})
-                                .setdefault(DEFAULT_RESPONSE_CONTENT_TYPE, {})
-                                [field]
-                            ) = resp.pop(field)
+            for resp in responses.values():
+                for field in ('schema', 'example', 'examples'):
+                    if field in resp:
+                        (
+                            resp
+                            .setdefault('content', {})
+                            .setdefault(DEFAULT_RESPONSE_CONTENT_TYPE, {})
+                            [field]
+                        ) = resp.pop(field)
         doc = deepupdate(doc, operation)
         return doc
