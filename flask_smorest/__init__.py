@@ -84,6 +84,21 @@ class Api(APISpecMixin, ErrorHandlerMixin):
                 'schema': self.ERROR_SCHEMA,
             }
         )
+        if not app.config.get('ETAG_DISABLED', False):
+            self._register_response(
+                'PreconditionFailed',
+                {
+                    'description': 'Precondition Failed',
+                    'schema': self.ERROR_SCHEMA,
+                }
+            )
+            self._register_response(
+                'PreconditionRequired',
+                {
+                    'description': 'Precondition Required',
+                    'schema': self.ERROR_SCHEMA,
+                }
+            )
 
     def _register_response(self, component_id, component):
         """Register a response component

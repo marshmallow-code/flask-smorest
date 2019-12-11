@@ -267,9 +267,25 @@ class TestApi():
 
     @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.2'])
     def test_api_registers_error_responses(self, app, openapi_version):
-        """Test default errors are registered"""
+        """Test default error responses are registered"""
         app.config['OPENAPI_VERSION'] = openapi_version
         api = Api(app)
         assert 'Error' in get_schemas(api.spec)
         assert 'DefaultError' in get_responses(api.spec)
         assert 'UnprocessableEntity' in get_responses(api.spec)
+
+    @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.2'])
+    @pytest.mark.parametrize('etag_enabled', [True, False])
+    def test_api_registers_etag_error_responses(
+            self, app, openapi_version, etag_enabled
+    ):
+        """Test ETag error responses are registered iif ETag is enabled"""
+        app.config['OPENAPI_VERSION'] = openapi_version
+        app.config['ETAG_DISABLED'] = not etag_enabled
+        api = Api(app)
+        assert (
+            ('PreconditionRequired' in get_responses(api.spec)) == etag_enabled
+        )
+        assert (
+            ('PreconditionFailed' in get_responses(api.spec)) == etag_enabled
+        )
