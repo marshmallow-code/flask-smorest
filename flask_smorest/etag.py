@@ -27,6 +27,7 @@ def _get_etag_ctx():
 class EtagMixin:
     """Extend Blueprint to add ETag handling"""
 
+    METHODS_CHECKING_NOT_MODIFIED = ['GET', 'HEAD']
     METHODS_NEEDING_CHECK_ETAG = ['PUT', 'PATCH', 'DELETE']
     METHODS_ALLOWING_SET_ETAG = ['GET', 'HEAD', 'POST', 'PUT', 'PATCH']
 
@@ -176,6 +177,17 @@ class EtagMixin:
                 if app.debug or app.testing:
                     raise CheckEtagNotCalledError(message)
 
+    def _check_not_modified(self, etag):
+        """Raise NotModified if etag is in If-None-Match header
+
+        Only applies to methods returning a 304 (Not Modified) code
+        """
+        if (
+                request.method in self.METHODS_CHECKING_NOT_MODIFIED and
+                etag in request.if_none_match
+        ):
+            raise NotModified
+
     def set_etag(self, etag_data, etag_schema=None):
         """Set ETag for this response
 
@@ -194,8 +206,7 @@ class EtagMixin:
         if _is_etag_enabled():
             etag_schema = etag_schema or _get_etag_ctx().get('etag_schema')
             new_etag = self._generate_etag(etag_data, etag_schema)
-            if new_etag in request.if_none_match:
-                raise NotModified
+            self._check_not_modified(new_etag)
             # Store ETag in AppContext to add it to response headers later on
             _get_etag_ctx()['etag'] = new_etag
 
@@ -220,6 +231,5 @@ class EtagMixin:
                                    if k in self.ETAG_INCLUDE_HEADERS)
                 new_etag = self._generate_etag(
                     etag_data, etag_schema, extra_data)
-                if new_etag in request.if_none_match:
-                    raise NotModified
+                self._check_not_modified(new_etag)
             response.set_etag(new_etag)
