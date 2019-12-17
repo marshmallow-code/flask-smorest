@@ -86,6 +86,13 @@ class Api(APISpecMixin, ErrorHandlerMixin):
         )
         if not app.config.get('ETAG_DISABLED', False):
             self._register_response(
+                'NotModified',
+                {
+                    'description': 'Not Modified',
+                    'schema': self.ERROR_SCHEMA,
+                }
+            )
+            self._register_response(
                 'PreconditionFailed',
                 {
                     'description': 'Precondition Failed',

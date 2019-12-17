@@ -284,6 +284,9 @@ class TestApi():
         app.config['ETAG_DISABLED'] = not etag_enabled
         api = Api(app)
         assert (
+            ('NotModified' in get_responses(api.spec)) == etag_enabled
+        )
+        assert (
             ('PreconditionRequired' in get_responses(api.spec)) == etag_enabled
         )
         assert (
