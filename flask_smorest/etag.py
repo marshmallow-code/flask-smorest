@@ -141,14 +141,20 @@ class EtagMixin:
     def check_etag(self, etag_data, etag_schema=None):
         """Compare If-Match header with computed ETag
 
-        Raise 412 if If-Match-Header does not match.
+        Raise 412 if If-Match header does not match.
 
         Must be called from resource code to check ETag.
 
         Unfortunately, there is no way to call it automatically. It is the
         developer's responsability to do it. However, a warning is logged at
         runtime if this function was not called.
+
+        Logs a warning if called in a method other than one of
+        PUT, PATCH, DELETE.
         """
+        if request.method not in self.METHODS_NEEDING_CHECK_ETAG:
+            current_app.logger.warning(
+                'ETag cannot be checked on {} request.'.format(request.method))
         if _is_etag_enabled():
             etag_schema = etag_schema or _get_etag_ctx().get('etag_schema')
             new_etag = self._generate_etag(etag_data, etag_schema)
