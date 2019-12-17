@@ -1044,3 +1044,42 @@ class TestBlueprint():
         assert response.status == '201 CREATED'
         assert response.json == {}
         assert response.headers['X-header'] == 'test'
+
+    @pytest.mark.parametrize('decorate', (True, False))
+    @pytest.mark.parametrize('etag_disabled', (True, False))
+    @pytest.mark.parametrize(
+        'method',
+        ('OPTIONS', 'HEAD', 'GET', 'POST', 'PUT', 'PATCH', 'DELETE')
+    )
+    def test_blueprint_etag_document_responses(
+            self, app, method, decorate, etag_disabled,
+    ):
+        app.config['ETAG_DISABLED'] = etag_disabled
+        api = Api(app)
+        blp = Blueprint('test', 'test', url_prefix='/test')
+
+        if decorate:
+            @blp.route('/', methods=[method])
+            @blp.etag
+            def func():
+                pass
+        else:
+            @blp.route('/', methods=[method])
+            def func():
+                pass
+
+        api.register_blueprint(blp)
+
+        operation = api.spec.to_dict()['paths']['/test/'][method.lower()]
+        responses = operation.get('responses', {})
+
+        if not decorate or etag_disabled:
+            assert '309' not in responses
+            assert '412' not in responses
+            assert '428' not in responses
+        else:
+            assert ('309' in responses) == (method in ['GET', 'HEAD'])
+            assert ('412' in responses) == (
+                method in ['PUT', 'PATCH', 'DELETE'])
+            assert ('428' in responses) == (
+                method in ['PUT', 'PATCH', 'DELETE'])
