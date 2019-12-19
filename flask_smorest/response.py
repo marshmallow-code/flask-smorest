@@ -2,6 +2,7 @@
 
 from copy import deepcopy
 from functools import wraps
+import http
 
 from werkzeug.wrappers import BaseResponse
 from flask import jsonify
@@ -57,6 +58,8 @@ class ResponseMixin:
             resp_doc['schema'] = doc_schema
         if description is not None:
             resp_doc['description'] = description
+        else:
+            resp_doc['description'] = http.HTTPStatus(int(code)).phrase
         if example is not None:
             resp_doc['example'] = example
         if examples is not None:

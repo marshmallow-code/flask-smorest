@@ -493,7 +493,7 @@ class TestBlueprint():
         api.register_blueprint(blp)
 
         get_1 = api.spec.to_dict()['paths']['/test/route_1']['get']
-        assert 'description' not in get_1['responses']['200']
+        assert get_1['responses']['200']['description'] == http.HTTPStatus(200).phrase
         get_2 = api.spec.to_dict()['paths']['/test/route_2']['get']
         assert get_2['responses']['200']['description'] == 'Test'
 
