@@ -271,8 +271,8 @@ class TestApi():
         app.config['OPENAPI_VERSION'] = openapi_version
         api = Api(app)
         assert 'Error' in get_schemas(api.spec)
-        assert 'DefaultError' in get_responses(api.spec)
-        assert 'UnprocessableEntity' in get_responses(api.spec)
+        assert 'Default Error' in get_responses(api.spec)
+        assert 'Unprocessable Entity' in get_responses(api.spec)
 
     @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.2'])
     @pytest.mark.parametrize('etag_enabled', [True, False])
@@ -284,11 +284,13 @@ class TestApi():
         app.config['ETAG_DISABLED'] = not etag_enabled
         api = Api(app)
         assert (
-            ('NotModified' in get_responses(api.spec)) == etag_enabled
+            ('Not Modified' in get_responses(api.spec)) == etag_enabled
         )
         assert (
-            ('PreconditionRequired' in get_responses(api.spec)) == etag_enabled
+            ('Precondition Required' in get_responses(api.spec)) ==
+            etag_enabled
         )
         assert (
-            ('PreconditionFailed' in get_responses(api.spec)) == etag_enabled
+            ('Precondition Failed' in get_responses(api.spec)) ==
+            etag_enabled
         )

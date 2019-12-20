@@ -1,5 +1,7 @@
 """Api extension initialization"""
 
+import http
+
 from webargs.flaskparser import abort  # noqa
 
 from .spec import APISpecMixin, DEFAULT_RESPONSE_CONTENT_TYPE
@@ -71,44 +73,33 @@ class Api(APISpecMixin, ErrorHandlerMixin):
 
         # Resister error responses
         self._register_response(
-            'DefaultError',
+            'Default Error',
             {
                 'description': 'Default error response',
                 'schema': self.ERROR_SCHEMA,
             }
         )
+        self._register_default_response(422)
+        if not app.config.get('ETAG_DISABLED', False):
+            self._register_default_response(304)
+            self._register_default_response(412)
+            self._register_default_response(428)
+
+    def _register_default_response(self, code):
+        """Register a Response for a given status code
+
+        :param int code: Status code
+        """
         self._register_response(
-            'UnprocessableEntity',
+            http.HTTPStatus(code).phrase,
             {
-                'description': 'Unprocessable entity',
+                'description': http.HTTPStatus(code).phrase,
                 'schema': self.ERROR_SCHEMA,
             }
         )
-        if not app.config.get('ETAG_DISABLED', False):
-            self._register_response(
-                'NotModified',
-                {
-                    'description': 'Not Modified',
-                    'schema': self.ERROR_SCHEMA,
-                }
-            )
-            self._register_response(
-                'PreconditionFailed',
-                {
-                    'description': 'Precondition Failed',
-                    'schema': self.ERROR_SCHEMA,
-                }
-            )
-            self._register_response(
-                'PreconditionRequired',
-                {
-                    'description': 'Precondition Required',
-                    'schema': self.ERROR_SCHEMA,
-                }
-            )
 
     def _register_response(self, component_id, component):
-        """Register a response component
+        """Register a Response component
 
         Abstracts OpenAPI version and content type.
         """
