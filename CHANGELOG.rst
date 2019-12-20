@@ -1,6 +1,14 @@
 Changelog
 ---------
 
+0.18.3 (2019-12-20)
++++++++++++++++++++
+
+Features:
+
+- Add default description to responses (:pr:`113`).
+  Thanks :user:`nonnib` for the pull-request.
+
 0.18.2 (2019-10-21)
 +++++++++++++++++++
 
