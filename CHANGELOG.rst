@@ -1,6 +1,18 @@
 Changelog
 ---------
 
+0.18.4 (2020-01-07)
++++++++++++++++++++
+
+Features:
+
+- ``check_etag`` logs a warning if method is not PUT, PATCH or DELETE
+  (:pr:`116`).
+
+Bug fixes:
+
+- Only return 304 on GET and HEAD (:pr:`115`).
+
 0.18.3 (2019-12-20)
 +++++++++++++++++++
 
