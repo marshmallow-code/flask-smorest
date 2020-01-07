@@ -276,8 +276,9 @@ class TestEtag():
             else:
                 blp._verify_check_etag()
 
+    @pytest.mark.parametrize('method', HTTP_METHODS)
     @pytest.mark.parametrize('etag_disabled', (True, False))
-    def test_etag_set_etag(self, app, schemas, etag_disabled):
+    def test_etag_set_etag(self, app, schemas, method, etag_disabled):
         app.config['ETAG_DISABLED'] = etag_disabled
         blp = Blueprint('test', __name__)
         etag_schema = schemas.DocEtagSchema
@@ -285,7 +286,7 @@ class TestEtag():
         etag = blp._generate_etag(item)
         etag_with_schema = blp._generate_etag(item, etag_schema)
 
-        with app.test_request_context('/'):
+        with app.test_request_context('/', method=method):
             blp.set_etag(item)
             if not etag_disabled:
                 assert _get_etag_ctx()['etag'] == etag
@@ -293,23 +294,34 @@ class TestEtag():
             else:
                 assert 'etag' not in _get_etag_ctx()
         with app.test_request_context(
-                '/', headers={'If-None-Match': etag}):
+                '/',
+                method=method,
+                headers={'If-None-Match': etag},
+        ):
             if not etag_disabled:
-                with pytest.raises(NotModified):
-                    blp.set_etag(item)
+                if method in ['GET', 'HEAD']:
+                    with pytest.raises(NotModified):
+                        blp.set_etag(item)
             else:
                 blp.set_etag(item)
                 assert 'etag' not in _get_etag_ctx()
         with app.test_request_context(
-                '/', headers={'If-None-Match': etag_with_schema}):
+                '/',
+                method=method,
+                headers={'If-None-Match': etag_with_schema},
+        ):
             if not etag_disabled:
-                with pytest.raises(NotModified):
-                    blp.set_etag(item, etag_schema)
+                if method in ['GET', 'HEAD']:
+                    with pytest.raises(NotModified):
+                        blp.set_etag(item, etag_schema)
             else:
                 blp.set_etag(item, etag_schema)
                 assert 'etag' not in _get_etag_ctx()
         with app.test_request_context(
-                '/', headers={'If-None-Match': 'dummy'}):
+                '/',
+                method=method,
+                headers={'If-None-Match': 'dummy'},
+        ):
             if not etag_disabled:
                 blp.set_etag(item)
                 assert _get_etag_ctx()['etag'] == etag
