@@ -47,7 +47,7 @@ setup(
         'werkzeug>=0.15',
         'flask>=1.1.0',
         'marshmallow>=2.15.2',
-        'webargs>=1.5.2',
+        'webargs>=1.5.2,<6.0.0',
         'apispec>=3.0.0',
     ],
 )
