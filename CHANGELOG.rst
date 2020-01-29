@@ -1,6 +1,14 @@
 Changelog
 ---------
 
+0.18.5 (unreleased)
++++++++++++++++++++
+
+Other changes:
+
+- Restrict webargs to <6.0.0 in setup.py due to breaking changes introduced in
+  webargs 6 (:issue:`117`).
+
 0.18.4 (2020-01-07)
 +++++++++++++++++++
 
