@@ -1,7 +1,7 @@
 Changelog
 ---------
 
-0.18.5 (unreleased)
+0.18.5 (2020-01-30)
 +++++++++++++++++++
 
 Other changes:
