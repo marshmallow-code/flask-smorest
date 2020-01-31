@@ -79,9 +79,9 @@ class ArgumentsMixin:
 
         return decorator
 
-    def _prepare_arguments_doc(self, operation, openapi_version):
+    def _prepare_arguments_doc(self, operation, _app, spec):
         # OAS 2
-        if openapi_version.major < 3:
+        if spec.openapi_version.major < 3:
             if 'parameters' in operation:
                 for param in operation['parameters']:
                     if param['in'] in (

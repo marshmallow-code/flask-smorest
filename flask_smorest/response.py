@@ -114,9 +114,10 @@ class ResponseMixin:
 
         return decorator
 
-    def _prepare_response_doc(self, operation, openapi_version):
+    @staticmethod
+    def _prepare_response_doc(operation, _app, spec):
         # OAS 2
-        if openapi_version.major < 3:
+        if spec.openapi_version.major < 3:
             if 'responses' in operation:
                 for resp in operation['responses'].values():
                     if 'example' in resp:

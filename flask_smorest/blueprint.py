@@ -193,7 +193,7 @@ class Blueprint(
             doc = OrderedDict()
             for method_l, endpoint_doc in endpoint_auto_doc.items():
                 for func in self._prepare_doc_cbks:
-                    func(endpoint_doc, spec.openapi_version)
+                    func(endpoint_doc, app, spec)
                 # Tag all operations with Blueprint name
                 endpoint_doc['tags'] = [self.name]
                 # Merge auto_doc and manual_doc into doc
