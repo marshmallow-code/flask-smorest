@@ -12,6 +12,7 @@ from .utils import (
     unpack_tuple_response, set_status_and_headers_in_response
 )
 from .compat import MARSHMALLOW_VERSION_MAJOR
+from .spec import DEFAULT_RESPONSE_CONTENT_TYPE
 
 
 class ResponseMixin:
@@ -112,6 +113,27 @@ class ResponseMixin:
             return wrapper
 
         return decorator
+
+    def _prepare_response_doc(self, operation, openapi_version):
+        # OAS 2
+        if openapi_version.major < 3:
+            if 'responses' in operation:
+                for resp in operation['responses'].values():
+                    if 'example' in resp:
+                        resp['examples'] = {
+                            DEFAULT_RESPONSE_CONTENT_TYPE: resp.pop('example')}
+        # OAS 3
+        else:
+            if 'responses' in operation:
+                for resp in operation['responses'].values():
+                    for field in ('schema', 'example', 'examples'):
+                        if field in resp:
+                            (
+                                resp
+                                .setdefault('content', {})
+                                .setdefault(DEFAULT_RESPONSE_CONTENT_TYPE, {})
+                                [field]
+                            ) = resp.pop(field)
 
     @staticmethod
     def _make_doc_response_schema(schema):

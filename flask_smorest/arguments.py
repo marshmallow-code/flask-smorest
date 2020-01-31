@@ -4,6 +4,8 @@ from functools import wraps
 
 from webargs.flaskparser import FlaskParser
 
+from .spec import DEFAULT_REQUEST_BODY_CONTENT_TYPE
+
 
 class ArgumentsMixin:
     """Extend Blueprint to add arguments parsing feature"""
@@ -76,3 +78,50 @@ class ArgumentsMixin:
                 schema, locations=[location], **kwargs)(wrapper)
 
         return decorator
+
+    def _prepare_arguments_doc(self, operation, openapi_version):
+        # OAS 2
+        if openapi_version.major < 3:
+            if 'parameters' in operation:
+                for param in operation['parameters']:
+                    if param['in'] in (
+                            self.DEFAULT_LOCATION_CONTENT_TYPE_MAPPING
+                    ):
+                        content_type = (
+                            param.pop('content_type', None) or
+                            self.DEFAULT_LOCATION_CONTENT_TYPE_MAPPING[
+                                param['in']]
+                        )
+                        if content_type != DEFAULT_REQUEST_BODY_CONTENT_TYPE:
+                            operation['consumes'] = [content_type, ]
+                        # body and formData are mutually exclusive
+                        break
+        # OAS 3
+        else:
+            if 'parameters' in operation:
+                for param in operation['parameters']:
+                    if param['in'] in (
+                            self.DEFAULT_LOCATION_CONTENT_TYPE_MAPPING
+                    ):
+                        request_body = {
+                            x: param[x]
+                            for x in ('description', 'required')
+                            if x in param
+                        }
+                        fields = {
+                            x: param.pop(x)
+                            for x in ('schema', 'example', 'examples')
+                            if x in param
+                        }
+                        content_type = (
+                            param.pop('content_type', None) or
+                            self.DEFAULT_LOCATION_CONTENT_TYPE_MAPPING[
+                                param['in']]
+                        )
+                        request_body['content'] = {content_type: fields}
+                        operation['requestBody'] = request_body
+                        # There can be only one requestBody
+                        operation['parameters'].remove(param)
+                        if not operation['parameters']:
+                            del operation['parameters']
+                        break

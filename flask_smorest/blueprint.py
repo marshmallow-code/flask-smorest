@@ -30,8 +30,11 @@ Documentation process works in several steps:
   - Schema instances are replaced by their reference in the `schemas` section
     of the spec components.
 
-  - Automatic documentation is adapted to OpenAPI version and deep-merged with
-    manual documentation.
+  - Automatic documentation is finalized using the information stored in
+    ``Blueprint._auto_docs``, with adaptations to parameters only known at init
+    time, such as OAS version.
+
+  - Automatic documentation is deep-merged with manual documentation.
 
   - Endpoints documentation is registered in the APISpec object.
 """
@@ -48,8 +51,6 @@ from .arguments import ArgumentsMixin
 from .response import ResponseMixin
 from .pagination import PaginationMixin
 from .etag import EtagMixin
-from .spec import (
-    DEFAULT_REQUEST_BODY_CONTENT_TYPE, DEFAULT_RESPONSE_CONTENT_TYPE)
 
 
 class Blueprint(
@@ -86,6 +87,10 @@ class Blueprint(
         self._auto_docs = OrderedDict()
         self._manual_docs = OrderedDict()
         self._endpoints = []
+        self._prepare_doc_cbks = [
+            self._prepare_arguments_doc,
+            self._prepare_response_doc,
+        ]
 
     def route(self, rule, *, parameters=None, **options):
         """Decorator to register url rule in application
@@ -187,8 +192,8 @@ class Blueprint(
             parameters = endpoint_auto_doc.pop('parameters')
             doc = OrderedDict()
             for method_l, endpoint_doc in endpoint_auto_doc.items():
-                # Format operations documentation in OpenAPI structure
-                self._prepare_doc(endpoint_doc, spec.openapi_version)
+                for func in self._prepare_doc_cbks:
+                    func(endpoint_doc, spec.openapi_version)
                 # Tag all operations with Blueprint name
                 endpoint_doc['tags'] = [self.name]
                 # Merge auto_doc and manual_doc into doc
@@ -199,77 +204,6 @@ class Blueprint(
             full_endpoint = '.'.join((self.name, endpoint))
             rule = next(app.url_map.iter_rules(full_endpoint))
             spec.path(rule=rule, operations=doc, parameters=parameters)
-
-    def _prepare_doc(self, operation, openapi_version):
-        """Format operation documentation in OpenAPI structure
-
-        The decorators store all documentation information in a dict structure
-        that is close to OpenAPI doc structure, so this information could
-        _almost_ be copied as is. Yet, some adjustemnts may have to be
-        performed, especially if the spec structure differs between OpenAPI
-        versions: the OpenAPI version is not known when the decorators are
-        applied but only at registration time when this method is called.
-        """
-        # OAS 2
-        if openapi_version.major < 3:
-            if 'responses' in operation:
-                for resp in operation['responses'].values():
-                    if 'example' in resp:
-                        resp['examples'] = {
-                            DEFAULT_RESPONSE_CONTENT_TYPE: resp.pop('example')}
-            if 'parameters' in operation:
-                for param in operation['parameters']:
-                    if param['in'] in (
-                            self.DEFAULT_LOCATION_CONTENT_TYPE_MAPPING
-                    ):
-                        content_type = (
-                            param.pop('content_type', None) or
-                            self.DEFAULT_LOCATION_CONTENT_TYPE_MAPPING[
-                                param['in']]
-                        )
-                        if content_type != DEFAULT_REQUEST_BODY_CONTENT_TYPE:
-                            operation['consumes'] = [content_type, ]
-                        # body and formData are mutually exclusive
-                        break
-        # OAS 3
-        else:
-            if 'responses' in operation:
-                for resp in operation['responses'].values():
-                    for field in ('schema', 'example', 'examples'):
-                        if field in resp:
-                            (
-                                resp
-                                .setdefault('content', {})
-                                .setdefault(DEFAULT_RESPONSE_CONTENT_TYPE, {})
-                                [field]
-                            ) = resp.pop(field)
-            if 'parameters' in operation:
-                for param in operation['parameters']:
-                    if param['in'] in (
-                            self.DEFAULT_LOCATION_CONTENT_TYPE_MAPPING
-                    ):
-                        request_body = {
-                            x: param[x]
-                            for x in ('description', 'required')
-                            if x in param
-                        }
-                        fields = {
-                            x: param.pop(x)
-                            for x in ('schema', 'example', 'examples')
-                            if x in param
-                        }
-                        content_type = (
-                            param.pop('content_type', None) or
-                            self.DEFAULT_LOCATION_CONTENT_TYPE_MAPPING[
-                                param['in']]
-                        )
-                        request_body['content'] = {content_type: fields}
-                        operation['requestBody'] = request_body
-                        # There can be only one requestBody
-                        operation['parameters'].remove(param)
-                        if not operation['parameters']:
-                            del operation['parameters']
-                        break
 
     @staticmethod
     def doc(**kwargs):
