@@ -27,8 +27,8 @@ Documentation process works in several steps:
 
 - At initialization time
 
-  - Schema instances are replaced either by their reference in the `schemas`
-    section of the spec if applicable, otherwise by their json representation.
+  - Schema instances are replaced by their reference in the `schemas` section
+    of the spec components.
 
   - Automatic documentation is adapted to OpenAPI version and deep-merged with
     manual documentation.
