@@ -145,7 +145,7 @@ class ResponseMixin:
         return data
 
     @staticmethod
-    def _prepare_response_doc(doc, doc_info, _app, spec):
+    def _prepare_response_doc(doc, doc_info, spec, **kwargs):
         operation = doc_info.get('response', {})
         # OAS 2
         if spec.openapi_version.major < 3:

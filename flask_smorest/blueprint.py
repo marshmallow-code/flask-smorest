@@ -181,7 +181,12 @@ class Blueprint(
                 operation_doc = {}
                 for func in self._prepare_doc_cbks:
                     operation_doc = func(
-                        operation_doc, operation_doc_info, app, spec)
+                        operation_doc,
+                        operation_doc_info,
+                        app=app,
+                        spec=spec,
+                        method=method_l
+                    )
                 operation_doc.update(operation_doc_info['docstring'])
                 # Tag all operations with Blueprint name
                 operation_doc['tags'] = [self.name]

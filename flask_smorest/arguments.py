@@ -81,7 +81,7 @@ class ArgumentsMixin:
 
         return decorator
 
-    def _prepare_arguments_doc(self, doc, doc_info, _app, spec):
+    def _prepare_arguments_doc(self, doc, doc_info, spec, **kwargs):
         # This callback should run first as it overrides existing parameters
         # in doc. Following callbacks should append to parameters list.
         operation = doc_info.get('arguments', {})

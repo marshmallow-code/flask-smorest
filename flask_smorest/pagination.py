@@ -229,7 +229,7 @@ class PaginationMixin:
         return json.dumps(page_header)
 
     @staticmethod
-    def _prepare_pagination_doc(doc, doc_info, _app, _spec):
+    def _prepare_pagination_doc(doc, doc_info, **kwargs):
         operation = doc_info.get('pagination', {})
         parameters = operation.get('parameters')
         if parameters:
