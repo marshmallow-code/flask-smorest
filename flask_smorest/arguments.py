@@ -4,6 +4,7 @@ from functools import wraps
 
 from webargs.flaskparser import FlaskParser
 
+from .utils import deepupdate
 from .spec import DEFAULT_REQUEST_BODY_CONTENT_TYPE
 
 
@@ -71,7 +72,8 @@ class ArgumentsMixin:
             # Add parameter to parameters list in doc info in function object
             # The deepcopy avoids modifying the wrapped function doc
             wrapper._apidoc = deepcopy(getattr(wrapper, '_apidoc', {}))
-            wrapper._apidoc.setdefault('parameters', []).append(parameters)
+            docs = wrapper._apidoc.setdefault('arguments', {})
+            docs.setdefault('parameters', []).append(parameters)
 
             # Call use_args (from webargs) to inject params in function
             return self.ARGUMENTS_PARSER.use_args(
@@ -79,7 +81,10 @@ class ArgumentsMixin:
 
         return decorator
 
-    def _prepare_arguments_doc(self, operation, _app, spec):
+    def _prepare_arguments_doc(self, doc, doc_info, _app, spec):
+        # This callback should run first as it overrides existing parameters
+        # in doc. Following callbacks should append to parameters list.
+        operation = doc_info.get('arguments', {})
         # OAS 2
         if spec.openapi_version.major < 3:
             if 'parameters' in operation:
@@ -125,3 +130,5 @@ class ArgumentsMixin:
                         if not operation['parameters']:
                             del operation['parameters']
                         break
+        doc = deepupdate(doc, operation)
+        return doc

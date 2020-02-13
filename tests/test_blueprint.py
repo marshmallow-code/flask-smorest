@@ -579,38 +579,37 @@ class TestBlueprint():
 
         # Check parameters are documented
         parameters = spec['paths']['/test/']['get']['parameters']
-        # Page
-        assert parameters[0]['name'] == 'page'
+        # Query string parameters
+        assert parameters[0]['name'] == 'arg1'
         assert parameters[0]['in'] == 'query'
-        assert parameters[0]['required'] is False
-        if openapi_version == '2.0':
-            assert parameters[0]['type'] == 'integer'
-            assert parameters[0]['default'] == 1
-            assert parameters[0]['minimum'] == 1
-        else:
-            assert parameters[0]['schema']['type'] == 'integer'
-            assert parameters[0]['schema']['default'] == 1
-            assert parameters[0]['schema']['minimum'] == 1
-        # Page size
-        assert parameters[1]['name'] == 'page_size'
+        assert parameters[1]['name'] == 'arg2'
         assert parameters[1]['in'] == 'query'
-        assert parameters[1]['required'] is False
-        if openapi_version == '2.0':
-            assert parameters[1]['type'] == 'integer'
-            assert parameters[1]['default'] == 10
-            assert parameters[1]['minimum'] == 1
-            assert parameters[1]['maximum'] == 100
-        else:
-            assert parameters[1]['schema']['type'] == 'integer'
-            assert parameters[1]['schema']['default'] == 10
-            assert parameters[1]['schema']['minimum'] == 1
-            assert parameters[1]['schema']['maximum'] == 100
-        # Other query string parameters
-        assert parameters[1]['in'] == 'query'
-        assert parameters[2]['name'] == 'arg1'
+        # Page
+        assert parameters[2]['name'] == 'page'
         assert parameters[2]['in'] == 'query'
-        assert parameters[3]['name'] == 'arg2'
+        assert parameters[2]['required'] is False
+        if openapi_version == '2.0':
+            assert parameters[2]['type'] == 'integer'
+            assert parameters[2]['default'] == 1
+            assert parameters[2]['minimum'] == 1
+        else:
+            assert parameters[2]['schema']['type'] == 'integer'
+            assert parameters[2]['schema']['default'] == 1
+            assert parameters[2]['schema']['minimum'] == 1
+        # Page size
+        assert parameters[3]['name'] == 'page_size'
         assert parameters[3]['in'] == 'query'
+        assert parameters[3]['required'] is False
+        if openapi_version == '2.0':
+            assert parameters[3]['type'] == 'integer'
+            assert parameters[3]['default'] == 10
+            assert parameters[3]['minimum'] == 1
+            assert parameters[3]['maximum'] == 100
+        else:
+            assert parameters[3]['schema']['type'] == 'integer'
+            assert parameters[3]['schema']['default'] == 10
+            assert parameters[3]['schema']['minimum'] == 1
+            assert parameters[3]['schema']['maximum'] == 100
 
     def test_blueprint_doc_function(self, app):
         api = Api(app)

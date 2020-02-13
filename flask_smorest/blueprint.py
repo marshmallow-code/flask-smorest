@@ -15,26 +15,23 @@ Documentation process works in several steps:
   - When a MethodView or a view function is decorated, relevant information
     is automatically added to the object's ``_apidoc`` attribute.
 
-  - The ``Blueprint.doc`` decorator stores additional information in a separate
-    ``_api_manual_doc``. It allows the user to specify documentation
-    information that flask-smorest can not - or does not yet - infer from the
-    code.
+  - The ``Blueprint.doc`` decorator stores additional information in there that
+    flask-smorest can not - or does not yet - infer from the code.
 
   - The ``Blueprint.route`` decorator registers the endpoint in the Blueprint
-    and gathers all information about the endpoint in
-    ``Blueprint._auto_docs[endpoint]`` and
-    ``Blueprint._manual_docs[endpoint]``.
+    and gathers all documentation information about the endpoint in
+    ``Blueprint._docs[endpoint]``.
 
 - At initialization time
 
   - Schema instances are replaced by their reference in the `schemas` section
     of the spec components.
 
-  - Automatic documentation is finalized using the information stored in
-    ``Blueprint._auto_docs``, with adaptations to parameters only known at init
+  - Documentation is finalized using the information stored in
+    ``Blueprint._docs``, with adaptations to parameters only known at init
     time, such as OAS version.
 
-  - Automatic documentation is deep-merged with manual documentation.
+  - Manual documentation is deep-merged with automatic documentation.
 
   - Endpoints documentation is registered in the APISpec object.
 """
@@ -84,12 +81,12 @@ class Blueprint(
         #     },
         #     ...
         # }
-        self._auto_docs = OrderedDict()
-        self._manual_docs = OrderedDict()
+        self._docs = OrderedDict()
         self._endpoints = []
         self._prepare_doc_cbks = [
             self._prepare_arguments_doc,
             self._prepare_response_doc,
+            self._prepare_pagination_doc,
         ]
 
     def route(self, rule, *, parameters=None, **options):
@@ -135,28 +132,17 @@ class Blueprint(
     def _store_endpoint_docs(self, endpoint, obj, parameters, **options):
         """Store view or function doc info"""
 
-        endpoint_auto_doc = self._auto_docs.setdefault(
-            endpoint, OrderedDict())
-        endpoint_manual_doc = self._manual_docs.setdefault(
-            endpoint, OrderedDict())
+        endpoint_doc_info = self._docs.setdefault(endpoint, OrderedDict())
 
         def store_method_docs(method, function):
             """Add auto and manual doc to table for later registration"""
-            # Get auto documentation from decorators
+            # Get documentation from decorators
             # and summary/description from docstring
-            # Get manual documentation from @doc decorator
-            auto_doc = getattr(function, '_apidoc', {})
-            auto_doc.update(
-                load_info_from_docstring(
-                    function.__doc__,
-                    delimiter=self.DOCSTRING_INFO_DELIMITER
-                )
-            )
-            manual_doc = getattr(function, '_api_manual_doc', {})
-            # Store function auto and manual docs for later registration
-            method_l = method.lower()
-            endpoint_auto_doc[method_l] = auto_doc
-            endpoint_manual_doc[method_l] = manual_doc
+            doc = getattr(function, '_apidoc', {})
+            doc['docstring'] = load_info_from_docstring(
+                function.__doc__, delimiter=self.DOCSTRING_INFO_DELIMITER)
+            # Store function doc infos for later processing/registration
+            endpoint_doc_info[method.lower()] = doc
 
         # MethodView (class)
         if isinstance(obj, MethodViewType):
@@ -170,7 +156,8 @@ class Blueprint(
             for method in methods:
                 store_method_docs(method, obj)
 
-        endpoint_auto_doc['parameters'] = parameters
+        # Store parameters doc info from route decorator
+        endpoint_doc_info['parameters'] = parameters
 
     def register_views_in_doc(self, app, spec):
         """Register views information in documentation
@@ -182,23 +169,25 @@ class Blueprint(
         "schema":{"$ref": "#/components/schemas/MySchema"}
         """
         # This method uses the documentation information associated with each
-        # endpoint in self._[auto|manual]_docs to provide documentation for
-        # corresponding route to the spec object.
-        # Deepcopy to avoid mutating the source
-        # Allows registering blueprint multiple times (e.g. when creating
-        # multiple apps during tests)
-        auto_docs = deepcopy(self._auto_docs)
-        for endpoint, endpoint_auto_doc in auto_docs.items():
-            parameters = endpoint_auto_doc.pop('parameters')
+        # endpoint in self._docs to provide documentation for corresponding
+        # route to the spec object.
+        # Deepcopy to avoid mutating the source. Allows registering blueprint
+        # multiple times (e.g. when creating multiple apps during tests).
+        for endpoint, endpoint_doc_info in deepcopy(self._docs).items():
+            parameters = endpoint_doc_info.pop('parameters')
             doc = OrderedDict()
-            for method_l, endpoint_doc in endpoint_auto_doc.items():
+            # Use doc info stored by decorators to generate doc
+            for method_l, operation_doc_info in endpoint_doc_info.items():
+                operation_doc = {}
                 for func in self._prepare_doc_cbks:
-                    func(endpoint_doc, app, spec)
+                    operation_doc = func(
+                        operation_doc, operation_doc_info, app, spec)
+                operation_doc.update(operation_doc_info['docstring'])
                 # Tag all operations with Blueprint name
-                endpoint_doc['tags'] = [self.name]
-                # Merge auto_doc and manual_doc into doc
-                manual_doc = self._manual_docs[endpoint][method_l]
-                doc[method_l] = deepupdate(endpoint_doc, manual_doc)
+                operation_doc['tags'] = [self.name]
+                # Complete doc with manual doc info
+                manual_doc = operation_doc_info.get('manual_doc', {})
+                doc[method_l] = deepupdate(operation_doc, manual_doc)
 
             # Thanks to self.route, there can only be one rule per endpoint
             full_endpoint = '.'.join((self.name, endpoint))
@@ -225,11 +214,10 @@ class Blueprint(
             def wrapper(*f_args, **f_kwargs):
                 return func(*f_args, **f_kwargs)
 
-            # Don't merge manual doc with auto-documentation right now.
-            # Store it in a separate attribute to merge it later.
             # The deepcopy avoids modifying the wrapped function doc
-            wrapper._api_manual_doc = deepupdate(
-                deepcopy(getattr(wrapper, '_api_manual_doc', {})), kwargs)
+            wrapper._apidoc = deepcopy(getattr(wrapper, '_apidoc', {}))
+            wrapper._apidoc['manual_doc'] = deepupdate(
+                deepcopy(wrapper._apidoc.get('manual_doc', {})), kwargs)
             return wrapper
 
         return decorator
