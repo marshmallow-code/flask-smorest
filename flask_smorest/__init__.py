@@ -1,14 +1,11 @@
 """Api extension initialization"""
 
-import http
-
 from webargs.flaskparser import abort  # noqa
 
-from .spec import APISpecMixin, DEFAULT_RESPONSE_CONTENT_TYPE
+from .spec import APISpecMixin
 from .blueprint import Blueprint  # noqa
 from .pagination import Page  # noqa
 from .error_handler import ErrorHandlerMixin
-from .utils import prepare_response
 
 __version__ = '0.18.5'
 
@@ -72,31 +69,13 @@ class Api(APISpecMixin, ErrorHandlerMixin):
         # Register error handlers
         self._register_error_handlers()
 
-        # Resister error responses
-        default_error_response = {
-            'description': 'Default error response',
-            'schema': self.ERROR_SCHEMA,
-        }
-        prepare_response(
-            default_error_response, self.spec, DEFAULT_RESPONSE_CONTENT_TYPE)
-        self.spec.components.response('Default Error', default_error_response)
-        self._register_default_response(422)
+        # Register responses
+        self._register_default_error_response()
+        self._register_default_response_by_code(422)
         if not app.config.get('ETAG_DISABLED', False):
-            self._register_default_response(304)
-            self._register_default_response(412)
-            self._register_default_response(428)
-
-    def _register_default_response(self, code):
-        """Register a Response for a given status code
-
-        :param int code: Status code
-        """
-        response = {
-            'description': http.HTTPStatus(code).phrase,
-            'schema': self.ERROR_SCHEMA,
-        }
-        prepare_response(response, self.spec, DEFAULT_RESPONSE_CONTENT_TYPE)
-        self.spec.components.response(http.HTTPStatus(code).phrase, response)
+            self._register_default_response_by_code(304)
+            self._register_default_response_by_code(412)
+            self._register_default_response_by_code(428)
 
     def register_blueprint(self, blp, **options):
         """Register a blueprint in the application
