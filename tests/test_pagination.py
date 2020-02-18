@@ -12,6 +12,7 @@ from flask.views import MethodView
 from flask_smorest import Api, Blueprint, Page
 from flask_smorest.pagination import PaginationParameters
 
+from .utils import get_schemas
 
 CUSTOM_PAGINATION_PARAMS = (2, 5, 10)
 
@@ -149,6 +150,32 @@ class TestPagination():
                 '{"total": 2, "total_pages": 1, '
                 '"first_page": 1, "last_page": 1, "page": 1}'
             )
+
+    def test_pagination_header_documentation(self, app):
+        """Test pagination header is documented"""
+        api = Api(app)
+
+        class CustomBlueprint(Blueprint):
+            PAGINATION_HEADER_FIELD_NAME = 'X-Custom-Pagination-Header'
+
+        blp = CustomBlueprint('test', __name__, url_prefix='/test')
+
+        @blp.route('/')
+        @blp.response()
+        @blp.paginate()
+        def func(pagination_parameters):
+            """Dummy view func"""
+
+        api.register_blueprint(blp)
+        spec = api.spec.to_dict()
+        get = spec['paths']['/test/']['get']
+        assert 'PaginationHeader' in get_schemas(api.spec)
+        assert get['responses']['200']['headers'] == {
+            'X-Custom-Pagination-Header': {
+                'description': 'Pagination metadata',
+                'schema': {'$ref': '#/components/schemas/PaginationHeader'},
+            }
+        }
 
     @pytest.mark.parametrize('header_name', ('X-Pagination', None))
     def test_pagination_item_count_missing(self, app, header_name):

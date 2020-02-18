@@ -1,5 +1,7 @@
 """Test Api class"""
 
+import http
+
 import pytest
 
 from flask.views import MethodView
@@ -10,7 +12,7 @@ import apispec
 from flask_smorest import Api, Blueprint
 from flask_smorest.exceptions import OpenAPIVersionNotSpecified
 
-from .utils import get_schemas
+from .utils import get_schemas, get_responses, build_ref
 
 
 class TestApi():
@@ -264,3 +266,26 @@ class TestApi():
                 match='The OpenAPI version must be specified'
         ):
             Api(app)
+
+    @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.2'])
+    def test_api_registers_error_responses(self, app, openapi_version):
+        """Test default error responses are registered"""
+        app.config['OPENAPI_VERSION'] = openapi_version
+        api = Api(app)
+        responses = get_responses(api.spec)
+        assert 'Error' in get_schemas(api.spec)
+        for status in http.HTTPStatus:
+            if openapi_version == '2.0':
+                assert responses[status.phrase] == {
+                    'description': status.phrase,
+                    'schema': build_ref(api.spec, 'schema', 'Error'),
+                }
+            else:
+                assert responses[status.phrase] == {
+                    'description': status.phrase,
+                    'content': {
+                        'application/json': {
+                            'schema': build_ref(api.spec, 'schema', 'Error')
+                        }
+                    }
+                }

@@ -12,7 +12,6 @@ Two pagination modes are supported:
 from copy import deepcopy
 from collections import OrderedDict
 from functools import wraps
-import json
 
 from flask import request, current_app
 
@@ -110,6 +109,24 @@ class Page:
                         self.collection, self.page_params))
 
 
+class PaginationHeaderSchema(ma.Schema):
+    """Pagination header schema
+
+    Used to serialize pagination header.
+    Its main purpose is to document the pagination header.
+    """
+    total = ma.fields.Int()
+    total_pages = ma.fields.Int()
+    first_page = ma.fields.Int()
+    last_page = ma.fields.Int()
+    page = ma.fields.Int()
+    previous_page = ma.fields.Int()
+    next_page = ma.fields.Int()
+
+    class Meta:
+        ordered = True
+
+
 class PaginationMixin:
     """Extend Blueprint to add Pagination feature"""
 
@@ -121,6 +138,11 @@ class PaginationMixin:
     # Can be overridden to provide custom defaults
     DEFAULT_PAGINATION_PARAMETERS = {
         'page': 1, 'page_size': 10, 'max_page_size': 100}
+
+    PAGINATION_HEADER_DOC = {
+        'description': 'Pagination metadata',
+        'schema': PaginationHeaderSchema,
+    }
 
     def paginate(self, pager=None, *,
                  page=None, page_size=None, max_page_size=None):
@@ -195,6 +217,7 @@ class PaginationMixin:
             # Add pagination params to doc info in wrapper object
             wrapper._apidoc = deepcopy(getattr(wrapper, '_apidoc', {}))
             wrapper._apidoc['pagination'] = {'parameters': parameters}
+            wrapper._paginated = True
 
             return wrapper
 
@@ -226,7 +249,7 @@ class PaginationMixin:
                     page_header['previous_page'] = page - 1
                 if page < last_page:
                     page_header['next_page'] = page + 1
-        return json.dumps(page_header)
+        return PaginationHeaderSchema().dumps(page_header)
 
     @staticmethod
     def _prepare_pagination_doc(doc, doc_info, **kwargs):

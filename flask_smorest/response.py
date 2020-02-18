@@ -1,5 +1,6 @@
 """Response processor"""
 
+from collections import abc
 from copy import deepcopy
 from functools import wraps
 import http
@@ -8,7 +9,7 @@ from werkzeug.wrappers import BaseResponse
 from flask import jsonify
 
 from .utils import (
-    deepupdate, get_appcontext,
+    deepupdate, get_appcontext, prepare_response,
     unpack_tuple_response, set_status_and_headers_in_response
 )
 from .compat import MARSHMALLOW_VERSION_MAJOR
@@ -67,6 +68,7 @@ class ResponseMixin:
             resp_doc['examples'] = examples
         if headers is not None:
             resp_doc['headers'] = headers
+        doc = {'responses': {code: resp_doc}}
 
         def decorator(func):
 
@@ -104,10 +106,21 @@ class ResponseMixin:
 
                 return resp
 
+            # Document pagination header if needed
+            if getattr(func, '_paginated', False) is True:
+                doc['responses'][code]['headers'] = {
+                    self.PAGINATION_HEADER_FIELD_NAME: (
+                        self.PAGINATION_HEADER_DOC
+                    )
+                }
+
+            # Document default error response
+            doc['responses']['default'] = 'Default Error'
+
             # Store doc in wrapper function
             # The deepcopy avoids modifying the wrapped function doc
             wrapper._apidoc = deepcopy(getattr(wrapper, '_apidoc', {}))
-            wrapper._apidoc['response'] = {'responses': {code: resp_doc}}
+            wrapper._apidoc['response'] = doc
 
             return wrapper
 
@@ -147,24 +160,14 @@ class ResponseMixin:
     @staticmethod
     def _prepare_response_doc(doc, doc_info, spec, **kwargs):
         operation = doc_info.get('response', {})
-        # OAS 2
-        if spec.openapi_version.major < 3:
-            if 'responses' in operation:
-                for resp in operation['responses'].values():
-                    if 'example' in resp:
-                        resp['examples'] = {
-                            DEFAULT_RESPONSE_CONTENT_TYPE: resp.pop('example')}
-        # OAS 3
-        else:
-            if 'responses' in operation:
-                for resp in operation['responses'].values():
-                    for field in ('schema', 'example', 'examples'):
-                        if field in resp:
-                            (
-                                resp
-                                .setdefault('content', {})
-                                .setdefault(DEFAULT_RESPONSE_CONTENT_TYPE, {})
-                                [field]
-                            ) = resp.pop(field)
+
+        responses = {
+            c: r for c, r in operation.get('responses', {}).items()
+            if isinstance(r, abc.Mapping)
+        }
+
+        for resp in responses.values():
+            prepare_response(resp, spec, DEFAULT_RESPONSE_CONTENT_TYPE)
+
         doc = deepupdate(doc, operation)
         return doc

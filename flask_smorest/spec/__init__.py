@@ -1,5 +1,6 @@
 """API specification using OpenAPI"""
 import json
+import http
 
 import flask
 from flask import current_app
@@ -7,6 +8,7 @@ import apispec
 from apispec.ext.marshmallow import MarshmallowPlugin
 
 from flask_smorest.exceptions import OpenAPIVersionNotSpecified
+from flask_smorest.utils import prepare_response
 from .plugins import FlaskPlugin
 from .field_converters import uploadfield2properties
 
@@ -269,3 +271,23 @@ class APISpecMixin(DocBlueprintMixin):
 
     def _register_field(self, field, *args):
         self.ma_plugin.map_to_openapi_type(*args)(field)
+
+    def _register_responses(self):
+        """Register default responses for all status codes"""
+        # Register a response for each status code
+        for status in http.HTTPStatus:
+            response = {
+                'description': status.phrase,
+                'schema': self.ERROR_SCHEMA,
+            }
+            prepare_response(
+                response, self.spec, DEFAULT_RESPONSE_CONTENT_TYPE)
+            self.spec.components.response(status.phrase, response)
+
+        # Also register a default error response
+        response = {
+            'description': 'Default error response',
+            'schema': self.ERROR_SCHEMA,
+        }
+        prepare_response(response, self.spec, DEFAULT_RESPONSE_CONTENT_TYPE)
+        self.spec.components.response('Default Error', response)

@@ -1,6 +1,8 @@
 """ETag feature"""
 
 from functools import wraps
+from copy import deepcopy
+import http
 
 import hashlib
 
@@ -10,7 +12,7 @@ from flask import request, current_app, json
 from .exceptions import (
     CheckEtagNotCalledError,
     PreconditionRequired, PreconditionFailed, NotModified)
-from .utils import get_appcontext
+from .utils import deepupdate, get_appcontext
 from .compat import MARSHMALLOW_VERSION_MAJOR
 
 
@@ -90,6 +92,11 @@ class EtagMixin:
                     self._set_etag_in_response(resp, etag_schema)
 
                 return resp
+
+            # Note function is decorated by etag in doc info
+            # The deepcopy avoids modifying the wrapped function doc
+            wrapper._apidoc = deepcopy(getattr(wrapper, '_apidoc', {}))
+            wrapper._apidoc['etag'] = True
 
             return wrapper
 
@@ -239,3 +246,19 @@ class EtagMixin:
                     etag_data, etag_schema, extra_data)
                 self._check_not_modified(new_etag)
             response.set_etag(new_etag)
+
+    def _prepare_etag_doc(self, doc, doc_info, app, method, **kwargs):
+        if (
+                doc_info.get('etag', False) and
+                not app.config.get('ETAG_DISABLED', False)
+        ):
+            responses = {}
+            method_u = method.upper()
+            if method_u in self.METHODS_CHECKING_NOT_MODIFIED:
+                responses[304] = http.HTTPStatus(304).phrase
+            if method_u in self.METHODS_NEEDING_CHECK_ETAG:
+                responses[412] = http.HTTPStatus(412).phrase
+                responses[428] = http.HTTPStatus(428).phrase
+            if responses:
+                doc = deepupdate(doc, {'responses': responses})
+        return doc
