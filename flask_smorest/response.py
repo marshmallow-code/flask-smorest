@@ -12,6 +12,7 @@ from .utils import (
     unpack_tuple_response, set_status_and_headers_in_response
 )
 from .compat import MARSHMALLOW_VERSION_MAJOR
+from .spec import DEFAULT_RESPONSE_CONTENT_TYPE
 
 
 class ResponseMixin:
@@ -66,7 +67,6 @@ class ResponseMixin:
             resp_doc['examples'] = examples
         if headers is not None:
             resp_doc['headers'] = headers
-        doc = {'responses': {code: resp_doc}}
 
         def decorator(func):
 
@@ -106,8 +106,8 @@ class ResponseMixin:
 
             # Store doc in wrapper function
             # The deepcopy avoids modifying the wrapped function doc
-            wrapper._apidoc = deepupdate(
-                deepcopy(getattr(wrapper, '_apidoc', {})), doc)
+            wrapper._apidoc = deepcopy(getattr(wrapper, '_apidoc', {}))
+            wrapper._apidoc['response'] = {'responses': {code: resp_doc}}
 
             return wrapper
 
@@ -143,3 +143,28 @@ class ResponseMixin:
                     return {'type': 'success', 'data': schema}
         """
         return data
+
+    @staticmethod
+    def _prepare_response_doc(doc, doc_info, spec, **kwargs):
+        operation = doc_info.get('response', {})
+        # OAS 2
+        if spec.openapi_version.major < 3:
+            if 'responses' in operation:
+                for resp in operation['responses'].values():
+                    if 'example' in resp:
+                        resp['examples'] = {
+                            DEFAULT_RESPONSE_CONTENT_TYPE: resp.pop('example')}
+        # OAS 3
+        else:
+            if 'responses' in operation:
+                for resp in operation['responses'].values():
+                    for field in ('schema', 'example', 'examples'):
+                        if field in resp:
+                            (
+                                resp
+                                .setdefault('content', {})
+                                .setdefault(DEFAULT_RESPONSE_CONTENT_TYPE, {})
+                                [field]
+                            ) = resp.pop(field)
+        doc = deepupdate(doc, operation)
+        return doc

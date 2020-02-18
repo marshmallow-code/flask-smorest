@@ -4,6 +4,9 @@ from functools import wraps
 
 from webargs.flaskparser import FlaskParser
 
+from .utils import deepupdate
+from .spec import DEFAULT_REQUEST_BODY_CONTENT_TYPE
+
 
 class ArgumentsMixin:
     """Extend Blueprint to add arguments parsing feature"""
@@ -69,10 +72,63 @@ class ArgumentsMixin:
             # Add parameter to parameters list in doc info in function object
             # The deepcopy avoids modifying the wrapped function doc
             wrapper._apidoc = deepcopy(getattr(wrapper, '_apidoc', {}))
-            wrapper._apidoc.setdefault('parameters', []).append(parameters)
+            docs = wrapper._apidoc.setdefault('arguments', {})
+            docs.setdefault('parameters', []).append(parameters)
 
             # Call use_args (from webargs) to inject params in function
             return self.ARGUMENTS_PARSER.use_args(
                 schema, locations=[location], **kwargs)(wrapper)
 
         return decorator
+
+    def _prepare_arguments_doc(self, doc, doc_info, spec, **kwargs):
+        # This callback should run first as it overrides existing parameters
+        # in doc. Following callbacks should append to parameters list.
+        operation = doc_info.get('arguments', {})
+        # OAS 2
+        if spec.openapi_version.major < 3:
+            if 'parameters' in operation:
+                for param in operation['parameters']:
+                    if param['in'] in (
+                            self.DEFAULT_LOCATION_CONTENT_TYPE_MAPPING
+                    ):
+                        content_type = (
+                            param.pop('content_type', None) or
+                            self.DEFAULT_LOCATION_CONTENT_TYPE_MAPPING[
+                                param['in']]
+                        )
+                        if content_type != DEFAULT_REQUEST_BODY_CONTENT_TYPE:
+                            operation['consumes'] = [content_type, ]
+                        # body and formData are mutually exclusive
+                        break
+        # OAS 3
+        else:
+            if 'parameters' in operation:
+                for param in operation['parameters']:
+                    if param['in'] in (
+                            self.DEFAULT_LOCATION_CONTENT_TYPE_MAPPING
+                    ):
+                        request_body = {
+                            x: param[x]
+                            for x in ('description', 'required')
+                            if x in param
+                        }
+                        fields = {
+                            x: param.pop(x)
+                            for x in ('schema', 'example', 'examples')
+                            if x in param
+                        }
+                        content_type = (
+                            param.pop('content_type', None) or
+                            self.DEFAULT_LOCATION_CONTENT_TYPE_MAPPING[
+                                param['in']]
+                        )
+                        request_body['content'] = {content_type: fields}
+                        operation['requestBody'] = request_body
+                        # There can be only one requestBody
+                        operation['parameters'].remove(param)
+                        if not operation['parameters']:
+                            del operation['parameters']
+                        break
+        doc = deepupdate(doc, operation)
+        return doc

@@ -9,6 +9,7 @@ Two pagination modes are supported:
   a pager is provided to paginate the data and get the total number of items.
 """
 
+from copy import deepcopy
 from collections import OrderedDict
 from functools import wraps
 import json
@@ -156,9 +157,6 @@ class PaginationMixin:
         }
 
         def decorator(func):
-            # Add pagination params to doc info in function object
-            func._apidoc = getattr(func, '_apidoc', {})
-            func._apidoc.setdefault('parameters', []).append(parameters)
 
             @wraps(func)
             def wrapper(*args, **kwargs):
@@ -194,6 +192,10 @@ class PaginationMixin:
 
                 return result, status, headers
 
+            # Add pagination params to doc info in wrapper object
+            wrapper._apidoc = deepcopy(getattr(wrapper, '_apidoc', {}))
+            wrapper._apidoc['pagination'] = {'parameters': parameters}
+
             return wrapper
 
         return decorator
@@ -225,3 +227,11 @@ class PaginationMixin:
                 if page < last_page:
                     page_header['next_page'] = page + 1
         return json.dumps(page_header)
+
+    @staticmethod
+    def _prepare_pagination_doc(doc, doc_info, **kwargs):
+        operation = doc_info.get('pagination', {})
+        parameters = operation.get('parameters')
+        if parameters:
+            doc.setdefault('parameters', []).append(parameters)
+        return doc
