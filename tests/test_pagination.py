@@ -20,8 +20,6 @@ CUSTOM_PAGINATION_PARAMS = (2, 5, 10)
 def pagination_blueprint(collection, schemas, as_method_view, custom_params):
     """Return a basic API sample with pagination"""
 
-    DocSchema = schemas.DocSchema
-
     blp = Blueprint('test', __name__, url_prefix='/test')
 
     if custom_params:
@@ -32,7 +30,7 @@ def pagination_blueprint(collection, schemas, as_method_view, custom_params):
     if as_method_view:
         @blp.route('/')
         class Resource(MethodView):
-            @blp.response(DocSchema(many=True))
+            @blp.response(schemas.DocSchema(many=True))
             @blp.paginate(
                 page=page, page_size=page_size, max_page_size=max_page_size)
             def get(self, pagination_parameters):
@@ -43,7 +41,7 @@ def pagination_blueprint(collection, schemas, as_method_view, custom_params):
                 ]
     else:
         @blp.route('/')
-        @blp.response(DocSchema(many=True))
+        @blp.response(schemas.DocSchema(many=True))
         @blp.paginate(
             page=page, page_size=page_size, max_page_size=max_page_size)
         def get_resources(pagination_parameters):
@@ -60,8 +58,6 @@ def post_pagination_blueprint(
         collection, schemas, as_method_view, custom_params):
     """Return a basic API sample with post-pagination"""
 
-    DocSchema = schemas.DocSchema
-
     blp = Blueprint('test', __name__, url_prefix='/test')
 
     if custom_params:
@@ -72,14 +68,14 @@ def post_pagination_blueprint(
     if as_method_view:
         @blp.route('/')
         class Resource(MethodView):
-            @blp.response(DocSchema(many=True))
+            @blp.response(schemas.DocSchema(many=True))
             @blp.paginate(Page, page=page,
                           page_size=page_size, max_page_size=max_page_size)
             def get(self):
                 return collection.items
     else:
         @blp.route('/')
-        @blp.response(DocSchema(many=True))
+        @blp.response(schemas.DocSchema(many=True))
         @blp.paginate(Page, page=page,
                       page_size=page_size, max_page_size=max_page_size)
         def get_resources():
