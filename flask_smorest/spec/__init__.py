@@ -272,23 +272,22 @@ class APISpecMixin(DocBlueprintMixin):
     def _register_field(self, field, *args):
         self.ma_plugin.map_to_openapi_type(*args)(field)
 
-    def _register_default_error_response(self):
-        """Register default error response"""
+    def _register_responses(self):
+        """Register default responses for all status codes"""
+        # Register a response for each status code
+        for status in http.HTTPStatus:
+            response = {
+                'description': status.phrase,
+                'schema': self.ERROR_SCHEMA,
+            }
+            prepare_response(
+                response, self.spec, DEFAULT_RESPONSE_CONTENT_TYPE)
+            self.spec.components.response(status.phrase, response)
+
+        # Also register a default error response
         response = {
             'description': 'Default error response',
             'schema': self.ERROR_SCHEMA,
         }
         prepare_response(response, self.spec, DEFAULT_RESPONSE_CONTENT_TYPE)
         self.spec.components.response('Default Error', response)
-
-    def _register_default_response_by_code(self, code):
-        """Register a default response for a given status code
-
-        :param int|HTTPStatus code: Status code
-        """
-        response = {
-            'description': http.HTTPStatus(code).phrase,
-            'schema': self.ERROR_SCHEMA,
-        }
-        prepare_response(response, self.spec, DEFAULT_RESPONSE_CONTENT_TYPE)
-        self.spec.components.response(http.HTTPStatus(code).phrase, response)
