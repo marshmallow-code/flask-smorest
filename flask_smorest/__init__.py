@@ -8,6 +8,7 @@ from .spec import APISpecMixin, DEFAULT_RESPONSE_CONTENT_TYPE
 from .blueprint import Blueprint  # noqa
 from .pagination import Page  # noqa
 from .error_handler import ErrorHandlerMixin
+from .utils import prepare_response
 
 __version__ = '0.18.5'
 
@@ -72,13 +73,13 @@ class Api(APISpecMixin, ErrorHandlerMixin):
         self._register_error_handlers()
 
         # Resister error responses
-        self._register_response(
-            'Default Error',
-            {
-                'description': 'Default error response',
-                'schema': self.ERROR_SCHEMA,
-            }
-        )
+        default_error_response = {
+            'description': 'Default error response',
+            'schema': self.ERROR_SCHEMA,
+        }
+        prepare_response(
+            default_error_response, self.spec, DEFAULT_RESPONSE_CONTENT_TYPE)
+        self.spec.components.response('Default Error', default_error_response)
         self._register_default_response(422)
         if not app.config.get('ETAG_DISABLED', False):
             self._register_default_response(304)
@@ -90,25 +91,12 @@ class Api(APISpecMixin, ErrorHandlerMixin):
 
         :param int code: Status code
         """
-        self._register_response(
-            http.HTTPStatus(code).phrase,
-            {
-                'description': http.HTTPStatus(code).phrase,
-                'schema': self.ERROR_SCHEMA,
-            }
-        )
-
-    def _register_response(self, component_id, component):
-        """Register a Response component
-
-        Abstracts OpenAPI version and content type.
-        """
-        if self.spec.openapi_version.major >= 3:
-            if 'schema' in component:
-                component['content'] = {
-                    DEFAULT_RESPONSE_CONTENT_TYPE: {
-                        'schema': component.pop('schema')}}
-        self.spec.components.response(component_id, component)
+        response = {
+            'description': http.HTTPStatus(code).phrase,
+            'schema': self.ERROR_SCHEMA,
+        }
+        prepare_response(response, self.spec, DEFAULT_RESPONSE_CONTENT_TYPE)
+        self.spec.components.response(http.HTTPStatus(code).phrase, response)
 
     def register_blueprint(self, blp, **options):
         """Register a blueprint in the application
