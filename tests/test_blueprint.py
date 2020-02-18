@@ -368,23 +368,31 @@ class TestBlueprint():
             examples
         )
 
+    @pytest.mark.parametrize('error_code', (403, 422, None))
     @pytest.mark.parametrize('openapi_version', ('2.0', '3.0.2'))
-    def test_blueprint_arguments_document_422_error(
-            self, app, schemas, openapi_version
+    def test_blueprint_arguments_documents_error(
+            self, app, schemas, openapi_version, error_code
     ):
         app.config['OPENAPI_VERSION'] = openapi_version
         api = Api(app)
         blp = Blueprint('test', __name__, url_prefix='/test')
+        blp.ARGUMENTS_PARSER.DEFAULT_VALIDATION_STATUS = 400
+
+        kwargs = {}
+        if error_code:
+            kwargs['error_status_code'] = error_code
 
         @blp.route('/')
-        @blp.arguments(schemas.DocSchema)
+        @blp.arguments(schemas.DocSchema, **kwargs)
         def func():
             """Dummy view func"""
 
         api.register_blueprint(blp)
         spec = api.spec.to_dict()
-        assert spec['paths']['/test/']['get']['responses']['422'] == build_ref(
-            api.spec, 'response', 'Unprocessable Entity'
+        error_code = error_code or 400
+        assert (
+            spec['paths']['/test/']['get']['responses'][str(error_code)] ==
+            build_ref(api.spec, 'response', http.HTTPStatus(error_code).phrase)
         )
 
     @pytest.mark.parametrize('openapi_version', ('2.0', '3.0.2'))
@@ -1051,7 +1059,7 @@ class TestBlueprint():
         'method',
         ('OPTIONS', 'HEAD', 'GET', 'POST', 'PUT', 'PATCH', 'DELETE')
     )
-    def test_blueprint_etag_document_responses(
+    def test_blueprint_etag_documents_responses(
             self, app, method, decorate, etag_disabled,
     ):
         app.config['ETAG_DISABLED'] = etag_disabled
