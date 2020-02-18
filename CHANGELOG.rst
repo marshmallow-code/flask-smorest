@@ -1,6 +1,28 @@
 Changelog
 ---------
 
+0.19.0 (unreleased)
++++++++++++++++++++
+
+Features:
+
+- *Backwards-incompatible*: Refactor automatic documentation generation. At
+  import time, each decorator stores information under its own namespace in
+  the view function's ``_apidoc`` attribute. Then at app init time, the
+  information is used to generate the docs. This allows access to init time
+  parameters, such as OpenAPI version or application parameters like feature
+  toggle flags, when generating the doc. Custom decorators storing doc in
+  ``_apidoc`` must adapt by storing doc under their own name (e.g.:
+  ``_apidoc['custom']``), creating a doc preparation callback (e.g.:
+  ``_prepare_custom_doc`` and appending this callback to
+  ``Blueprint._prepare_doc_cbks``. (:pr:`123`).
+
+- Define all possible HTTP responses as response components and automatically
+  document "error" responses: ``"Default Error"`` when ``@response`` is used,
+  response returned by ``@arguments`` on client input error, and responses for
+  304, 412 and 428 when ``@etag`` is used. Also document pagination header.
+  (:pr:`125`).
+
 0.18.5 (2020-01-30)
 +++++++++++++++++++
 
