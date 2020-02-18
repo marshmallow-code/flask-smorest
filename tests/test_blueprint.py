@@ -654,6 +654,28 @@ class TestBlueprint():
             assert parameters[3]['schema']['minimum'] == 1
             assert parameters[3]['schema']['maximum'] == 100
 
+    @pytest.mark.parametrize('error_code', (400, 422))
+    @pytest.mark.parametrize('openapi_version', ('2.0', '3.0.2'))
+    def test_blueprint_pagination_documents_error_response(
+            self, app, openapi_version, error_code
+    ):
+        app.config['OPENAPI_VERSION'] = openapi_version
+        api = Api(app)
+        blp = Blueprint('test', __name__, url_prefix='/test')
+        blp.PAGINATION_ARGUMENTS_PARSER.DEFAULT_VALIDATION_STATUS = error_code
+
+        @blp.route('/')
+        @blp.paginate(Page)
+        def func():
+            """Dummy view func"""
+
+        api.register_blueprint(blp)
+        spec = api.spec.to_dict()
+        assert (
+            spec['paths']['/test/']['get']['responses'][str(error_code)] ==
+            build_ref(api.spec, 'response', http.HTTPStatus(error_code).phrase)
+        )
+
     def test_blueprint_doc_function(self, app):
         api = Api(app)
         blp = Blueprint('test', __name__, url_prefix='/test')

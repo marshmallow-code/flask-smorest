@@ -12,6 +12,7 @@ Two pagination modes are supported:
 from copy import deepcopy
 from collections import OrderedDict
 from functools import wraps
+import http
 
 from flask import request, current_app
 
@@ -20,9 +21,6 @@ from webargs.flaskparser import FlaskParser
 
 from .utils import unpack_tuple_response
 from .compat import MARSHMALLOW_VERSION_MAJOR
-
-
-parser = FlaskParser()
 
 
 class PaginationParameters:
@@ -130,6 +128,8 @@ class PaginationHeaderSchema(ma.Schema):
 class PaginationMixin:
     """Extend Blueprint to add Pagination feature"""
 
+    PAGINATION_ARGUMENTS_PARSER = FlaskParser()
+
     # Name of field to use for pagination metadata response header
     # Can be overridden. If None, no pagination header is returned.
     PAGINATION_HEADER_FIELD_NAME = 'X-Pagination'
@@ -178,12 +178,17 @@ class PaginationMixin:
             'schema': page_params_schema,
         }
 
+        error_status_code = (
+            self.PAGINATION_ARGUMENTS_PARSER.DEFAULT_VALIDATION_STATUS
+        )
+
         def decorator(func):
 
             @wraps(func)
             def wrapper(*args, **kwargs):
 
-                page_params = parser.parse(page_params_schema, request)
+                page_params = self.PAGINATION_ARGUMENTS_PARSER.parse(
+                    page_params_schema, request)
 
                 # Pagination in resource code: inject page_params as kwargs
                 if pager is None:
@@ -216,7 +221,13 @@ class PaginationMixin:
 
             # Add pagination params to doc info in wrapper object
             wrapper._apidoc = deepcopy(getattr(wrapper, '_apidoc', {}))
-            wrapper._apidoc['pagination'] = {'parameters': parameters}
+            wrapper._apidoc['pagination'] = {
+                'parameters': parameters,
+                'response': {
+                    error_status_code:
+                    http.HTTPStatus(error_status_code).phrase,
+                }
+            }
             wrapper._paginated = True
 
             return wrapper
@@ -253,8 +264,10 @@ class PaginationMixin:
 
     @staticmethod
     def _prepare_pagination_doc(doc, doc_info, **kwargs):
-        operation = doc_info.get('pagination', {})
-        parameters = operation.get('parameters')
-        if parameters:
+        operation = doc_info.get('pagination')
+        if operation:
+            parameters = operation.get('parameters')
             doc.setdefault('parameters', []).append(parameters)
+            response = operation.get('response')
+            doc.setdefault('responses', {}).update(response)
         return doc
