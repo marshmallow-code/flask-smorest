@@ -1,5 +1,7 @@
 """Test Api class"""
 
+import http
+
 import pytest
 
 from flask.views import MethodView
@@ -10,7 +12,7 @@ import apispec
 from flask_smorest import Api, Blueprint
 from flask_smorest.exceptions import OpenAPIVersionNotSpecified
 
-from .utils import get_schemas, get_responses
+from .utils import get_schemas, get_responses, build_ref
 
 
 class TestApi():
@@ -270,27 +272,20 @@ class TestApi():
         """Test default error responses are registered"""
         app.config['OPENAPI_VERSION'] = openapi_version
         api = Api(app)
+        responses = get_responses(api.spec)
         assert 'Error' in get_schemas(api.spec)
-        assert 'Default Error' in get_responses(api.spec)
-        assert 'Unprocessable Entity' in get_responses(api.spec)
-
-    @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.2'])
-    @pytest.mark.parametrize('etag_enabled', [True, False])
-    def test_api_registers_etag_error_responses(
-            self, app, openapi_version, etag_enabled
-    ):
-        """Test ETag error responses are registered iif ETag is enabled"""
-        app.config['OPENAPI_VERSION'] = openapi_version
-        app.config['ETAG_DISABLED'] = not etag_enabled
-        api = Api(app)
-        assert (
-            ('Not Modified' in get_responses(api.spec)) == etag_enabled
-        )
-        assert (
-            ('Precondition Required' in get_responses(api.spec)) ==
-            etag_enabled
-        )
-        assert (
-            ('Precondition Failed' in get_responses(api.spec)) ==
-            etag_enabled
-        )
+        for status in http.HTTPStatus:
+            if openapi_version == '2.0':
+                assert responses[status.phrase] == {
+                    'description': status.phrase,
+                    'schema': build_ref(api.spec, 'schema', 'Error'),
+                }
+            else:
+                assert responses[status.phrase] == {
+                    'description': status.phrase,
+                    'content': {
+                        'application/json': {
+                            'schema': build_ref(api.spec, 'schema', 'Error')
+                        }
+                    }
+                }

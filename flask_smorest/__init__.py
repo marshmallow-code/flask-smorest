@@ -70,12 +70,7 @@ class Api(APISpecMixin, ErrorHandlerMixin):
         self._register_error_handlers()
 
         # Register responses
-        self._register_default_error_response()
-        self._register_default_response_by_code(422)
-        if not app.config.get('ETAG_DISABLED', False):
-            self._register_default_response_by_code(304)
-            self._register_default_response_by_code(412)
-            self._register_default_response_by_code(428)
+        self._register_responses()
 
     def register_blueprint(self, blp, **options):
         """Register a blueprint in the application
