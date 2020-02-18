@@ -23,6 +23,8 @@ Features:
   304, 412 and 428 when ``@etag`` is used. Also document pagination header.
   (:pr:`125`).
 
+- Document error response in ``@paginate`` decorator (:pr:`126`).
+
 0.18.5 (2020-01-30)
 +++++++++++++++++++
 
