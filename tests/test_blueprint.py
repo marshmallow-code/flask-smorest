@@ -384,7 +384,7 @@ class TestBlueprint():
         api.register_blueprint(blp)
         spec = api.spec.to_dict()
         assert spec['paths']['/test/']['get']['responses']['422'] == build_ref(
-            api.spec, 'response', 'UnprocessableEntity'
+            api.spec, 'response', 'Unprocessable Entity'
         )
 
     @pytest.mark.parametrize('openapi_version', ('2.0', '3.0.2'))
@@ -594,7 +594,7 @@ class TestBlueprint():
 
         get = api.spec.to_dict()['paths']['/test/']['get']
         assert get['responses']['default'] == build_ref(
-            api.spec, 'response', 'DefaultError'
+            api.spec, 'response', 'Default Error'
         )
 
     @pytest.mark.parametrize('openapi_version', ('2.0', '3.0.2'))
@@ -1074,11 +1074,11 @@ class TestBlueprint():
         responses = operation.get('responses', {})
 
         if not decorate or etag_disabled:
-            assert '309' not in responses
+            assert '304' not in responses
             assert '412' not in responses
             assert '428' not in responses
         else:
-            assert ('309' in responses) == (method in ['GET', 'HEAD'])
+            assert ('304' in responses) == (method in ['GET', 'HEAD'])
             assert ('412' in responses) == (
                 method in ['PUT', 'PATCH', 'DELETE'])
             assert ('428' in responses) == (

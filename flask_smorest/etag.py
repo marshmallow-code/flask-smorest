@@ -2,6 +2,7 @@
 
 from functools import wraps
 from copy import deepcopy
+import http
 
 import hashlib
 
@@ -254,10 +255,10 @@ class EtagMixin:
             responses = {}
             method_u = method.upper()
             if method_u in self.METHODS_CHECKING_NOT_MODIFIED:
-                responses[309] = 'NotModified'
+                responses[304] = http.HTTPStatus(304).phrase
             if method_u in self.METHODS_NEEDING_CHECK_ETAG:
-                responses[412] = 'PreconditionFailed'
-                responses[428] = 'PreconditionRequired'
+                responses[412] = http.HTTPStatus(412).phrase
+                responses[428] = http.HTTPStatus(428).phrase
             if responses:
                 doc = deepupdate(doc, {'responses': responses})
         return doc
