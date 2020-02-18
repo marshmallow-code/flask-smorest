@@ -3,6 +3,7 @@
 from collections import abc
 from copy import deepcopy
 from functools import wraps
+import http
 
 from webargs.flaskparser import FlaskParser
 
@@ -83,7 +84,7 @@ class ArgumentsMixin:
             docs.setdefault('parameters', []).append(parameters)
             docs.setdefault('responses', {})[
                 error_status_code
-            ] = 'UnprocessableEntity'
+            ] = http.HTTPStatus(error_status_code).phrase
 
             # Call use_args (from webargs) to inject params in function
             return self.ARGUMENTS_PARSER.use_args(

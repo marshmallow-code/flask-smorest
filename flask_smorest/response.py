@@ -115,7 +115,7 @@ class ResponseMixin:
                 }
 
             # Document default error response
-            doc['responses']['default'] = 'DefaultError'
+            doc['responses']['default'] = 'Default Error'
 
             # Store doc in wrapper function
             # The deepcopy avoids modifying the wrapped function doc
