@@ -9,7 +9,7 @@ from werkzeug.wrappers import BaseResponse
 from flask import jsonify
 
 from .utils import (
-    deepupdate, get_appcontext,
+    deepupdate, get_appcontext, prepare_response,
     unpack_tuple_response, set_status_and_headers_in_response
 )
 from .compat import MARSHMALLOW_VERSION_MAJOR
@@ -166,23 +166,8 @@ class ResponseMixin:
             if isinstance(r, abc.Mapping)
         }
 
-        # OAS 2
-        if spec.openapi_version.major < 3:
-            for resp in responses.values():
-                if 'example' in resp:
-                    resp['examples'] = {
-                        DEFAULT_RESPONSE_CONTENT_TYPE: resp.pop('example')
-                    }
-        # OAS 3
-        else:
-            for resp in responses.values():
-                for field in ('schema', 'example', 'examples'):
-                    if field in resp:
-                        (
-                            resp
-                            .setdefault('content', {})
-                            .setdefault(DEFAULT_RESPONSE_CONTENT_TYPE, {})
-                            [field]
-                        ) = resp.pop(field)
+        for resp in responses.values():
+            prepare_response(resp, spec, DEFAULT_RESPONSE_CONTENT_TYPE)
+
         doc = deepupdate(doc, operation)
         return doc
