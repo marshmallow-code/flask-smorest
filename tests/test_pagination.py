@@ -310,3 +310,30 @@ class TestPagination():
             assert response.status_code == 200
         else:
             assert response.status_code == 422
+
+    def test_pagination_parameters_not_in_query_string(self, app):
+        api = Api(app)
+        blp = Blueprint('test', __name__, url_prefix='/test')
+
+        @blp.route('/')
+        @blp.response()
+        @blp.paginate(Page)
+        def func():
+            return range(30)
+
+        api.register_blueprint(blp)
+        client = app.test_client()
+
+        # Pagination params in query string: OK
+        response = client.get(
+            '/test/',
+            query_string={'page': 2, 'page_size': 20}
+        )
+        assert response.json == list(range(20, 30))
+
+        # Pagination params in another location are ignored
+        response = client.get(
+            '/test/',
+            data=json.dumps({'page': 2, 'page_size': 20}),
+        )
+        assert response.json == list(range(0, 10))
