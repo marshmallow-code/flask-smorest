@@ -1,7 +1,7 @@
 Changelog
 ---------
 
-0.19.0 (unreleased)
+0.19.0 (2020-02-19)
 +++++++++++++++++++
 
 Features:
@@ -24,6 +24,12 @@ Features:
   (:pr:`125`).
 
 - Document error response in ``@paginate`` decorator (:pr:`126`).
+
+Bug fixes:
+
+- *Backwards-incompatible*: Ensure pagination arguments are in query string.
+  ``'page'`` and ``'page_size'`` arguments passed in any other location are
+  ignored by ``@paginate`` decorator. (:pr:`127`)
 
 0.18.5 (2020-01-30)
 +++++++++++++++++++
