@@ -146,6 +146,8 @@ class TestPagination():
                 '{"total": 2, "total_pages": 1, '
                 '"first_page": 1, "last_page": 1, "page": 1}'
             )
+            # Also check there is only one pagination header
+            assert len(response.headers.getlist(header_name)) == 1
 
     def test_pagination_header_documentation(self, app):
         """Test pagination header is documented"""
