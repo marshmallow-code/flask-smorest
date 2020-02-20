@@ -260,7 +260,10 @@ class PaginationMixin:
                     page_header['previous_page'] = page - 1
                 if page < last_page:
                     page_header['next_page'] = page + 1
-        return PaginationHeaderSchema().dumps(page_header)
+        header = PaginationHeaderSchema().dumps(page_header)
+        if MARSHMALLOW_VERSION_MAJOR < 3:
+            header = header.data
+        return header
 
     @staticmethod
     def _prepare_pagination_doc(doc, doc_info, **kwargs):
