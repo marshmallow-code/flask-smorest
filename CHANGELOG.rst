@@ -1,6 +1,15 @@
 Changelog
 ---------
 
+0.19.1 (2020-02-20)
++++++++++++++++++++
+
+Bug fixes:
+
+- Fix a regression introduced in 0.19.0. With marshmallow 2, the response would
+  contain two ``'X-Pagination'`` headers: the correct header and an empty one.
+  (:pr:`128`)
+
 0.19.0 (2020-02-19)
 +++++++++++++++++++
 
