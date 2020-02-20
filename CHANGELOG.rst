@@ -1,6 +1,15 @@
 Changelog
 ---------
 
+0.19.2 (2020-02-20)
++++++++++++++++++++
+
+Bug fixes:
+
+- Fix ``utils.deepupdate`` for the case where the original value is a string or
+  integer and the updated value is a ``dict`` (:issue:`129`).
+  Thanks :user:`maj-skymedia` for reporting.
+
 0.19.1 (2020-02-20)
 +++++++++++++++++++
 
