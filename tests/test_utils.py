@@ -13,14 +13,16 @@ class TestUtils():
             'details': {
                 'tail': True,
                 'color': 'orange'
-            }
+            },
+            'age': 1,
         }
 
         pluto_update = {
             'name': 'Pluutoo',
             'details': {
                 'color': 'blue'
-            }
+            },
+            'age': {'category': 'puppy'},
         }
 
         assert deepupdate(pluto_original, pluto_update) == {
@@ -28,7 +30,8 @@ class TestUtils():
             'details': {
                 'color': 'blue',
                 'tail': True
-            }
+            },
+            'age': {'category': 'puppy'},
         }
 
     def test_load_info_from_docstring(self):

@@ -1,20 +1,22 @@
 """Utils"""
 
-from collections.abc import Mapping
+from collections import abc
 
 from werkzeug.datastructures import Headers
 from flask import _app_ctx_stack
 from apispec.utils import trim_docstring, dedent
 
 
-# https://stackoverflow.com/a/3233356
+# https://stackoverflow.com/questions/3232943/
 def deepupdate(original, update):
     """Recursively update a dict.
 
     Subdict's won't be overwritten but also updated.
     """
+    if not isinstance(original, abc.Mapping):
+        return update
     for key, value in update.items():
-        if isinstance(value, Mapping):
+        if isinstance(value, abc.Mapping):
             original[key] = deepupdate(original.get(key, {}), value)
         else:
             original[key] = value
