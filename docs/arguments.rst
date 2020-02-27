@@ -42,11 +42,6 @@ The following locations are allowed:
 
 The location defaults to ``"json"``, which means `body` parameter.
 
-.. note:: :meth:`Blueprint.arguments <Blueprint.arguments>` uses webargs's
-   :meth:`use_args <webargs.core.Parser.use_args>` decorator internally, but   
-   unlike :meth:`use_args <webargs.core.Parser.use_args>`, it only accepts a
-   single location.
-
 Arguments Injection
 -------------------
 

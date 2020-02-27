@@ -188,7 +188,7 @@ class PaginationMixin:
             def wrapper(*args, **kwargs):
 
                 page_params = self.PAGINATION_ARGUMENTS_PARSER.parse(
-                    page_params_schema, request, locations=['query'])
+                    page_params_schema, request, location='query')
 
                 # Pagination in resource code: inject page_params as kwargs
                 if pager is None:
