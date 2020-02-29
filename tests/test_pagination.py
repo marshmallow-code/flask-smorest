@@ -339,3 +339,27 @@ class TestPagination():
             data=json.dumps({'page': 2, 'page_size': 20}),
         )
         assert response.json == list(range(0, 10))
+
+    def test_pagination_parameters_and_query_string_args(self, app, schemas):
+        api = Api(app)
+        blp = Blueprint('test', __name__, url_prefix='/test')
+
+        @blp.route('/')
+        @blp.arguments(schemas.QueryArgsSchema, location="query")
+        @blp.response()
+        @blp.paginate(Page)
+        def func(query_args):
+            assert query_args['arg1'] == 'Test'
+            assert query_args['arg2'] == 12
+            return range(30)
+
+        api.register_blueprint(blp)
+        client = app.test_client()
+
+        # Pagination params in query string: OK
+        response = client.get(
+            '/test/',
+            query_string={
+                'page': 2, 'page_size': 20, 'arg1': 'Test', 'arg2': 12}
+        )
+        assert response.json == list(range(20, 30))

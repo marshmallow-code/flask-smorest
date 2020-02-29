@@ -60,6 +60,8 @@ def _pagination_parameters_schema_factory(
             ordered = True
             if MARSHMALLOW_VERSION_MAJOR < 3:
                 strict = True
+            else:
+                unknown = ma.EXCLUDE
 
         page = ma.fields.Integer(
             missing=def_page,
