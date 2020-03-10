@@ -250,10 +250,9 @@ interactively. This feature is accessible through Flask app parameters.
 
 Both ReDoc_ and `Swagger UI`_ interfaces are available to present the API.
 
-Their configuration logics are similar. If a path is set, then `flask-smorest`
-creates a route in the application to serve the interface page, using the JS
-script from a user defined URL, if any, or from a CDN URL built with the version
-number.
+Their configuration logics are similar. If an application path and a script URL
+are set, then `flask-smorest` adds a route at that path to serve the interface
+page using the JS script from the script URL.
 
 .. describe:: OPENAPI_REDOC_PATH
 
@@ -263,21 +262,9 @@ number.
 
 .. describe:: OPENAPI_REDOC_URL
 
-   URL to the ReDoc script. If ``None``, a CDN version is used.
+   URL to the ReDoc script.
 
    Default: ``None``
-
-.. describe:: OPENAPI_REDOC_VERSION
-
-   ReDoc version as string. Should be an existing version number, ``latest``
-   (latest 1.x version) or ``next`` (latest 2.x version).
-
-   This is used to build the CDN URL if ``OPENAPI_REDOC_URL`` is ``None``.
-
-   On a production instance, it is recommended to specify a fixed version
-   number.
-
-   Default: ``'latest'``
 
 .. describe:: OPENAPI_SWAGGER_UI_PATH
 
@@ -287,16 +274,7 @@ number.
 
 .. describe:: OPENAPI_SWAGGER_UI_URL
 
-   URL to the Swagger UI script. If ``None``, a CDN version is used.
-
-   Default: ``None``
-
-.. describe:: OPENAPI_SWAGGER_UI_VERSION
-
-   Swagger UI version as string. Contrary to ReDoc, there is no default value
-   pointing to the latest version, so it must be specified.
-
-   This is used to build the CDN URL if ``OPENAPI_SWAGGER_UI_URL`` is ``None``.
+   URL to the Swagger UI script.
 
    Default: ``None``
 
