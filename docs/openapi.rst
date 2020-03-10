@@ -256,25 +256,38 @@ page using the JS script from the script URL.
 
 .. describe:: OPENAPI_REDOC_PATH
 
-   If not ``None``, path to the ReDoc page, relative to the base path.
+   Path to the ReDoc page, relative to the base path.
 
    Default: ``None``
 
 .. describe:: OPENAPI_REDOC_URL
 
    URL to the ReDoc script.
+   
+   Examples:
+       * https://rebilly.github.io/ReDoc/releases/v1.x.x/redoc.min.js
+       * https://rebilly.github.io/ReDoc/releases/v1.22.3/redoc.min.js
+       * https://rebilly.github.io/ReDoc/releases/latest/redoc.min.js
+       * https://cdn.jsdelivr.net/npm/redoc@2.0.0-alpha.17/bundles/redoc.standalone.js
+       * https://cdn.jsdelivr.net/npm/redoc@next/bundles/redoc.standalone.js
 
    Default: ``None``
 
 .. describe:: OPENAPI_SWAGGER_UI_PATH
 
-   If not ``None``, path to the Swagger UI page, relative to the base path.
+   Path to the Swagger UI page, relative to the base path.
 
    Default: ``None``
 
 .. describe:: OPENAPI_SWAGGER_UI_URL
 
-   URL to the Swagger UI script.
+   URL to the Swagger UI script. Versions prior to 3.x are not supported.
+
+   Examples:
+      * https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/3.24.2/
+      * https://cdn.jsdelivr.net/npm/swagger-ui-dist@3.25.0/
+      * https://cdn.jsdelivr.net/npm/swagger-ui-dist@3.25.x/
+      * https://cdn.jsdelivr.net/npm/swagger-ui-dist/
 
    Default: ``None``
 
