@@ -28,6 +28,5 @@ jobs:
         on:
           tags: true
         distributions: sdist bdist_wheel
-        user: lafrech
-        password:
-          secure: IiYediHoY99GZEH6t7FX4K25qg+42oqZo8Jo+mV/JoHFFF99JehHqIjrXHz/S5yOwU9i07NH195bE2LI/68YEF7bFcMViqpD1JKOo7pAbRXL7XHEolWekv6AsCkDSrBwtNwBE2lbyHl8kIqLI5IWdBaXLbWZWgUHIHbgXXmV4IxeV9Rc2AKXJK7JCDZ6hcfkx8I+VvaqGbSxQXzKFoiP2ua1go5Px86LfbGsYeHXQ++U7HLeVCfoM0+HSzDSC5Tt5e682V+BcYiwVUiOaIu0pbJgYnCNQqClSsUYPqHf4SIaTZwmL8UNjs24zpQG2CGdSy0wDzN8WU0OF0wnupdaX9pWy2PcAszQS4GYW1nK+MCDuB+0qqr6D965dxKJWZU8UEzpkLNmqQw/jxdOzQVGIX3Z5BEPprQXtheHvji8sAjzkjmLyaqF/GH/8Odcwj344mvfpUhR52kG+fWFPYZzezgUGpyQo9h61Q0PqGxtiobogD8AEDCnauLryP2RPphb7DhYzCAFbq76VHYDlsQ+/67R19uBdpe/rkD3ATnCR0ASe/VcuoHXAtMV89cW5etP93R581gxLju96a9YygAZ9yLP/9kBjk02YC/qLk+zZzhEMheadb/kFiMu/oT6QSnXp2HcEqjQ9DsZO8dP50xyLtFo1IR6XzGUqCDQOsM90So=
+        user: __token__
+        password: $PYPI_PASSWORD
