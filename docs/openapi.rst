@@ -303,5 +303,18 @@ page using the JS script from the script URL.
 .. warning:: The version strings are not checked by `flask-smorest`. They are
    used as is to build the URL pointing to the UI script. Typos won't be caught.
 
+Here's an example application configuration using both ReDoc and Swagger UI:
+
+.. code-block:: python
+
+   class Config:
+       OPENAPI_VERSION = "3.0.2"
+       OPENAPI_JSON_PATH = "api-spec.json"
+       OPENAPI_URL_PREFIX = "/"
+       OPENAPI_REDOC_PATH = "/redoc"
+       OPENAPI_REDOC_URL = "https://cdn.jsdelivr.net/npm/redoc@next/bundles/redoc.standalone.js"
+       OPENAPI_SWAGGER_UI_PATH = "/swagger-ui"
+       OPENAPI_SWAGGER_UI_URL = "https://cdn.jsdelivr.net/npm/swagger-ui-dist/"
+
 .. _ReDoc: https://github.com/Rebilly/ReDoc
 .. _Swagger UI: https://swagger.io/tools/swagger-ui/
