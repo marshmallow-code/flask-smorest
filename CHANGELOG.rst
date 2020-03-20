@@ -1,6 +1,25 @@
 Changelog
 ---------
 
+0.20.0 (2020-03-20)
++++++++++++++++++++
+
+Bug fixes:
+
+- *Backwards-incompatible*: Use ``HTTPStatus`` ``name`` rather than ``phrase``
+  to name error components. This fixes an issue due to ``phrase`` containing
+  spaces not being URL-encoded. Also change ``DefaultError`` into
+  ``DEFAULT_ERROR`` for consistency. This change will break code referencing
+  one of those errors. (:issue:`136`).
+  Thanks :user:`michelle-avery` for reporting.
+
+Other changes:
+
+- *Backwards-incompatible*: Remove ``OPENAPI_REDOC_VERSION`` and
+   ``OPENAPI_SWAGGER_UI_VERSION``. Remove hardcoded CDNs. Users should modify
+   their code to use ``OPENAPI_REDOC_URL`` and ``OPENAPI_SWAGGER_UI_URL``
+   instead. The docs provide examples of CDN URLs. (:issue:`134`).
+
 0.19.2 (2020-02-20)
 +++++++++++++++++++
 
