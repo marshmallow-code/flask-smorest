@@ -276,12 +276,12 @@ class TestApi():
         assert 'Error' in get_schemas(api.spec)
         for status in http.HTTPStatus:
             if openapi_version == '2.0':
-                assert responses[status.phrase] == {
+                assert responses[status.name] == {
                     'description': status.phrase,
                     'schema': build_ref(api.spec, 'schema', 'Error'),
                 }
             else:
-                assert responses[status.phrase] == {
+                assert responses[status.name] == {
                     'description': status.phrase,
                     'content': {
                         'application/json': {

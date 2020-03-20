@@ -255,10 +255,10 @@ class EtagMixin:
             responses = {}
             method_u = method.upper()
             if method_u in self.METHODS_CHECKING_NOT_MODIFIED:
-                responses[304] = http.HTTPStatus(304).phrase
+                responses[304] = http.HTTPStatus(304).name
             if method_u in self.METHODS_NEEDING_CHECK_ETAG:
-                responses[412] = http.HTTPStatus(412).phrase
-                responses[428] = http.HTTPStatus(428).phrase
+                responses[412] = http.HTTPStatus(412).name
+                responses[428] = http.HTTPStatus(428).name
             if responses:
                 doc = deepupdate(doc, {'responses': responses})
         return doc

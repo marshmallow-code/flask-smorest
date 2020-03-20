@@ -61,7 +61,7 @@ class ResponseMixin:
         if description is not None:
             resp_doc['description'] = description
         else:
-            resp_doc['description'] = http.HTTPStatus(int(code)).phrase
+            resp_doc['description'] = http.HTTPStatus(int(code)).name
         if example is not None:
             resp_doc['example'] = example
         if examples is not None:
@@ -115,7 +115,7 @@ class ResponseMixin:
                 }
 
             # Document default error response
-            doc['responses']['default'] = 'Default Error'
+            doc['responses']['default'] = 'DEFAULT_ERROR'
 
             # Store doc in wrapper function
             # The deepcopy avoids modifying the wrapped function doc

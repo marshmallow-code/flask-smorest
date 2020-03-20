@@ -225,7 +225,7 @@ class PaginationMixin:
                 'parameters': parameters,
                 'response': {
                     error_status_code:
-                    http.HTTPStatus(error_status_code).phrase,
+                    http.HTTPStatus(error_status_code).name,
                 }
             }
             wrapper._paginated = True

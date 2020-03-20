@@ -397,7 +397,7 @@ class TestBlueprint():
         error_code = error_code or 400
         assert (
             spec['paths']['/test/']['get']['responses'][str(error_code)] ==
-            build_ref(api.spec, 'response', http.HTTPStatus(error_code).phrase)
+            build_ref(api.spec, 'response', http.HTTPStatus(error_code).name)
         )
 
     @pytest.mark.parametrize('openapi_version', ('2.0', '3.0.2'))
@@ -607,7 +607,7 @@ class TestBlueprint():
 
         get = api.spec.to_dict()['paths']['/test/']['get']
         assert get['responses']['default'] == build_ref(
-            api.spec, 'response', 'Default Error'
+            api.spec, 'response', 'DEFAULT_ERROR'
         )
 
     @pytest.mark.parametrize('openapi_version', ('2.0', '3.0.2'))
@@ -678,7 +678,7 @@ class TestBlueprint():
         spec = api.spec.to_dict()
         assert (
             spec['paths']['/test/']['get']['responses'][str(error_code)] ==
-            build_ref(api.spec, 'response', http.HTTPStatus(error_code).phrase)
+            build_ref(api.spec, 'response', http.HTTPStatus(error_code).name)
         )
 
     def test_blueprint_doc_function(self, app):
