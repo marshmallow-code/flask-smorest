@@ -300,9 +300,6 @@ page using the JS script from the script URL.
 
    Default: ``['get', 'put', 'post', 'delete', 'options', 'head', 'patch', 'trace']``
 
-.. warning:: The version strings are not checked by `flask-smorest`. They are
-   used as is to build the URL pointing to the UI script. Typos won't be caught.
-
 Here's an example application configuration using both ReDoc and Swagger UI:
 
 .. code-block:: python
