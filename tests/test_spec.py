@@ -34,12 +34,12 @@ class TestAPISpecServeDocs():
                    'docs_url_prefix/', '/docs_url_prefix/'))
     @pytest.mark.parametrize('json_path', (None, 'openapi.json'))
     @pytest.mark.parametrize('redoc_path', (None, 'redoc'))
+    @pytest.mark.parametrize('redoc_url', (None, 'https://my-redoc/'))
     @pytest.mark.parametrize('swagger_ui_path', (None, 'swagger-ui'))
-    @pytest.mark.parametrize('swagger_ui_version', (None, '3.0.2'))
     @pytest.mark.parametrize('swagger_ui_url', (None, 'https://my-swagger/'))
-    def test_apipec_serve_spec(
-            self, app, prefix, json_path, redoc_path,
-            swagger_ui_path, swagger_ui_url, swagger_ui_version):
+    def test_apispec_serve_spec(
+            self, app, prefix, json_path, redoc_path, redoc_url,
+            swagger_ui_path, swagger_ui_url):
         """Test default values and leading/trailing slashes issues"""
 
         class NewAppConfig(AppConfig):
@@ -49,10 +49,10 @@ class TestAPISpecServeDocs():
                 OPENAPI_JSON_PATH = json_path
             if redoc_path is not None:
                 OPENAPI_REDOC_PATH = redoc_path
+            if redoc_url is not None:
+                OPENAPI_REDOC_URL = redoc_url
             if swagger_ui_path is not None:
                 OPENAPI_SWAGGER_UI_PATH = swagger_ui_path
-            if swagger_ui_version is not None:
-                OPENAPI_SWAGGER_UI_VERSION = swagger_ui_version
             if swagger_ui_url is not None:
                 OPENAPI_SWAGGER_UI_URL = swagger_ui_url
 
@@ -69,7 +69,10 @@ class TestAPISpecServeDocs():
         else:
             assert response_json_docs.json['info'] == {
                 'version': '1', 'title': 'API Test'}
-            if app.config.get('OPENAPI_REDOC_PATH') is None:
+            if (
+                    app.config.get('OPENAPI_REDOC_PATH') is None or
+                    app.config.get('OPENAPI_REDOC_URL') is None
+            ):
                 assert response_redoc.status_code == 404
             else:
                 assert response_redoc.status_code == 200
@@ -77,8 +80,7 @@ class TestAPISpecServeDocs():
                         'text/html; charset=utf-8')
             if (
                     app.config.get('OPENAPI_SWAGGER_UI_PATH') is None or
-                    (app.config.get('OPENAPI_SWAGGER_UI_VERSION') is None and
-                     app.config.get('OPENAPI_SWAGGER_UI_URL') is None)
+                    app.config.get('OPENAPI_SWAGGER_UI_URL') is None
             ):
                 assert response_swagger_ui.status_code == 404
             else:
@@ -89,7 +91,7 @@ class TestAPISpecServeDocs():
     @pytest.mark.parametrize('prefix', ('', '/'))
     @pytest.mark.parametrize('path', ('', '/'))
     @pytest.mark.parametrize('tested', ('json', 'redoc', 'swagger-ui'))
-    def test_apipec_serve_spec_empty_path(self, app, prefix, path, tested):
+    def test_apispec_serve_spec_empty_path(self, app, prefix, path, tested):
         """Test empty string or (equivalently) single slash as paths
 
         Documentation can be served at root of application.
@@ -97,7 +99,8 @@ class TestAPISpecServeDocs():
 
         class NewAppConfig(AppConfig):
             OPENAPI_URL_PREFIX = prefix
-            OPENAPI_SWAGGER_UI_VERSION = '3.0.2'
+            OPENAPI_REDOC_URL = "https://domain.tld/redoc"
+            OPENAPI_SWAGGER_UI_URL = "https://domain.tld/swagger-ui"
 
         mapping = {
             'json': 'OPENAPI_JSON_PATH',
@@ -120,39 +123,7 @@ class TestAPISpecServeDocs():
         assert response_json_docs.json['info'] == {
             'version': '1', 'title': 'API Test'}
 
-    @pytest.mark.parametrize(
-        'redoc_version',
-        (None, 'latest', 'v1.22', 'next', '2.0.0-alpha.17', 'v2.0.0-alpha.17')
-    )
-    def test_apipec_serve_redoc_using_cdn(self, app, redoc_version):
-
-        class NewAppConfig(AppConfig):
-            OPENAPI_URL_PREFIX = 'api-docs'
-            OPENAPI_REDOC_PATH = 'redoc'
-            if redoc_version:
-                OPENAPI_REDOC_VERSION = redoc_version
-
-        app.config.from_object(NewAppConfig)
-        Api(app)
-        client = app.test_client()
-        response_redoc = client.get('/api-docs/redoc')
-        assert (response_redoc.headers['Content-Type'] ==
-                'text/html; charset=utf-8')
-
-        redoc_version = redoc_version or 'latest'
-        if redoc_version == 'latest' or redoc_version.startswith('v1'):
-            redoc_url = (
-                'https://rebilly.github.io/ReDoc/releases/'
-                '{}/redoc.min.js'.format(redoc_version))
-        else:
-            redoc_url = (
-                'https://cdn.jsdelivr.net/npm/redoc@'
-                '{}/bundles/redoc.standalone.js'.format(redoc_version))
-        script_elem = '<script src="{}"></script>'.format(redoc_url)
-
-        assert script_elem in response_redoc.get_data(as_text=True)
-
-    def test_apipec_serve_spec_preserve_order(self, app):
+    def test_apispec_serve_spec_preserve_order(self, app):
         app.config['OPENAPI_URL_PREFIX'] = '/api-docs'
         api = Api(app)
         client = app.test_client()

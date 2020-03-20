@@ -250,53 +250,44 @@ interactively. This feature is accessible through Flask app parameters.
 
 Both ReDoc_ and `Swagger UI`_ interfaces are available to present the API.
 
-Their configuration logics are similar. If a path is set, then `flask-smorest`
-creates a route in the application to serve the interface page, using the JS
-script from a user defined URL, if any, or from a CDN URL built with the version
-number.
+Their configuration logics are similar. If an application path and a script URL
+are set, then `flask-smorest` adds a route at that path to serve the interface
+page using the JS script from the script URL.
 
 .. describe:: OPENAPI_REDOC_PATH
 
-   If not ``None``, path to the ReDoc page, relative to the base path.
+   Path to the ReDoc page, relative to the base path.
 
    Default: ``None``
 
 .. describe:: OPENAPI_REDOC_URL
 
-   URL to the ReDoc script. If ``None``, a CDN version is used.
+   URL to the ReDoc script.
+   
+   Examples:
+       * https://rebilly.github.io/ReDoc/releases/v1.x.x/redoc.min.js
+       * https://rebilly.github.io/ReDoc/releases/v1.22.3/redoc.min.js
+       * https://rebilly.github.io/ReDoc/releases/latest/redoc.min.js
+       * https://cdn.jsdelivr.net/npm/redoc@2.0.0-alpha.17/bundles/redoc.standalone.js
+       * https://cdn.jsdelivr.net/npm/redoc@next/bundles/redoc.standalone.js
 
    Default: ``None``
 
-.. describe:: OPENAPI_REDOC_VERSION
-
-   ReDoc version as string. Should be an existing version number, ``latest``
-   (latest 1.x version) or ``next`` (latest 2.x version).
-
-   This is used to build the CDN URL if ``OPENAPI_REDOC_URL`` is ``None``.
-
-   On a production instance, it is recommended to specify a fixed version
-   number.
-
-   Default: ``'latest'``
-
 .. describe:: OPENAPI_SWAGGER_UI_PATH
 
-   If not ``None``, path to the Swagger UI page, relative to the base path.
+   Path to the Swagger UI page, relative to the base path.
 
    Default: ``None``
 
 .. describe:: OPENAPI_SWAGGER_UI_URL
 
-   URL to the Swagger UI script. If ``None``, a CDN version is used.
+   URL to the Swagger UI script. Versions prior to 3.x are not supported.
 
-   Default: ``None``
-
-.. describe:: OPENAPI_SWAGGER_UI_VERSION
-
-   Swagger UI version as string. Contrary to ReDoc, there is no default value
-   pointing to the latest version, so it must be specified.
-
-   This is used to build the CDN URL if ``OPENAPI_SWAGGER_UI_URL`` is ``None``.
+   Examples:
+      * https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/3.24.2/
+      * https://cdn.jsdelivr.net/npm/swagger-ui-dist@3.25.0/
+      * https://cdn.jsdelivr.net/npm/swagger-ui-dist@3.25.x/
+      * https://cdn.jsdelivr.net/npm/swagger-ui-dist/
 
    Default: ``None``
 
@@ -311,6 +302,19 @@ number.
 
 .. warning:: The version strings are not checked by `flask-smorest`. They are
    used as is to build the URL pointing to the UI script. Typos won't be caught.
+
+Here's an example application configuration using both ReDoc and Swagger UI:
+
+.. code-block:: python
+
+   class Config:
+       OPENAPI_VERSION = "3.0.2"
+       OPENAPI_JSON_PATH = "api-spec.json"
+       OPENAPI_URL_PREFIX = "/"
+       OPENAPI_REDOC_PATH = "/redoc"
+       OPENAPI_REDOC_URL = "https://cdn.jsdelivr.net/npm/redoc@next/bundles/redoc.standalone.js"
+       OPENAPI_SWAGGER_UI_PATH = "/swagger-ui"
+       OPENAPI_SWAGGER_UI_URL = "https://cdn.jsdelivr.net/npm/swagger-ui-dist/"
 
 .. _ReDoc: https://github.com/Rebilly/ReDoc
 .. _Swagger UI: https://swagger.io/tools/swagger-ui/
