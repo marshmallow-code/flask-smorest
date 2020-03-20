@@ -83,7 +83,7 @@ class ArgumentsMixin:
             docs.setdefault('parameters', []).append(parameters)
             docs.setdefault('responses', {})[
                 error_status_code
-            ] = http.HTTPStatus(error_status_code).phrase
+            ] = http.HTTPStatus(error_status_code).name
 
             # Call use_args (from webargs) to inject params in function
             return self.ARGUMENTS_PARSER.use_args(

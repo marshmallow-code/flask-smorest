@@ -282,7 +282,7 @@ class APISpecMixin(DocBlueprintMixin):
             }
             prepare_response(
                 response, self.spec, DEFAULT_RESPONSE_CONTENT_TYPE)
-            self.spec.components.response(status.phrase, response)
+            self.spec.components.response(status.name, response)
 
         # Also register a default error response
         response = {
@@ -290,4 +290,4 @@ class APISpecMixin(DocBlueprintMixin):
             'schema': self.ERROR_SCHEMA,
         }
         prepare_response(response, self.spec, DEFAULT_RESPONSE_CONTENT_TYPE)
-        self.spec.components.response('Default Error', response)
+        self.spec.components.response('DEFAULT_ERROR', response)
