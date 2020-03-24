@@ -42,11 +42,6 @@ The following locations are allowed:
 
 The location defaults to ``"json"``, which means `body` parameter.
 
-.. note:: :meth:`Blueprint.arguments <Blueprint.arguments>` uses webargs's
-   :meth:`use_args <webargs.core.Parser.use_args>` decorator internally, but   
-   unlike :meth:`use_args <webargs.core.Parser.use_args>`, it only accepts a
-   single location.
-
 Arguments Injection
 -------------------
 
@@ -80,6 +75,64 @@ view function.
         @blp.arguments(QueryArgsSchema, location='query')
         def post(pet_data, query_args):
             return Pet.create(pet_data, **query_args)
+
+Multiple Arguments Schemas
+--------------------------
+
+To define arguments from multiple locations, calls to ``arguments`` decorator
+can be stacked:
+
+.. code-block:: python
+    :emphasize-lines: 4,5
+
+    @blp.route('/')
+    class Pets(MethodView):
+
+        @blp.arguments(PetSchema)
+        @blp.arguments(QueryArgsSchema, location="query")
+        @blp.response(PetSchema, code=201)
+        def post(self, pet_data, query_args):
+            pet = Pet.create(**pet_data)
+            # Use query args
+            ...
+            return pet
+
+It is possible to define multiple arguments for the same location. However,
+with marshmallow 3, schemas raise by default on unknown fields, so they should
+be tweaked to define ``unknown`` meta attribute as ``EXCLUDE``.
+
+.. code-block:: python
+    :emphasize-lines: 5,12
+
+    # With marshmallow 3, define unknown=EXCLUDE
+    class QueryArgsSchema1(ma.Schema):
+        class Meta:
+            ordered = True
+            unknown = ma.EXCLUDE
+        arg1 = ma.fields.String()
+        arg2 = ma.fields.Integer()
+
+    class QueryArgsSchema2(ma.Schema):
+        class Meta:
+            ordered = True
+            unknown = ma.EXCLUDE
+        arg3 = ma.fields.String()
+        arg4 = ma.fields.Integer()
+
+    @blp.route('/')
+    class Pets(MethodView):
+
+        @blp.arguments(QueryArgsSchema1, location="query")
+        @blp.arguments(QueryArgsSchema2, location="query")
+        @blp.response(PetSchema, code=201)
+        def get(self, query_args_1, query_args_2):
+            query = {}
+            query.update(query_args_1)
+            query.update(query_args_2)
+            return Pet.get(**query)
+
+This also applies when using both query arguments and ``pagination`` decorator,
+as the pagination feature uses query arguments for pagination parameters.
 
 Content Type
 ------------

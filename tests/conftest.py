@@ -2,7 +2,7 @@ from collections import namedtuple
 
 import pytest
 
-from marshmallow import Schema, fields, post_load, post_dump
+import marshmallow as ma
 
 from flask import Flask
 
@@ -34,7 +34,7 @@ def app(request):
     return _app
 
 
-class CounterSchema(Schema):
+class CounterSchema(ma.Schema):
     """Base Schema with load/dump counters"""
 
     load_count = 0
@@ -48,12 +48,12 @@ class CounterSchema(Schema):
     def reset_dump_count(cls):
         cls.dump_count = 0
 
-    @post_load(pass_many=True)
+    @ma.post_load(pass_many=True)
     def increment_load_count(self, data, many, **kwargs):
         self.__class__.load_count += 1
         return data
 
-    @post_dump(pass_many=True)
+    @ma.post_dump(pass_many=True)
     def increment_dump_count(self, data, many, **kwargs):
         self.__class__.dump_count += 1
         return data
@@ -66,22 +66,24 @@ def schemas():
         if MARSHMALLOW_VERSION_MAJOR < 3:
             class Meta:
                 strict = True
-        item_id = fields.Int(dump_only=True)
-        field = fields.Int(attribute='db_field')
+        item_id = ma.fields.Int(dump_only=True)
+        field = ma.fields.Int(attribute='db_field')
 
     class DocEtagSchema(CounterSchema):
         if MARSHMALLOW_VERSION_MAJOR < 3:
             class Meta:
                 strict = True
-        field = fields.Int(attribute='db_field')
+        field = ma.fields.Int(attribute='db_field')
 
-    class QueryArgsSchema(Schema):
+    class QueryArgsSchema(ma.Schema):
         class Meta:
             ordered = True
             if MARSHMALLOW_VERSION_MAJOR < 3:
                 strict = True
-        arg1 = fields.String()
-        arg2 = fields.Integer()
+            else:
+                unknown = ma.EXCLUDE
+        arg1 = ma.fields.String()
+        arg2 = ma.fields.Integer()
 
     return namedtuple(
         'Model', ('DocSchema', 'DocEtagSchema', 'QueryArgsSchema'))(

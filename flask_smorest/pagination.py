@@ -60,6 +60,8 @@ def _pagination_parameters_schema_factory(
             ordered = True
             if MARSHMALLOW_VERSION_MAJOR < 3:
                 strict = True
+            else:
+                unknown = ma.EXCLUDE
 
         page = ma.fields.Integer(
             missing=def_page,
@@ -188,7 +190,7 @@ class PaginationMixin:
             def wrapper(*args, **kwargs):
 
                 page_params = self.PAGINATION_ARGUMENTS_PARSER.parse(
-                    page_params_schema, request, locations=['query'])
+                    page_params_schema, request, location='query')
 
                 # Pagination in resource code: inject page_params as kwargs
                 if pager is None:
