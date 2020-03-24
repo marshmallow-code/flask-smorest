@@ -1,6 +1,17 @@
 Changelog
 ---------
 
+0.21.0 (2020-03-24)
++++++++++++++++++++
+
+Features:
+
+- Support webargs 6.0.0 (:pr:`132`).
+
+Other changes:
+
+- *Backwards-incompatible*: Drop support for webargs < 6.0.0 (:pr:`132`).
+
 0.20.0 (2020-03-20)
 +++++++++++++++++++
 
@@ -273,6 +284,9 @@ Features:
   must now be specified, either as ``OPENAPI_VERSION`` app parameter or as
   ``openapi_version`` spec kwarg.
 - Support apispec 1.0.0.
+
+Other changes:
+
 - *Backwards-incompatible*: Drop support for apispec 0.x.
 
 0.12.0 (2018-12-02)
@@ -401,10 +415,13 @@ Features:
   ``NestedQueryFlaskParser`` by default. It is renamed as
   ``NestedQueryArgsParser`` and it can be used by overriding
   ``Blueprint.ARGUMENTS_PARSER``.
-- *Backwards-incompatible*: Drop Flask 0.x support. Flask>=1.0 is now required.
 - Default error handler is registered for generic ``HTTPException``. Other
   extensions may register other handlers for specific exceptions or codes
   (:pr:`12`).
+
+Other changes:
+
+- *Backwards-incompatible*: Drop Flask 0.x support. Flask>=1.0 is now required.
 
 0.8.1 (2018-09-24)
 ++++++++++++++++++
@@ -464,6 +481,9 @@ Features:
 - *Backwards-incompatible*: Use apispec 0.39.0 plugin class interface.
 - *Backwards-incompatible*: Expose APISpec's ``register_field`` and ``register_converter methods`` from ``Api`` object. ``Api.register_converter`` signature is modified to make ``name`` parameter optional.
 - Pass extra apispec plugins to internal APISpec instance.
+
+Other changes:
+
 - *Backwards-incompatible*: Drop official support for Python 3.4.
 
 0.5.2 (2018-06-21)
