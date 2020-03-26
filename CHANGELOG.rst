@@ -10,7 +10,11 @@ Features:
 
 Other changes:
 
-- *Backwards-incompatible*: Drop support for webargs < 6.0.0 (:pr:`132`).
+- *Backwards-incompatible*: Drop support for webargs < 6.0.0. Marshmallow 3
+  code with stacked ``@arguments`` using the same location must ensure the
+  arguments schema have ``Meta.unknown=EXCLUDE``. This also applies to
+  ``@arguments`` with ``query`` location stacked with ``@paginate``.
+  (:pr:`132`)
 
 0.20.0 (2020-03-20)
 +++++++++++++++++++
