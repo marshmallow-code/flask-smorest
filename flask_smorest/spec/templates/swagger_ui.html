@@ -12,18 +12,10 @@
 
    <script src="{{swagger_ui_url}}swagger-ui-standalone-preset.js"></script>
    <script src="{{swagger_ui_url}}swagger-ui-bundle.js"></script>
-   <script>
-     window.onload = function() {
-       const ui = SwaggerUIBundle({
-         url: "{{ url_for('api-docs.openapi_json') }}",
-         dom_id: '#swagger-ui-container',
-         deepLinking: true,
-         layout: "BaseLayout",
-         supportedSubmitMethods: [{% for meth in swagger_ui_supported_submit_methods %}"{{meth.lower()}}",{% endfor %}],
-       })
-       window.ui = ui
-     }
-   </script>
+
+   <script id="openapi-url" type="application/json">{{ url_for('api-docs.openapi_json') }}</script>
+   <script id="supported-submit-methods" type="application/json">{{ swagger_ui_supported_submit_methods|tojson }}</script>
+   <script type="text/javascript" src={{url_for("api-docs.static", filename="js/swagger-ui-bundle.js")}}></script>
 
  </body>
 
