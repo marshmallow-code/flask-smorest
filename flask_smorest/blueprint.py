@@ -138,8 +138,10 @@ class Blueprint(
         def store_method_docs(method, function):
             """Add auto and manual doc to table for later registration"""
             # Get documentation from decorators
-            # and summary/description from docstring
-            doc = getattr(function, '_apidoc', {})
+            # Deepcopy doc info as it may be used for several methods and it
+            # may be mutated in apispec
+            doc = deepcopy(getattr(function, '_apidoc', {}))
+            # Get summary/description from docstring
             doc['docstring'] = load_info_from_docstring(
                 function.__doc__, delimiter=self.DOCSTRING_INFO_DELIMITER)
             # Store function doc infos for later processing/registration
