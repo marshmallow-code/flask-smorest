@@ -1,5 +1,4 @@
 language: python
-dist: xenial
 cache: pip
 install: travis_retry pip install -U tox coveralls
 script: tox
