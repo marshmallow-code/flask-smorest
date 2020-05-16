@@ -226,7 +226,6 @@ class PaginationMixin:
                     http.HTTPStatus(error_status_code).name,
                 }
             }
-            wrapper._paginated = True
 
             return wrapper
 
@@ -276,12 +275,24 @@ class PaginationMixin:
         headers[self.PAGINATION_HEADER_FIELD_NAME] = page_header
         return result, headers
 
-    @staticmethod
-    def _prepare_pagination_doc(doc, doc_info, **kwargs):
+    def _document_pagination_metadata(self, resp_doc):
+        """Document pagination metadata header
+
+        Override this to document custom pagination metadata
+        """
+        resp_doc['headers'] = {
+            self.PAGINATION_HEADER_FIELD_NAME: self.PAGINATION_HEADER_DOC
+        }
+
+    def _prepare_pagination_doc(self, doc, doc_info, **kwargs):
         operation = doc_info.get('pagination')
         if operation:
             parameters = operation.get('parameters')
             doc.setdefault('parameters', []).append(parameters)
             response = operation.get('response')
             doc.setdefault('responses', {}).update(response)
+            success_status_code = doc_info.get('success_status_code')
+            if success_status_code is not None:
+                self._document_pagination_metadata(
+                    doc['responses'][success_status_code])
         return doc
