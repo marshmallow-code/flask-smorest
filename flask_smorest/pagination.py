@@ -204,20 +204,16 @@ class PaginationMixin:
                 if pager is not None:
                     result = pager(result, page_params=page_params).items
 
-                # Add pagination metadata to headers
+                # Set pagination metadata in response
                 if self.PAGINATION_HEADER_FIELD_NAME is not None:
                     if page_params.item_count is None:
                         current_app.logger.warning(
                             'item_count not set in endpoint {}'
-                            .format(request.endpoint))
+                            .format(request.endpoint)
+                        )
                     else:
-                        page_header = self._make_pagination_header(
-                            page_params.page, page_params.page_size,
-                            page_params.item_count)
-                        if headers is None:
-                            headers = {}
-                        headers[
-                            self.PAGINATION_HEADER_FIELD_NAME] = page_header
+                        result, headers = self._set_pagination_metadata(
+                            page_params, result, headers)
 
                 return result, status, headers
 
@@ -266,6 +262,19 @@ class PaginationMixin:
         if MARSHMALLOW_VERSION_MAJOR < 3:
             header = header.data
         return header
+
+    def _set_pagination_metadata(self, page_params, result, headers):
+        """Add pagination metadata to headers
+
+        Override this to set pagination data another way
+        """
+        page_header = self._make_pagination_header(
+            page_params.page, page_params.page_size,
+            page_params.item_count)
+        if headers is None:
+            headers = {}
+        headers[self.PAGINATION_HEADER_FIELD_NAME] = page_header
+        return result, headers
 
     @staticmethod
     def _prepare_pagination_doc(doc, doc_info, **kwargs):
