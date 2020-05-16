@@ -9,7 +9,9 @@ import marshmallow as ma
 from flask.views import MethodView
 
 from flask_smorest import Api, Blueprint, abort, Page
-
+from flask_smorest.pagination import PaginationMetadataSchema
+from flask_smorest.utils import get_appcontext
+from flask_smorest.spec import DEFAULT_RESPONSE_CONTENT_TYPE
 from .mocks import ItemNotFound
 from .utils import build_ref, get_schemas
 
@@ -469,5 +471,117 @@ class TestCustomExamples:
         assert get_schemas(api.spec)['WrapDoc'] == {
             'type': 'object',
             'properties': {'data': build_ref(api.spec, 'schema', 'Doc')}
+        }
+        assert 'Doc' in get_schemas(api.spec)
+
+    @pytest.mark.parametrize('openapi_version', ('2.0', '3.0.2'))
+    def test_pagination_in_response_payload(
+            self, app, schemas, openapi_version
+    ):
+        """Demonstrates how to add pagination metadata in response payload"""
+
+        class WrapperBlueprint(Blueprint):
+
+            # Set pagination metadata in app context
+            def _set_pagination_metadata(self, page_params, result, headers):
+                page_meta = self._make_pagination_metadata(
+                    page_params.page, page_params.page_size,
+                    page_params.item_count)
+                get_appcontext()['pagination_metadata'] = page_meta
+                return result, headers
+
+            # Wrap payload data and add pagination metadata if any
+            @staticmethod
+            def _prepare_response_content(data):
+                if data is not None:
+                    ret = {'data': data}
+                    page_meta = get_appcontext().get('pagination_metadata')
+                    if page_meta is not None:
+                        ret['pagination'] = page_meta
+                    return ret
+                return None
+
+            # Document data wrapper
+            # The schema is not used to dump the payload, only to generate doc
+            @staticmethod
+            def _make_doc_response_schema(schema):
+                if schema:
+                    return type(
+                        'Wrap' + schema.__class__.__name__,
+                        (ma.Schema, ),
+                        {'data': ma.fields.Nested(schema)},
+                    )
+                return None
+
+            # Document pagination wrapper
+            # The schema is not used to dump the payload, only to generate doc
+            def _document_pagination_metadata(self, spec, resp_doc):
+                if spec.openapi_version.major < 3:
+                    schema = resp_doc.get('schema')
+                else:
+                    schema = resp_doc.get('content', {}).get(
+                        DEFAULT_RESPONSE_CONTENT_TYPE,
+                        {},
+                    ).get('schema')
+                if schema:
+                    pagin_schema = type(
+                        'Pagination' + schema.__name__,
+                        (schema, ),
+                        {
+                            'pagination': ma.fields.Nested(
+                                PaginationMetadataSchema)
+                        },
+                    )
+                    if spec.openapi_version.major < 3:
+                        resp_doc['schema'] = pagin_schema
+                    else:
+                        resp_doc['content'][DEFAULT_RESPONSE_CONTENT_TYPE][
+                            'schema'] = pagin_schema
+
+        app.config['OPENAPI_VERSION'] = openapi_version
+        api = Api(app)
+        client = app.test_client()
+        blp = WrapperBlueprint('test', __name__, url_prefix='/test')
+
+        @blp.route('/')
+        @blp.response(schemas.DocSchema(many=True))
+        @blp.paginate(Page)
+        def func():
+            return [
+                {'item_id': 1, 'db_field': 42},
+                {'item_id': 2, 'db_field': 69},
+            ]
+
+        api.register_blueprint(blp)
+        spec = api.spec.to_dict()
+
+        # Test data is wrapped and pagination metadata added
+        resp = client.get('/test/')
+        assert resp.json == {
+            'data': [{'field': 42, 'item_id': 1}, {'field': 69, 'item_id': 2}],
+            'pagination': {
+                'page': 1, 'first_page': 1, 'last_page': 1,
+                'total': 2, 'total_pages': 1,
+            }
+        }
+
+        # Test pagination is correctly documented
+        if openapi_version == '3.0.2':
+            content = spec['paths']['/test/']['get']['responses']['200'][
+                'content']['application/json']
+        else:
+            content = spec['paths']['/test/']['get']['responses']['200']
+        assert content['schema'] == build_ref(
+            api.spec, 'schema', 'PaginationWrapDoc')
+        assert get_schemas(api.spec)['PaginationWrapDoc'] == {
+            'type': 'object',
+            'properties': {
+                'data': {
+                    'items': build_ref(api.spec, 'schema', 'Doc'),
+                    'type': 'array',
+                },
+                'pagination': build_ref(
+                    api.spec, 'schema', 'PaginationMetadata'),
+            }
         }
         assert 'Doc' in get_schemas(api.spec)
