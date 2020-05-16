@@ -134,11 +134,14 @@ class ResponseMixin:
             Example: ::
 
                 @staticmethod
-                def _doc_schema(schema):
+                def _make_doc_response_schema(schema):
                     if schema:
-                        return {'type': 'success', 'data': schema}
-                    else:
-                        return None
+                        return type(
+                            'Wrap' + schema.__class__.__name__,
+                            (ma.Schema, ),
+                            {'data': ma.fields.Nested(schema)},
+                        )
+                    return None
         """
         return schema
 
@@ -151,8 +154,10 @@ class ResponseMixin:
             Example: ::
 
                 @staticmethod
-                def _prepare_response_content:
-                    return {'type': 'success', 'data': schema}
+                def _prepare_response_content(data):
+                    if data is not None:
+                        return {'data': data}
+                    return None
         """
         return data
 
