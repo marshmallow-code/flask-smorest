@@ -109,11 +109,11 @@ class Page:
                         self.collection, self.page_params))
 
 
-class PaginationHeaderSchema(ma.Schema):
-    """Pagination header schema
+class PaginationMetadataSchema(ma.Schema):
+    """Pagination metadata schema
 
-    Used to serialize pagination header.
-    Its main purpose is to document the pagination header.
+    Used to serialize pagination metadata.
+    Its main purpose is to document the pagination metadata.
     """
     total = ma.fields.Int()
     total_pages = ma.fields.Int()
@@ -143,7 +143,7 @@ class PaginationMixin:
 
     PAGINATION_HEADER_DOC = {
         'description': 'Pagination metadata',
-        'schema': PaginationHeaderSchema,
+        'schema': PaginationMetadataSchema,
     }
 
     def paginate(self, pager=None, *,
@@ -232,42 +232,42 @@ class PaginationMixin:
         return decorator
 
     @staticmethod
-    def _make_pagination_header(page, page_size, item_count):
-        """Build pagination header from page, page size and item count
+    def _make_pagination_metadata(page, page_size, item_count):
+        """Build pagination metadata from page, page size and item count
 
         This method returns a json representation of a default pagination
         metadata structure. It can be overridden to use another structure.
         """
-        page_header = OrderedDict()
-        page_header['total'] = item_count
+        page_metadata = OrderedDict()
+        page_metadata['total'] = item_count
         if item_count == 0:
-            page_header['total_pages'] = 0
+            page_metadata['total_pages'] = 0
         else:
             # First / last page, page count
             page_count = ((item_count - 1) // page_size) + 1
             first_page = 1
             last_page = page_count
-            page_header['total_pages'] = page_count
-            page_header['first_page'] = first_page
-            page_header['last_page'] = last_page
+            page_metadata['total_pages'] = page_count
+            page_metadata['first_page'] = first_page
+            page_metadata['last_page'] = last_page
             # Page, previous / next page
             if page <= last_page:
-                page_header['page'] = page
+                page_metadata['page'] = page
                 if page > first_page:
-                    page_header['previous_page'] = page - 1
+                    page_metadata['previous_page'] = page - 1
                 if page < last_page:
-                    page_header['next_page'] = page + 1
-        header = PaginationHeaderSchema().dumps(page_header)
+                    page_metadata['next_page'] = page + 1
+        metadata = PaginationMetadataSchema().dumps(page_metadata)
         if MARSHMALLOW_VERSION_MAJOR < 3:
-            header = header.data
-        return header
+            metadata = metadata.data
+        return metadata
 
     def _set_pagination_metadata(self, page_params, result, headers):
         """Add pagination metadata to headers
 
         Override this to set pagination data another way
         """
-        page_header = self._make_pagination_header(
+        page_header = self._make_pagination_metadata(
             page_params.page, page_params.page_size,
             page_params.item_count)
         if headers is None:
