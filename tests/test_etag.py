@@ -127,7 +127,7 @@ def app_with_etag(request, collection, schemas, app):
     return app
 
 
-class TestEtag():
+class TestEtag:
 
     def test_etag_is_deterministic(self):
         """Check etag computation is deterministic

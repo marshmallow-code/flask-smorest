@@ -34,7 +34,7 @@ REQUEST_BODY_CONTENT_TYPE = {
 }
 
 
-class TestBlueprint():
+class TestBlueprint:
     """Test Blueprint class"""
 
     @pytest.mark.parametrize('openapi_version', ('2.0', '3.0.2'))

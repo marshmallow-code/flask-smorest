@@ -223,7 +223,7 @@ def blueprint_fixture(request, collection, schemas):
     return blp_factory(collection, schemas), request.param[1]
 
 
-class TestFullExample():
+class TestFullExample:
 
     def test_examples(self, app, blueprint_fixture, schemas):
 

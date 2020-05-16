@@ -9,7 +9,7 @@ from flask_smorest import Api
 from .conftest import AppConfig
 
 
-class TestAPISpec():
+class TestAPISpec:
     """Test APISpec class"""
 
     @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.2'])
@@ -26,7 +26,7 @@ class TestAPISpec():
             assert 'consumes' not in spec
 
 
-class TestAPISpecServeDocs():
+class TestAPISpecServeDocs:
     """Test APISpec class docs serving features"""
 
     @pytest.mark.parametrize(

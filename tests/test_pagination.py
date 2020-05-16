@@ -107,7 +107,7 @@ def app_fixture(request, collection, schemas, app):
         app.test_client(), custom_params)
 
 
-class TestPagination():
+class TestPagination:
 
     def test_pagination_parameters_repr(self):
         assert(repr(PaginationParameters(1, 10)) ==

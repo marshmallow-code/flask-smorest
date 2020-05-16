@@ -15,7 +15,7 @@ from flask_smorest.exceptions import OpenAPIVersionNotSpecified
 from .utils import get_schemas, get_responses, build_ref
 
 
-class TestApi():
+class TestApi:
     """Test Api class"""
 
     @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.2'])
