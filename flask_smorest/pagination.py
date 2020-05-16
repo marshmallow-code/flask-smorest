@@ -142,11 +142,6 @@ class PaginationMixin:
     DEFAULT_PAGINATION_PARAMETERS = {
         'page': 1, 'page_size': 10, 'max_page_size': 100}
 
-    PAGINATION_HEADER_DOC = {
-        'description': 'Pagination metadata',
-        'schema': PaginationMetadataSchema,
-    }
-
     def paginate(self, pager=None, *,
                  page=None, page_size=None, max_page_size=None):
         """Decorator adding pagination to the endpoint
@@ -284,7 +279,10 @@ class PaginationMixin:
         Override this to document custom pagination metadata
         """
         resp_doc['headers'] = {
-            self.PAGINATION_HEADER_FIELD_NAME: self.PAGINATION_HEADER_DOC
+            self.PAGINATION_HEADER_FIELD_NAME: {
+                'description': 'Pagination metadata',
+                'schema': PaginationMetadataSchema,
+            }
         }
 
     def _prepare_pagination_doc(self, doc, doc_info, **kwargs):
