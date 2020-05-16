@@ -273,7 +273,7 @@ class PaginationMixin:
         )
         return result, headers
 
-    def _document_pagination_metadata(self, resp_doc):
+    def _document_pagination_metadata(self, spec, resp_doc):
         """Document pagination metadata header
 
         Override this to document custom pagination metadata
@@ -285,7 +285,7 @@ class PaginationMixin:
             }
         }
 
-    def _prepare_pagination_doc(self, doc, doc_info, **kwargs):
+    def _prepare_pagination_doc(self, doc, doc_info, spec, **kwargs):
         operation = doc_info.get('pagination')
         if operation:
             parameters = operation.get('parameters')
@@ -295,5 +295,5 @@ class PaginationMixin:
             success_status_code = doc_info.get('success_status_code')
             if success_status_code is not None:
                 self._document_pagination_metadata(
-                    doc['responses'][success_status_code])
+                    spec, doc['responses'][success_status_code])
         return doc
