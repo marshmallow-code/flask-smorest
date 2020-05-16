@@ -13,6 +13,7 @@ from copy import deepcopy
 from collections import OrderedDict
 from functools import wraps
 import http
+import json
 
 from flask import request, current_app
 
@@ -235,8 +236,7 @@ class PaginationMixin:
     def _make_pagination_metadata(page, page_size, item_count):
         """Build pagination metadata from page, page size and item count
 
-        This method returns a json representation of a default pagination
-        metadata structure. It can be overridden to use another structure.
+        Override this to use another pagination metadata structure
         """
         page_metadata = OrderedDict()
         page_metadata['total'] = item_count
@@ -257,7 +257,7 @@ class PaginationMixin:
                     page_metadata['previous_page'] = page - 1
                 if page < last_page:
                     page_metadata['next_page'] = page + 1
-        metadata = PaginationMetadataSchema().dumps(page_metadata)
+        metadata = PaginationMetadataSchema().dump(page_metadata)
         if MARSHMALLOW_VERSION_MAJOR < 3:
             metadata = metadata.data
         return metadata
@@ -267,12 +267,15 @@ class PaginationMixin:
 
         Override this to set pagination data another way
         """
-        page_header = self._make_pagination_metadata(
-            page_params.page, page_params.page_size,
-            page_params.item_count)
         if headers is None:
             headers = {}
-        headers[self.PAGINATION_HEADER_FIELD_NAME] = page_header
+        headers[self.PAGINATION_HEADER_FIELD_NAME] = json.dumps(
+            self._make_pagination_metadata(
+                page_params.page,
+                page_params.page_size,
+                page_params.item_count
+            )
+        )
         return result, headers
 
     def _document_pagination_metadata(self, resp_doc):
