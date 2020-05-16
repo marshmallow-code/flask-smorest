@@ -27,9 +27,7 @@ The view function must also specify the total number of elements by setting it
 as ``item_count`` attribute of the `PaginationParameters` object.
 
 .. code-block:: python
-    :emphasize-lines: 7,8,9,10,11,12
-
-    from flask_smorest import set_item_count
+    :emphasize-lines: 5,6,7,9,10
 
     @blp.route('/')
     class Pets(MethodView):

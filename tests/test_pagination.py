@@ -189,7 +189,7 @@ class TestPagination:
         @blp.response()
         @blp.paginate()
         def func(pagination_parameters):
-            # Here, we purposely forget to call set_item_count
+            # Here, we purposely forget to set item_count
             # pagination_parameters.item_count = 2
             return [1, 2]
 
