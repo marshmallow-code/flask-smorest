@@ -11,7 +11,6 @@ from flask.views import MethodView
 from flask_smorest import Api, Blueprint, abort, Page
 from flask_smorest.pagination import PaginationMetadataSchema
 from flask_smorest.utils import get_appcontext
-from flask_smorest.spec import DEFAULT_RESPONSE_CONTENT_TYPE
 from .mocks import ItemNotFound
 from .utils import build_ref, get_schemas
 
@@ -501,42 +500,34 @@ class TestCustomExamples:
                     return ret
                 return None
 
-            # Document data wrapper
-            # The schema is not used to dump the payload, only to generate doc
+            # Document data wrapper and pagination in payload
             @staticmethod
-            def _make_doc_response_schema(schema):
-                if schema:
-                    return type(
-                        'Wrap' + schema.__class__.__name__,
-                        (ma.Schema, ),
-                        {'data': ma.fields.Nested(schema)},
-                    )
-                return None
-
-            # Document pagination wrapper
-            # The schema is not used to dump the payload, only to generate doc
-            def _document_pagination_metadata(self, spec, resp_doc):
-                if spec.openapi_version.major < 3:
-                    schema = resp_doc.get('schema')
-                else:
-                    schema = resp_doc.get('content', {}).get(
-                        DEFAULT_RESPONSE_CONTENT_TYPE,
-                        {},
-                    ).get('schema')
-                if schema:
-                    pagin_schema = type(
-                        'Pagination' + schema.__name__,
-                        (schema, ),
-                        {
-                            'pagination': ma.fields.Nested(
-                                PaginationMetadataSchema)
-                        },
-                    )
-                    if spec.openapi_version.major < 3:
-                        resp_doc['schema'] = pagin_schema
-                    else:
-                        resp_doc['content'][DEFAULT_RESPONSE_CONTENT_TYPE][
-                            'schema'] = pagin_schema
+            def _prepare_response_doc(doc, doc_info, spec, **kwargs):
+                operation = doc_info.get('response', {})
+                if operation:
+                    success_code = doc_info['success_status_code']
+                    response = operation.get('responses', {}).get(success_code)
+                    if response is not None:
+                        if 'schema' in response:
+                            schema = response['schema']
+                            response['schema'] = type(
+                                'Wrap' + schema.__class__.__name__,
+                                (ma.Schema, ),
+                                {'data': ma.fields.Nested(schema)},
+                            )
+                            if 'pagination' in doc_info:
+                                schema = response['schema']
+                                response['schema'] = type(
+                                    'Pagination' + schema.__name__,
+                                    (schema, ),
+                                    {
+                                        'pagination': ma.fields.Nested(
+                                            PaginationMetadataSchema)
+                                    },
+                                )
+                return super(
+                    WrapperBlueprint, WrapperBlueprint
+                )._prepare_response_doc(doc, doc_info, spec, **kwargs)
 
         app.config['OPENAPI_VERSION'] = openapi_version
         api = Api(app)
