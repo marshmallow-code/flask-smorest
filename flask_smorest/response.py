@@ -1,6 +1,5 @@
 """Response processor"""
 
-from collections import abc
 from copy import deepcopy
 from functools import wraps
 import http
@@ -160,14 +159,7 @@ class ResponseMixin:
     @staticmethod
     def _prepare_response_doc(doc, doc_info, spec, **kwargs):
         operation = doc_info.get('response', {})
-
-        responses = {
-            c: r for c, r in operation.get('responses', {}).items()
-            if isinstance(r, abc.Mapping)
-        }
-
-        for resp in responses.values():
-            prepare_response(resp, spec, DEFAULT_RESPONSE_CONTENT_TYPE)
-
+        for response in operation.get('responses', {}).values():
+            prepare_response(response, spec, DEFAULT_RESPONSE_CONTENT_TYPE)
         doc = deepupdate(doc, operation)
         return doc

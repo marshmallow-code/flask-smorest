@@ -116,19 +116,20 @@ def set_status_and_headers_in_response(response, status, headers):
 
 def prepare_response(response, spec, default_response_content_type):
     """Rework response according to OAS version"""
-    # OAS 2
-    if spec.openapi_version.major < 3:
-        if 'example' in response:
-            response['examples'] = {
-                default_response_content_type: response.pop('example')
-            }
-    # OAS 3
-    else:
-        for field in ('schema', 'example', 'examples'):
-            if field in response:
-                (
-                    response
-                    .setdefault('content', {})
-                    .setdefault(default_response_content_type, {})
-                    [field]
-                ) = response.pop(field)
+    if isinstance(response, abc.Mapping):
+        # OAS 2
+        if spec.openapi_version.major < 3:
+            if 'example' in response:
+                response['examples'] = {
+                    default_response_content_type: response.pop('example')
+                }
+        # OAS 3
+        else:
+            for field in ('schema', 'example', 'examples'):
+                if field in response:
+                    (
+                        response
+                        .setdefault('content', {})
+                        .setdefault(default_response_content_type, {})
+                        [field]
+                    ) = response.pop(field)
