@@ -5,11 +5,13 @@ from contextlib import contextmanager
 
 import pytest
 
+import marshmallow as ma
 from flask.views import MethodView
 
 from flask_smorest import Api, Blueprint, abort, Page
 
 from .mocks import ItemNotFound
+from .utils import build_ref, get_schemas
 
 
 def implicit_data_and_schema_etag_blueprint(collection, schemas):
@@ -411,3 +413,61 @@ class TestFullExample:
                 headers={'If-Match': new_item_etag}
             )
         assert response.status_code == 204
+
+
+class TestCustomExamples:
+
+    @pytest.mark.parametrize('openapi_version', ('2.0', '3.0.2'))
+    def test_response_payload_wrapping(self, app, schemas, openapi_version):
+        """Demonstrates how to wrap response payload in a data field"""
+
+        class WrapperBlueprint(Blueprint):
+
+            # Wrap payload data
+            @staticmethod
+            def _prepare_response_content(data):
+                if data is not None:
+                    return {'data': data}
+                return None
+
+            # Document data wrapper
+            # The schema is not used to dump the payload, only to generate doc
+            @staticmethod
+            def _make_doc_response_schema(schema):
+                if schema:
+                    return type(
+                        'Wrap' + schema.__class__.__name__,
+                        (ma.Schema, ),
+                        {'data': ma.fields.Nested(schema)},
+                    )
+                return None
+
+        app.config['OPENAPI_VERSION'] = openapi_version
+        api = Api(app)
+        client = app.test_client()
+        blp = WrapperBlueprint('test', __name__, url_prefix='/test')
+
+        @blp.route('/')
+        @blp.response(schemas.DocSchema)
+        def func():
+            return {'item_id': 1, 'db_field': 42}
+
+        api.register_blueprint(blp)
+        spec = api.spec.to_dict()
+
+        # Test data is wrapped
+        resp = client.get('/test/')
+        assert resp.json == {'data': {'item_id': 1, 'field': 42}}
+
+        # Test wrapping is correctly documented
+        if openapi_version == '3.0.2':
+            content = spec['paths']['/test/']['get']['responses']['200'][
+                'content']['application/json']
+        else:
+            content = spec['paths']['/test/']['get']['responses']['200']
+        assert content['schema'] == build_ref(api.spec, 'schema', 'WrapDoc')
+        assert get_schemas(api.spec)['WrapDoc'] == {
+            'type': 'object',
+            'properties': {'data': build_ref(api.spec, 'schema', 'Doc')}
+        }
+        assert 'Doc' in get_schemas(api.spec)
