@@ -1,6 +1,16 @@
 Changelog
 ---------
 
+0.21.1 (2020-05-29)
++++++++++++++++++++
+
+Bug fixes:
+
+- Deep-copy the documentation information for each method of a resource. This
+  fixes a crash when a view function serves several methods, due to apispec
+  mutating doc info dict. (:pr:`147`)
+  Thanks :user:`DrChrisLevy` for reporting.
+
 0.21.0 (2020-03-24)
 +++++++++++++++++++
 
