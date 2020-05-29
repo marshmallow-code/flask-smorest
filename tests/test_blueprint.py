@@ -462,6 +462,48 @@ class TestBlueprint:
         assert 'parameters' not in paths['/test/']
         assert paths['/test/{user_id}']['parameters'][0]['name'] == 'user_id'
 
+    @pytest.mark.parametrize('openapi_version', ('2.0', '3.0.2'))
+    def test_blueprint_route_multiple_methods(
+            self, app, schemas, openapi_version
+    ):
+        """Test calling route with multiple methods
+
+        Checks the doc is properly deepcopied between methods
+        """
+        app.config['OPENAPI_VERSION'] = openapi_version
+        api = Api(app)
+        blp = Blueprint('test', __name__, url_prefix='/test')
+
+        @blp.route('/', methods=('GET', 'POST', ))
+        @blp.arguments(schemas.DocSchema)
+        @blp.response(schemas.DocSchema)
+        def func(document, query_args):
+            pass
+
+        api.register_blueprint(blp)
+        spec = api.spec.to_dict()
+
+        schema_ref = build_ref(api.spec, 'schema', 'Doc')
+        for method in ('get', 'post'):
+            operation = spec['paths']['/test/'][method]
+            # Check parameters are documented
+            if openapi_version == '2.0':
+                parameter = operation['parameters'][0]
+                assert parameter['in'] == 'body'
+                assert 'schema' in parameter
+            else:
+                assert 'schema' in operation[
+                    'requestBody']['content']['application/json']
+            # Check responses are documented
+            response = operation['responses']['200']
+            if openapi_version == '2.0':
+                assert response['schema'] == schema_ref
+            else:
+                assert (
+                    response['content']['application/json']['schema'] ==
+                    schema_ref
+                )
+
     @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.2'])
     def test_blueprint_response_schema(self, app, openapi_version, schemas):
         """Check response schema is correctly documented.
