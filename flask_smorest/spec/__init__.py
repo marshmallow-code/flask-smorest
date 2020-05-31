@@ -4,6 +4,7 @@ import http
 
 import flask
 from flask import current_app
+import click
 import apispec
 from apispec.ext.marshmallow import MarshmallowPlugin
 
@@ -265,3 +266,11 @@ def print_openapi_doc():
     """Print OpenAPI document."""
     api = current_app.extensions['flask-smorest']['ext_obj']
     print(json.dumps(api.spec.to_dict(), indent=2))
+
+
+@openapi_cli.command('write')
+@click.argument('output_file', type=click.File(mode='w'))
+def write_openapi_doc(output_file):
+    """Write OpenAPI document to a file."""
+    api = current_app.extensions['flask-smorest']['ext_obj']
+    output_file.write(json.dumps(api.spec.to_dict(), indent=2))

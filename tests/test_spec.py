@@ -32,6 +32,16 @@ class TestAPISpec:
         assert result.exit_code == 0
         assert json.loads(result.output) == api.spec.to_dict()
 
+    def test_apispec_write_openapi_doc(self, app, tmp_path):
+        output_file = tmp_path / 'openapi.json'
+        api = Api(app)
+        result = app.test_cli_runner().invoke(
+            args=('openapi', 'write', str(output_file))
+        )
+        assert result.exit_code == 0
+        with open(output_file) as output:
+            assert json.loads(output.read()) == api.spec.to_dict()
+
 
 class TestAPISpecServeDocs:
     """Test APISpec class docs serving features"""
