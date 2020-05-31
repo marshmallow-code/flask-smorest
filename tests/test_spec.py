@@ -1,6 +1,7 @@
 """Test Api class"""
 
 from collections import OrderedDict
+import json
 
 import pytest
 
@@ -24,6 +25,12 @@ class TestAPISpec:
         else:
             assert 'produces' not in spec
             assert 'consumes' not in spec
+
+    def test_apispec_print_openapi_doc(self, app):
+        api = Api(app)
+        result = app.test_cli_runner().invoke(args=('openapi', 'print'))
+        assert result.exit_code == 0
+        assert json.loads(result.output) == api.spec.to_dict()
 
 
 class TestAPISpecServeDocs:
