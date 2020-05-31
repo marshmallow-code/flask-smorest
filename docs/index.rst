@@ -15,7 +15,7 @@ automatically as possible.
 Install
 =======
 
-flask-smorest requires Python >= 3.5.
+flask-smorest requires Python >= 3.6.
 
 .. code-block:: bash
 

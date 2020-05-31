@@ -23,7 +23,6 @@ setup(
         'Environment :: Web Environment',
         'Framework :: Flask',
         'License :: OSI Approved :: MIT License',
-        'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
@@ -42,7 +41,7 @@ setup(
     package_data={
         '': ['spec/templates/*'],
     },
-    python_requires='>=3.5',
+    python_requires='>=3.6',
     install_requires=[
         'werkzeug>=0.15',
         'flask>=1.1.0',
