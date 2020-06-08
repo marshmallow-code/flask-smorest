@@ -555,12 +555,12 @@ class TestBlueprint:
         blp = Blueprint('test', 'test', url_prefix='/test')
 
         @blp.route('/route_1')
-        @blp.response()
+        @blp.response(code=204)
         def func_1():
             pass
 
         @blp.route('/route_2')
-        @blp.response(description='Test')
+        @blp.response(code=204, description='Test')
         def func_2():
             pass
 
@@ -568,11 +568,11 @@ class TestBlueprint:
 
         get_1 = api.spec.to_dict()['paths']['/test/route_1']['get']
         assert (
-            get_1['responses']['200']['description'] ==
-            http.HTTPStatus(200).phrase
+            get_1['responses']['204']['description'] ==
+            http.HTTPStatus(204).phrase
         )
         get_2 = api.spec.to_dict()['paths']['/test/route_2']['get']
-        assert get_2['responses']['200']['description'] == 'Test'
+        assert get_2['responses']['204']['description'] == 'Test'
 
     @pytest.mark.parametrize('openapi_version', ('2.0', '3.0.2'))
     def test_blueprint_response_example(self, app, openapi_version):
