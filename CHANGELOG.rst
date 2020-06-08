@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+0.21.2 (2020-06-09)
++++++++++++++++++++
+
+Bug fixes:
+
+- Use HTTPStatus ``phrase``, not ``name``, in response description (:pr:`158`).
+
 0.21.1 (2020-05-29)
 +++++++++++++++++++
 
