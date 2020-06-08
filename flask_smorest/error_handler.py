@@ -56,10 +56,7 @@ class ErrorHandlerMixin:
         payload = {'code': error.code, 'status': error.name}
 
         # Get additional info passed as kwargs when calling abort
-        # data may not exist if
-        # - HTTPException was raised not using webargs abort or
-        # - no kwargs were passed (https://github.com/sloria/webargs/pull/184)
-        #   and webargs<1.9.0
+        # data may not exist if HTTPException was raised without webargs abort
         data = getattr(error, 'data', None)
         if data:
             # If we passed a custom message
