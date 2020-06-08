@@ -652,6 +652,97 @@ class TestBlueprint:
             api.spec, 'response', 'DEFAULT_ERROR'
         )
 
+    @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.2'])
+    def test_blueprint_error_schema(self, app, openapi_version, schemas):
+        """Check error schema is correctly documented"""
+        app.config['OPENAPI_VERSION'] = openapi_version
+        api = Api(app)
+        blp = Blueprint('test', 'test', url_prefix='/test')
+
+        example = {'error_id': 'E1', 'text': 'client error'}
+        examples = {
+            'example 1': {'error_id': 'E1', 'text': 'client error 1'},
+            'example 2': {'error_id': 'E2', 'text': 'client error 2'},
+        }
+
+        @blp.route('/')
+        @blp.error(400, schemas.ClientErrorSchema)
+        def func():
+            pass
+
+        @blp.route('/description')
+        @blp.error(400, schemas.ClientErrorSchema, description='Client error')
+        def func_with_description():
+            pass
+
+        @blp.route('/example')
+        @blp.error(400, schemas.ClientErrorSchema, example=example)
+        def func_with_example():
+            pass
+
+        if openapi_version == '3.0.2':
+            @blp.route('/examples')
+            @blp.error(400, schemas.ClientErrorSchema, examples=examples)
+            def func_with_examples():
+                pass
+
+        api.register_blueprint(blp)
+
+        paths = api.spec.to_dict()['paths']
+
+        schema_ref = build_ref(api.spec, 'schema', 'ClientError')
+
+        response = paths['/test/']['get']['responses']['400']
+        if openapi_version == '2.0':
+            assert response['schema'] == schema_ref
+        else:
+            assert (
+                response['content']['application/json']['schema'] ==
+                schema_ref
+            )
+        assert response['description'] == http.HTTPStatus(400).phrase
+
+        response = paths['/test/description']['get']['responses']['400']
+        assert response['description'] == 'Client error'
+
+        response = paths['/test/example']['get']['responses']['400']
+        if openapi_version == '2.0':
+            assert response['examples']['application/json'] == example
+        else:
+            assert (
+                response['content']['application/json']['example'] == example
+            )
+
+        if openapi_version == '3.0.2':
+            response = paths['/test/examples']['get']['responses']['400']
+            assert (
+                response['content']['application/json']['examples'] == examples
+            )
+
+    @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.2'])
+    def test_blueprint_error_ref(self, app, openapi_version):
+        """Check error passed as reference"""
+        app.config['OPENAPI_VERSION'] = openapi_version
+        api = Api(app)
+        api.spec.components.response('ClientErrorResponse')
+
+
+        blp = Blueprint('test', 'test', url_prefix='/test')
+
+        @blp.route('/')
+        @blp.error(400, "ClientErrorResponse")
+        def func():
+            pass
+
+        api.register_blueprint(blp)
+
+        paths = api.spec.to_dict()['paths']
+
+        response_ref = build_ref(api.spec, 'response', 'ClientErrorResponse')
+
+        response = paths['/test/']['get']['responses']['400']
+        assert response == response_ref
+
     @pytest.mark.parametrize('openapi_version', ('2.0', '3.0.2'))
     def test_blueprint_pagination(self, app, schemas, openapi_version):
         app.config['OPENAPI_VERSION'] = openapi_version

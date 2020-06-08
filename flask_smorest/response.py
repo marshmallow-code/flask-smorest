@@ -120,6 +120,62 @@ class ResponseMixin:
 
         return decorator
 
+    def error(
+            self, code, schema_or_ref, *, description=None,
+            example=None, examples=None, headers=None
+    ):
+        """Decorator documenting an endpoint error response
+
+        :param int|str|HTTPStatus code: HTTP status code.
+        :param schema_or_ref: Either a :class:`Schema <marshmallow.Schema>`
+            class or instance or a string error reference.
+            When passing a reference, arguments below are ignored.
+        :param str description: Description of the response (default: None).
+        :param dict example: Example of response message.
+        :param list examples: Examples of response message.
+        :param dict headers: Headers returned by the response.
+        """
+        # If a ref is passed
+        if isinstance(schema_or_ref, str):
+            doc = {'responses': {code: schema_or_ref}}
+        # If a schema is passed
+        else:
+            schema = schema_or_ref
+            if isinstance(schema, type):
+                schema = schema()
+
+            # Document response (schema, description,...) in the API doc
+            resp_doc = {}
+            doc_schema = self._make_doc_error_response_schema(schema)
+            if doc_schema is not None:
+                resp_doc['schema'] = doc_schema
+            if description is not None:
+                resp_doc['description'] = description
+            else:
+                resp_doc['description'] = http.HTTPStatus(int(code)).phrase
+            if example is not None:
+                resp_doc['example'] = example
+            if examples is not None:
+                resp_doc['examples'] = examples
+            if headers is not None:
+                resp_doc['headers'] = headers
+            doc = {'responses': {code: resp_doc}}
+
+        def decorator(func):
+
+            @wraps(func)
+            def wrapper(*args, **kwargs):
+                return func(*args, **kwargs)
+
+            # Store doc in wrapper function
+            # The deepcopy avoids modifying the wrapped function doc
+            wrapper._apidoc = deepcopy(getattr(wrapper, '_apidoc', {}))
+            wrapper._apidoc['response'] = doc
+
+            return wrapper
+
+        return decorator
+
     @staticmethod
     def _make_doc_response_schema(schema):
         """Override this to modify schema in docs
@@ -138,6 +194,11 @@ class ResponseMixin:
                         )
                     return None
         """
+        return schema
+
+    @staticmethod
+    def _make_doc_error_response_schema(schema):
+        """Override this to modify error schema in docs"""
         return schema
 
     @staticmethod

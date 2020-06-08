@@ -85,6 +85,11 @@ def schemas():
         arg1 = ma.fields.String()
         arg2 = ma.fields.Integer()
 
+    class ClientErrorSchema(ma.Schema):
+        error_id = ma.fields.Str()
+        text = ma.fields.Str()
+
     return namedtuple(
-        'Model', ('DocSchema', 'DocEtagSchema', 'QueryArgsSchema'))(
-            DocSchema, DocEtagSchema, QueryArgsSchema)
+        'Model',
+        ('DocSchema', 'DocEtagSchema', 'QueryArgsSchema', 'ClientErrorSchema')
+    )(DocSchema, DocEtagSchema, QueryArgsSchema, ClientErrorSchema)
