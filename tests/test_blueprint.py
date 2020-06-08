@@ -652,6 +652,172 @@ class TestBlueprint:
                 api.spec, 'response', error_response
             )
 
+    @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.2'])
+    def test_blueprint_alt_response_schema(
+            self, app, openapi_version, schemas
+    ):
+        """Check alternate response schema is correctly documented"""
+        app.config['OPENAPI_VERSION'] = openapi_version
+        api = Api(app)
+        blp = Blueprint('test', 'test', url_prefix='/test')
+
+        example = {'error_id': 'E1', 'text': 'client error'}
+        examples = {
+            'example 1': {'error_id': 'E1', 'text': 'client error 1'},
+            'example 2': {'error_id': 'E2', 'text': 'client error 2'},
+        }
+        headers = {'X-Custom-Header': 'Header value'}
+
+        @blp.route('/')
+        @blp.alt_response(400, schemas.ClientErrorSchema)
+        def func():
+            pass
+
+        @blp.route('/description')
+        @blp.alt_response(
+            400, schemas.ClientErrorSchema, description='Client error'
+        )
+        def func_with_description():
+            pass
+
+        @blp.route('/example')
+        @blp.alt_response(400, schemas.ClientErrorSchema, example=example)
+        def func_with_example():
+            pass
+
+        if openapi_version == '3.0.2':
+            @blp.route('/examples')
+            @blp.alt_response(
+                400, schemas.ClientErrorSchema, examples=examples
+            )
+            def func_with_examples():
+                pass
+
+        @blp.route('/headers')
+        @blp.alt_response(400, schemas.ClientErrorSchema, headers=headers)
+        def func_with_headers():
+            pass
+
+        api.register_blueprint(blp)
+
+        paths = api.spec.to_dict()['paths']
+
+        schema_ref = build_ref(api.spec, 'schema', 'ClientError')
+
+        response = paths['/test/']['get']['responses']['400']
+        if openapi_version == '2.0':
+            assert response['schema'] == schema_ref
+        else:
+            assert (
+                response['content']['application/json']['schema'] ==
+                schema_ref
+            )
+        assert response['description'] == http.HTTPStatus(400).phrase
+
+        response = paths['/test/description']['get']['responses']['400']
+        assert response['description'] == 'Client error'
+
+        response = paths['/test/example']['get']['responses']['400']
+        if openapi_version == '2.0':
+            assert response['examples']['application/json'] == example
+        else:
+            assert (
+                response['content']['application/json']['example'] == example
+            )
+
+        if openapi_version == '3.0.2':
+            response = paths['/test/examples']['get']['responses']['400']
+            assert (
+                response['content']['application/json']['examples'] == examples
+            )
+
+        response = paths['/test/headers']['get']['responses']['400']
+        assert response['headers'] == headers
+
+    @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.2'])
+    def test_blueprint_alt_response_ref(self, app, openapi_version):
+        """Check alternate response passed as reference"""
+        app.config['OPENAPI_VERSION'] = openapi_version
+        api = Api(app)
+        api.spec.components.response('ClientErrorResponse')
+
+        blp = Blueprint('test', 'test', url_prefix='/test')
+
+        @blp.route('/')
+        @blp.alt_response(400, "ClientErrorResponse")
+        def func():
+            pass
+
+        api.register_blueprint(blp)
+
+        paths = api.spec.to_dict()['paths']
+
+        response_ref = build_ref(api.spec, 'response', 'ClientErrorResponse')
+
+        assert paths['/test/']['get']['responses']['400'] == response_ref
+
+    @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.2'])
+    def test_blueprint_multiple_alt_response(
+            self, app, openapi_version, schemas
+    ):
+        """Check multiple nested calls to alt_response"""
+        app.config['OPENAPI_VERSION'] = openapi_version
+        api = Api(app)
+        blp = Blueprint('test', 'test', url_prefix='/test')
+
+        @blp.route('/')
+        @blp.alt_response(400, schemas.ClientErrorSchema)
+        @blp.alt_response(404, 'NotFoundErrorResponse')
+        def func():
+            pass
+
+        api.register_blueprint(blp)
+
+        paths = api.spec.to_dict()['paths']
+
+        schema_ref = build_ref(api.spec, 'schema', 'ClientError')
+        response_ref = build_ref(api.spec, 'response', 'NotFoundErrorResponse')
+
+        response = paths['/test/']['get']['responses']['400']
+        if openapi_version == '2.0':
+            assert response['schema'] == schema_ref
+        else:
+            assert (
+                response['content']['application/json']['schema'] ==
+                schema_ref
+            )
+
+        assert paths['/test/']['get']['responses']['404'] == response_ref
+
+    @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.2'])
+    def test_blueprint_alt_response_wrapper(
+            self, app, schemas, openapi_version
+    ):
+        """Check alt_response passes response transparently"""
+        app.config['OPENAPI_VERSION'] = openapi_version
+        api = Api(app)
+        api.spec.components.response('ClientErrorResponse')
+
+        blp = Blueprint('test', 'test', url_prefix='/test')
+        client = app.test_client()
+
+        @blp.route('/')
+        @blp.response(200, schemas.DocSchema)
+        @blp.alt_response(400, "ClientErrorResponse")
+        def func():
+            return {'item_id': 12}
+
+        api.register_blueprint(blp)
+
+        paths = api.spec.to_dict()['paths']
+
+        response_ref = build_ref(api.spec, 'response', 'ClientErrorResponse')
+
+        assert paths['/test/']['get']['responses']['400'] == response_ref
+
+        resp = client.get('test/')
+        assert resp.json == {'item_id': 12}
+
     @pytest.mark.parametrize('openapi_version', ('2.0', '3.0.2'))
     def test_blueprint_pagination(self, app, schemas, openapi_version):
         app.config['OPENAPI_VERSION'] = openapi_version
