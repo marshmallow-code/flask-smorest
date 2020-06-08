@@ -60,7 +60,7 @@ class ResponseMixin:
         if description is not None:
             resp_doc['description'] = description
         else:
-            resp_doc['description'] = http.HTTPStatus(int(code)).name
+            resp_doc['description'] = http.HTTPStatus(int(code)).phrase
         if example is not None:
             resp_doc['example'] = example
         if examples is not None:
