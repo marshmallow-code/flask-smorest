@@ -57,7 +57,7 @@ Install
 
     pip install flask-smorest
 
-flask-smorest supports Python >= 3.5.
+flask-smorest supports Python >= 3.6.
 
 Documentation
 =============
