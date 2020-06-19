@@ -315,3 +315,23 @@ Here's an example application configuration using both ReDoc and Swagger UI:
 
 .. _ReDoc: https://github.com/Rebilly/ReDoc
 .. _Swagger UI: https://swagger.io/tools/swagger-ui/
+
+Write OpenAPI Documentation File
+--------------------------------
+
+flask-smorest provides flask commands to print the OpenAPI file to the standard
+output,
+
+.. code-block:: none
+
+    flask openapi print
+
+or write it to a file.
+
+.. code-block:: none
+
+    flask openapi write openapi.json
+
+A typical use case is to write the OpenAPI documentation to a file in a
+deployment script to host it on a separate server rather than serving it from
+the application.

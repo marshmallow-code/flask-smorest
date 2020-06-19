@@ -4,6 +4,7 @@ import http
 
 import flask
 from flask import current_app
+import click
 import apispec
 from apispec.ext.marshmallow import MarshmallowPlugin
 
@@ -163,6 +164,9 @@ class APISpecMixin(DocBlueprintMixin):
         # Register Upload field properties function
         self.ma_plugin.converter.add_attribute_function(uploadfield2properties)
 
+        # Register OpenAPI command group
+        self._app.cli.add_command(openapi_cli)
+
     def register_converter(self, converter, conv_type, conv_format=None):
         """Register custom path parameter converter
 
@@ -252,3 +256,21 @@ class APISpecMixin(DocBlueprintMixin):
         }
         prepare_response(response, self.spec, DEFAULT_RESPONSE_CONTENT_TYPE)
         self.spec.components.response('DEFAULT_ERROR', response)
+
+
+openapi_cli = flask.cli.AppGroup('openapi', help='OpenAPI commands.')
+
+
+@openapi_cli.command('print')
+def print_openapi_doc():
+    """Print OpenAPI document."""
+    api = current_app.extensions['flask-smorest']['ext_obj']
+    print(json.dumps(api.spec.to_dict(), indent=2))
+
+
+@openapi_cli.command('write')
+@click.argument('output_file', type=click.File(mode='w'))
+def write_openapi_doc(output_file):
+    """Write OpenAPI document to a file."""
+    api = current_app.extensions['flask-smorest']['ext_obj']
+    output_file.write(json.dumps(api.spec.to_dict(), indent=2))
