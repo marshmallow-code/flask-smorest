@@ -175,6 +175,7 @@ fields. The files are injected in the view function as a ``dict`` of werkzeug
 
 .. code-block:: python
 
+    import os.path
     from werkzeug.utils import secure_filename
     from flask_smorest.fields import Upload
 
@@ -187,4 +188,4 @@ fields. The files are injected in the view function as a ``dict`` of werkzeug
     def func(files):
         base_dir = '/path/to/storage/dir/'
         file_1 = files['file_1']
-        file_1.save(secure_filename(file_1.filename))
+        file_1.save(os.path.join(base_dir, secure_filename(file_1.filename)))
