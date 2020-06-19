@@ -30,8 +30,10 @@ Other changes:
 - *Backwards-incompatible*: Drop support for webargs < 6.0.0. Marshmallow 3
   code with stacked ``@arguments`` using the same location must ensure the
   arguments schema have ``Meta.unknown=EXCLUDE``. This also applies to
-  ``@arguments`` with ``query`` location stacked with ``@paginate``.
-  (:pr:`132`)
+  ``@arguments`` with ``query`` location stacked with ``@paginate``. Also,
+  validation error messages are namespaced under the location. See the
+  upgrading guide in webargs documentation for more details and a comprehensive
+  list of changes. (:pr:`132`)
 
 0.20.0 (2020-03-20)
 +++++++++++++++++++
@@ -48,9 +50,9 @@ Bug fixes:
 Other changes:
 
 - *Backwards-incompatible*: Remove ``OPENAPI_REDOC_VERSION`` and
-   ``OPENAPI_SWAGGER_UI_VERSION``. Remove hardcoded CDNs. Users should modify
-   their code to use ``OPENAPI_REDOC_URL`` and ``OPENAPI_SWAGGER_UI_URL``
-   instead. The docs provide examples of CDN URLs. (:issue:`134`).
+  ``OPENAPI_SWAGGER_UI_VERSION``. Remove hardcoded CDNs. Users should modify
+  their code to use ``OPENAPI_REDOC_URL`` and ``OPENAPI_SWAGGER_UI_URL``
+  instead. The docs provide examples of CDN URLs. (:issue:`134`).
 
 0.19.2 (2020-02-20)
 +++++++++++++++++++
