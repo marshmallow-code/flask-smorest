@@ -1,6 +1,17 @@
 Changelog
 ---------
 
+0.22.0 (2020-06-19)
++++++++++++++++++++
+
+Features:
+
+- Add ``flask openapi print`` and ``flask openapi write`` commands (:pr:`154`).
+
+Other changes:
+
+- *Backwards-incompatible*: Drop support for Python 3.5.
+
 0.21.2 (2020-06-09)
 +++++++++++++++++++
 
