@@ -8,7 +8,7 @@ OpenAPI
 known as Swagger) for the API.
 
 That documentation can be made accessible as a JSON file, along with a nice web
-interface such as ReDoc_ or `Swagger UI`_.
+interface such as `ReDoc`_ or `Swagger UI`_.
 
 Specify Versions
 ----------------
@@ -248,7 +248,7 @@ interactively. This feature is accessible through Flask app parameters.
 
    Default: ``openapi.json``
 
-Both ReDoc_ and `Swagger UI`_ interfaces are available to present the API.
+Both `ReDoc`_ and `Swagger UI`_ interfaces are available to present the API.
 
 Their configuration logics are similar. If an application path and a script URL
 are set, then `flask-smorest` adds a route at that path to serve the interface
