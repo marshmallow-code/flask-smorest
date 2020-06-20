@@ -4,6 +4,7 @@ from copy import deepcopy
 from functools import wraps
 import http
 
+from werkzeug.exceptions import default_exceptions
 from werkzeug.wrappers import BaseResponse
 from flask import jsonify
 
@@ -19,13 +20,14 @@ class ResponseMixin:
     """Extend Blueprint to add response handling"""
 
     def response(
-            self, schema=None, *, code=200, description=None,
+            self, schema_or_ref=None, *, code=200, description=None,
             example=None, examples=None, headers=None
     ):
         """Decorator generating an endpoint response
 
-        :param schema: :class:`Schema <marshmallow.Schema>` class or instance.
-            If not None, will be used to serialize response data.
+        :param schema_or_ref: Either a :class:`Schema <marshmallow.Schema>`
+            class or instance or a string error reference.
+            When passing a reference, arguments below are ignored.
         :param int|str|HTTPStatus code: HTTP status code (default: 200).
             Used if none is returned from the view function.
         :param str description: Description of the response (default: None).
@@ -49,30 +51,40 @@ class ResponseMixin:
 
         See :doc:`Response <response>`.
         """
-        if isinstance(schema, type):
-            schema = schema()
-
-        # Document response (schema, description,...) in the API doc
-        resp_doc = {}
-        doc_schema = self._make_doc_response_schema(schema)
-        if doc_schema is not None:
-            resp_doc['schema'] = doc_schema
-        if description is not None:
-            resp_doc['description'] = description
+        # If a ref is passed
+        if isinstance(schema_or_ref, str):
+            doc = {'responses': {code: schema_or_ref}}
+        # If a schema is passed
         else:
-            resp_doc['description'] = http.HTTPStatus(int(code)).phrase
-        if example is not None:
-            resp_doc['example'] = example
-        if examples is not None:
-            resp_doc['examples'] = examples
-        if headers is not None:
-            resp_doc['headers'] = headers
-        doc = {'responses': {code: resp_doc}}
+            schema = schema_or_ref
+            if isinstance(schema, type):
+                schema = schema()
+
+            # Document response (schema, description,...) in the API doc
+            resp_doc = {}
+            doc_schema = self._make_doc_response_schema(schema)
+            if doc_schema is not None:
+                resp_doc['schema'] = doc_schema
+            if description is not None:
+                resp_doc['description'] = description
+            else:
+                resp_doc['description'] = http.HTTPStatus(int(code)).phrase
+            if example is not None:
+                resp_doc['example'] = example
+            if examples is not None:
+                resp_doc['examples'] = examples
+            if headers is not None:
+                resp_doc['headers'] = headers
+            doc = {'responses': {code: resp_doc}}
 
         def decorator(func):
 
             @wraps(func)
             def wrapper(*args, **kwargs):
+
+                # If this decorator is used for an exception, return
+                if code in default_exceptions:
+                    return func(*args, **kwargs)
 
                 # Execute decorated function
                 result_raw, status, headers = unpack_tuple_response(
@@ -113,13 +125,13 @@ class ResponseMixin:
                     )
                 }
 
-            # Document default error response
-            doc['responses']['default'] = 'DEFAULT_ERROR'
-
             # Store doc in wrapper function
             # The deepcopy avoids modifying the wrapped function doc
             wrapper._apidoc = deepcopy(getattr(wrapper, '_apidoc', {}))
-            wrapper._apidoc['response'] = doc
+            wrapper._apidoc['response'] = deepupdate(wrapper._apidoc.get('response', {}), doc)
+
+            # Document default error response if it's not already there
+            wrapper._apidoc['response']['responses'].setdefault('default', 'DEFAULT_ERROR')
 
             return wrapper
 
