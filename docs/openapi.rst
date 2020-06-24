@@ -31,6 +31,16 @@ specified as Flask application parameters:
    The OpenAPI version must be passed either as application parameter or at
    :class:`Api <Api>` initialization in ``spec_kwargs`` parameters.
 
+Specify Title
+-------------
+
+.. describe:: API_TITLE
+
+   Title of the API. Human friendly string describing the API.
+
+   Default: _Flask App name_
+
+
 Add Documentation Information to Resources
 ------------------------------------------
 
@@ -263,7 +273,7 @@ page using the JS script from the script URL.
 .. describe:: OPENAPI_REDOC_URL
 
    URL to the ReDoc script.
-   
+
    Examples:
        * https://rebilly.github.io/ReDoc/releases/v1.x.x/redoc.min.js
        * https://rebilly.github.io/ReDoc/releases/v1.22.3/redoc.min.js

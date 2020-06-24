@@ -103,12 +103,12 @@ class DocBlueprintMixin:
     def _openapi_redoc(self):
         """Expose OpenAPI spec with ReDoc"""
         return flask.render_template(
-            'redoc.html', title=self._app.name, redoc_url=self._redoc_url)
+            'redoc.html', title=self.spec.title, redoc_url=self._redoc_url)
 
     def _openapi_swagger_ui(self):
         """Expose OpenAPI spec with Swagger UI"""
         return flask.render_template(
-            'swagger_ui.html', title=self._app.name,
+            'swagger_ui.html', title=self.spec.title,
             swagger_ui_url=self._swagger_ui_url,
             swagger_ui_supported_submit_methods=(
                 self._swagger_ui_supported_submit_methods)
@@ -148,7 +148,7 @@ class APISpecMixin(DocBlueprintMixin):
 
         # Instantiate spec
         self.spec = apispec.APISpec(
-            self._app.name,
+            self._app.config.get('API_TITLE', self._app.name),
             self._app.config.get('API_VERSION', '1'),
             openapi_version=openapi_version,
             plugins=plugins,
