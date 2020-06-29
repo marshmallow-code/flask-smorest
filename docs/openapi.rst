@@ -313,6 +313,15 @@ Here's an example application configuration using both ReDoc and Swagger UI:
        OPENAPI_SWAGGER_UI_PATH = "/swagger-ui"
        OPENAPI_SWAGGER_UI_URL = "https://cdn.jsdelivr.net/npm/swagger-ui-dist/"
 
+.. describe:: OPENAPI_SWAGGER_UI_DEFAULT_MODELS_EXPAND_DEPTH
+
+   control the display of the models section on swagger-ui >= 3.7.0.  Supported values:
+      * `1`: Show expanded Models section
+      * `0`: Show collapsed Models section
+      * `-1`: Disable Models section entirely
+
+   Default: `-1`
+
 .. _ReDoc: https://github.com/Rebilly/ReDoc
 .. _Swagger UI: https://swagger.io/tools/swagger-ui/
 

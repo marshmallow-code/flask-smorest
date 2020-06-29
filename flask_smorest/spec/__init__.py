@@ -87,6 +87,10 @@ class DocBlueprintMixin:
                         ['get', 'put', 'post', 'delete', 'options',
                          'head', 'patch', 'trace'])
                 )
+                self._swagger_ui_default_models_expand_depth = (
+                    self._app.config.get(
+                        'OPENAPI_SWAGGER_UI_DEFAULT_MODELS_EXPAND_DEPTH', 1)
+                )
                 blueprint.add_url_rule(
                     _add_leading_slash(swagger_ui_path),
                     endpoint='openapi_swagger_ui',
@@ -110,6 +114,8 @@ class DocBlueprintMixin:
         return flask.render_template(
             'swagger_ui.html', title=self._app.name,
             swagger_ui_url=self._swagger_ui_url,
+            swagger_ui_default_models_expand_depth=(
+                self._swagger_ui_default_models_expand_depth),
             swagger_ui_supported_submit_methods=(
                 self._swagger_ui_supported_submit_methods)
         )

@@ -20,6 +20,7 @@
          deepLinking: true,
          layout: "BaseLayout",
          supportedSubmitMethods: [{% for meth in swagger_ui_supported_submit_methods %}"{{meth.lower()}}",{% endfor %}],
+         defaultModelsExpandDepth: {{swagger_ui_default_models_expand_depth}},
        })
        window.ui = ui
      }
