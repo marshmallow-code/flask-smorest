@@ -15,3 +15,4 @@ Contributors (chronological)
 - Douglas Thor `@dougthor42 <https://github.com/dougthor42>`_
 - Steven Loria `@sloria <https://github.com/sloria>`_
 - Jón Bjarnason `@nonnib <https://github.com/nonnib>`_
+- Igor Davydenko `@playpauseandstop <https://github.com/playpauseandstop>`_
