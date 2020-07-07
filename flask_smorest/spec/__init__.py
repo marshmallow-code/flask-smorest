@@ -72,21 +72,12 @@ class DocBlueprintMixin:
 
         The Swagger UI scripts base URL should be specified as
         OPENAPI_SWAGGER_UI_URL.
-
-        OPENAPI_SWAGGER_UI_SUPPORTED_SUBMIT_METHODS specifes the methods for
-        which the 'Try it out!' feature is enabled.
         """
         swagger_ui_path = self._app.config.get('OPENAPI_SWAGGER_UI_PATH')
         if swagger_ui_path is not None:
             swagger_ui_url = self._app.config.get('OPENAPI_SWAGGER_UI_URL')
             if swagger_ui_url is not None:
                 self._swagger_ui_url = swagger_ui_url
-                self._swagger_ui_supported_submit_methods = (
-                    self._app.config.get(
-                        'OPENAPI_SWAGGER_UI_SUPPORTED_SUBMIT_METHODS',
-                        ['get', 'put', 'post', 'delete', 'options',
-                         'head', 'patch', 'trace'])
-                )
                 blueprint.add_url_rule(
                     _add_leading_slash(swagger_ui_path),
                     endpoint='openapi_swagger_ui',
@@ -110,8 +101,7 @@ class DocBlueprintMixin:
         return flask.render_template(
             'swagger_ui.html', title=self.spec.title,
             swagger_ui_url=self._swagger_ui_url,
-            swagger_ui_supported_submit_methods=(
-                self._swagger_ui_supported_submit_methods)
+            swagger_ui_config=self._app.config.get('OPENAPI_SWAGGER_UI_CONFIG', {})
         )
 
 
