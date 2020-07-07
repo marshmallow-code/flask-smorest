@@ -65,11 +65,14 @@ class FlaskPlugin(BasePlugin):
                 'name': argument,
                 'required': True,
             }
-            type_, format_ = self.converter_mapping.get(
-                type(rule._converters[argument]), DEFAULT_TYPE)
+            converter_cls = type(rule._converters[argument])
+            type_, format_ = self.converter_mapping.get(converter_cls, DEFAULT_TYPE)
             schema = {'type': type_}
             if format_ is not None:
                 schema['format'] = format_
+            if issubclass(converter_cls, werkzeug.routing.AnyConverter):
+                matches = re.match('\(\?\:(.*)\)', rule._converters[argument].regex)
+                schema['enum'] = matches.group(1).split('|')
             if self.openapi_version.major < 3:
                 param.update(schema)
             else:

@@ -5,7 +5,7 @@ import http
 import pytest
 
 from flask.views import MethodView
-from werkzeug.routing import BaseConverter
+from werkzeug.routing import AnyConverter, BaseConverter
 import marshmallow as ma
 import apispec
 
@@ -51,6 +51,29 @@ class TestApi:
         # If custom_format is None (default), it does not appear in the spec
         if custom_format is not None:
             schema['format'] = 'custom'
+        parameter = {'in': 'path', 'name': 'val', 'required': True}
+        if openapi_version == '2.0':
+            parameter.update(schema)
+        else:
+            parameter['schema'] = schema
+        assert spec['paths']['/test/{val}']['parameters'] == [parameter]
+
+    @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.2'])
+    def test_api_register_converter_any(
+            self, app, openapi_version
+    ):
+        app.config['OPENAPI_VERSION'] = openapi_version
+        api = Api(app)
+        blp = Blueprint('test', 'test', url_prefix='/test')
+
+        @blp.route('/<any(foo, bar, foobar):val>')
+        def test_func(val):
+            pass
+
+        api.register_blueprint(blp)
+        spec = api.spec.to_dict()
+
+        schema = {'type': 'custom string', 'enum': ['foo', 'bar', 'foobar']}
         parameter = {'in': 'path', 'name': 'val', 'required': True}
         if openapi_version == '2.0':
             parameter.update(schema)
