@@ -10,7 +10,7 @@ import marshmallow as ma
 import apispec
 
 from flask_smorest import Api, Blueprint
-from flask_smorest.exceptions import OpenAPIVersionNotSpecified
+from flask_smorest.exceptions import MissingAPIParameterError
 
 from .utils import get_schemas, get_responses, build_ref
 
@@ -202,20 +202,6 @@ class TestApi:
         api.spec.components.schema('Pet', schema=schemas.DocSchema)
         assert get_schemas(api.spec)['Pet']['dummy'] == 'whatever'
 
-    @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.2'])
-    def test_api_gets_apispec_parameters_from_app(self, app, openapi_version):
-        app.config['API_TITLE'] = 'My API Title'
-        app.config['API_VERSION'] = 'v42'
-        app.config['OPENAPI_VERSION'] = openapi_version
-        api = Api(app)
-        spec = api.spec.to_dict()
-
-        assert spec['info'] == {'title': 'My API Title', 'version': 'v42'}
-        if openapi_version == '2.0':
-            assert spec['swagger'] == '2.0'
-        else:
-            assert spec['openapi'] == '3.0.2'
-
     def test_api_register_blueprint_options(self, app):
         api = Api(app)
         blp = Blueprint('test', 'test', url_prefix='/test1')
@@ -251,20 +237,49 @@ class TestApi:
         else:
             assert 'basePath' not in spec
 
-    def test_api_openapi_version_parameters(self, app):
-        """Test OpenAPI version must be passed, as app param or spec kwarg"""
+    @pytest.mark.parametrize(
+        'parameter',
+        [
+            ('title', 'API_TITLE', 'Test', 'title'),
+            ('version', 'API_VERSION', '2', 'version'),
+        ]
+    )
+    def test_api_api_parameters(self, app, parameter):
+        """Test API parameters must be passed, as app param or spec kwarg"""
 
-        app.config['OPENAPI_VERSION'] = '3.0.2'
+        param_name, config_param, param_value, oas_name = parameter
+
+        app.config[config_param] = param_value
         api = Api(app)
-        assert api.spec.to_dict()['openapi'] == '3.0.2'
+        assert api.spec.to_dict()['info'][oas_name] == param_value
 
-        del app.config['OPENAPI_VERSION']
-        api = Api(app, spec_kwargs={'openapi_version': '3.0.2'})
-        assert api.spec.to_dict()['openapi'] == '3.0.2'
+        del app.config[config_param]
+        api = Api(app, spec_kwargs={param_name: param_value})
+        assert api.spec.to_dict()['info'][oas_name] == param_value
 
         with pytest.raises(
-                OpenAPIVersionNotSpecified,
-                match='The OpenAPI version must be specified'
+                MissingAPIParameterError,
+                match='must be specified either as'
+        ):
+            Api(app)
+
+    @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.2'])
+    def test_api_openapi_version_parameter(self, app, openapi_version):
+        """Test OpenAPI version must be passed, as app param or spec kwarg"""
+
+        key = {'2.0': 'swagger', '3.0.2': 'openapi'}[openapi_version]
+
+        app.config['OPENAPI_VERSION'] = openapi_version
+        api = Api(app)
+        assert api.spec.to_dict()[key] == openapi_version
+
+        del app.config['OPENAPI_VERSION']
+        api = Api(app, spec_kwargs={'openapi_version': openapi_version})
+        assert api.spec.to_dict()[key] == openapi_version
+
+        with pytest.raises(
+                MissingAPIParameterError,
+                match='OpenAPI version must be specified'
         ):
             Api(app)
 

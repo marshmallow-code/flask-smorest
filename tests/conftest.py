@@ -16,6 +16,8 @@ class AppConfig:
 
     Overload this to add config parameters
     """
+    API_TITLE = 'API Test'
+    API_VERSION = '1'
     OPENAPI_VERSION = '3.0.2'
 
 
@@ -29,7 +31,7 @@ def collection(request):
 
 @pytest.fixture(params=[AppConfig])
 def app(request):
-    _app = Flask('API Test')
+    _app = Flask(__name__)
     _app.config.from_object(request.param)
     return _app
 

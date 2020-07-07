@@ -10,35 +10,37 @@ known as Swagger) for the API.
 That documentation can be made accessible as a JSON file, along with a nice web
 interface such as `ReDoc`_ or `Swagger UI`_.
 
-Specify Versions
-----------------
+API parameters
+--------------
 
-The version of the API and the version of the OpenAPI specification can be
-specified as Flask application parameters:
+The following API and OpenAPI parameters must be passed either as application
+configuration parameter or at initialization. If both are used, the application
+configuration parameter takes precedence.
+
+.. describe:: API_TITLE
+
+   Title of the API. Human friendly string describing the API.
+
+   API title must be passed either as application parameter or as `title`
+   at :class:`Api <Api>` initialization in ``spec_kwargs`` parameters.
 
 .. describe:: API_VERSION
 
    Version of the API. It is copied verbatim in the documentation. It should be
-   a string, even it the version is a number.
+   a string, even if the version is a number.
 
-   Default: ``'1'``
+   API version must be passed either as application parameter or as `version`
+   at :class:`Api <Api>` initialization in ``spec_kwargs`` parameters.
 
 .. describe:: OPENAPI_VERSION
 
    Version of the OpenAPI standard used to describe the API. It should be
    provided as a string.
 
-   The OpenAPI version must be passed either as application parameter or at
-   :class:`Api <Api>` initialization in ``spec_kwargs`` parameters.
+   OpenAPI version must be passed either as application parameter or as
+   `openapi_version` at :class:`Api <Api>` initialization in ``spec_kwargs``
+   parameters.
 
-Specify Title
--------------
-
-.. describe:: API_TITLE
-
-   Title of the API. Human friendly string describing the API.
-
-   Default: _Flask App name_
 
 
 Add Documentation Information to Resources

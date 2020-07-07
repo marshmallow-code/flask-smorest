@@ -39,7 +39,9 @@ First instantiate an :class:`Api <Api>` with a :class:`Flask <flask.Flask>` appl
 
     from .model import Pet
 
-    app = Flask('My API')
+    app = Flask(__name__)
+    app.config['TITLE'] = 'My API'
+    app.config['API_VERSION'] = 'v1'
     app.config['OPENAPI_VERSION'] = '3.0.2'
     api = Api(app)
 

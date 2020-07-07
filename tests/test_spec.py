@@ -60,8 +60,6 @@ class TestAPISpecServeDocs:
         """Test default values and leading/trailing slashes issues"""
 
         class NewAppConfig(AppConfig):
-            API_TITLE = 'My API title'
-
             if prefix is not None:
                 OPENAPI_URL_PREFIX = prefix
             if json_path is not None:
@@ -75,7 +73,7 @@ class TestAPISpecServeDocs:
             if swagger_ui_url is not None:
                 OPENAPI_SWAGGER_UI_URL = swagger_ui_url
 
-        title_tag = '<title>My API title</title>'
+        title_tag = '<title>API Test</title>'
         app.config.from_object(NewAppConfig)
         Api(app)
         client = app.test_client()
@@ -88,7 +86,7 @@ class TestAPISpecServeDocs:
             assert response_swagger_ui.status_code == 404
         else:
             assert response_json_docs.json['info'] == {
-                'version': '1', 'title': 'My API title'}
+                'version': '1', 'title': 'API Test'}
             if (
                     app.config.get('OPENAPI_REDOC_PATH') is None or
                     app.config.get('OPENAPI_REDOC_URL') is None

@@ -7,8 +7,8 @@ class FlaskSmorestError(Exception):
     """Generic flask-smorest exception"""
 
 
-class OpenAPIVersionNotSpecified(FlaskSmorestError):
-    """OpenAPI version was not specified"""
+class MissingAPIParameterError(FlaskSmorestError):
+    """Missing API parameter"""
 
 
 class CheckEtagNotCalledError(FlaskSmorestError):
