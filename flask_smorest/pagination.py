@@ -13,6 +13,7 @@ from copy import deepcopy
 from collections import OrderedDict
 from functools import wraps
 import http
+import json
 
 from flask import request, current_app
 
@@ -109,11 +110,11 @@ class Page:
                         self.collection, self.page_params))
 
 
-class PaginationHeaderSchema(ma.Schema):
-    """Pagination header schema
+class PaginationMetadataSchema(ma.Schema):
+    """Pagination metadata schema
 
-    Used to serialize pagination header.
-    Its main purpose is to document the pagination header.
+    Used to serialize pagination metadata.
+    Its main purpose is to document the pagination metadata.
     """
     total = ma.fields.Int()
     total_pages = ma.fields.Int()
@@ -140,11 +141,6 @@ class PaginationMixin:
     # Can be overridden to provide custom defaults
     DEFAULT_PAGINATION_PARAMETERS = {
         'page': 1, 'page_size': 10, 'max_page_size': 100}
-
-    PAGINATION_HEADER_DOC = {
-        'description': 'Pagination metadata',
-        'schema': PaginationHeaderSchema,
-    }
 
     def paginate(self, pager=None, *,
                  page=None, page_size=None, max_page_size=None):
@@ -204,20 +200,16 @@ class PaginationMixin:
                 if pager is not None:
                     result = pager(result, page_params=page_params).items
 
-                # Add pagination metadata to headers
+                # Set pagination metadata in response
                 if self.PAGINATION_HEADER_FIELD_NAME is not None:
                     if page_params.item_count is None:
                         current_app.logger.warning(
                             'item_count not set in endpoint {}'
-                            .format(request.endpoint))
+                            .format(request.endpoint)
+                        )
                     else:
-                        page_header = self._make_pagination_header(
-                            page_params.page, page_params.page_size,
-                            page_params.item_count)
-                        if headers is None:
-                            headers = {}
-                        headers[
-                            self.PAGINATION_HEADER_FIELD_NAME] = page_header
+                        result, headers = self._set_pagination_metadata(
+                            page_params, result, headers)
 
                 return result, status, headers
 
@@ -230,49 +222,78 @@ class PaginationMixin:
                     http.HTTPStatus(error_status_code).name,
                 }
             }
-            wrapper._paginated = True
 
             return wrapper
 
         return decorator
 
     @staticmethod
-    def _make_pagination_header(page, page_size, item_count):
-        """Build pagination header from page, page size and item count
+    def _make_pagination_metadata(page, page_size, item_count):
+        """Build pagination metadata from page, page size and item count
 
-        This method returns a json representation of a default pagination
-        metadata structure. It can be overridden to use another structure.
+        Override this to use another pagination metadata structure
         """
-        page_header = OrderedDict()
-        page_header['total'] = item_count
+        page_metadata = OrderedDict()
+        page_metadata['total'] = item_count
         if item_count == 0:
-            page_header['total_pages'] = 0
+            page_metadata['total_pages'] = 0
         else:
             # First / last page, page count
             page_count = ((item_count - 1) // page_size) + 1
             first_page = 1
             last_page = page_count
-            page_header['total_pages'] = page_count
-            page_header['first_page'] = first_page
-            page_header['last_page'] = last_page
+            page_metadata['total_pages'] = page_count
+            page_metadata['first_page'] = first_page
+            page_metadata['last_page'] = last_page
             # Page, previous / next page
             if page <= last_page:
-                page_header['page'] = page
+                page_metadata['page'] = page
                 if page > first_page:
-                    page_header['previous_page'] = page - 1
+                    page_metadata['previous_page'] = page - 1
                 if page < last_page:
-                    page_header['next_page'] = page + 1
-        header = PaginationHeaderSchema().dumps(page_header)
+                    page_metadata['next_page'] = page + 1
+        metadata = PaginationMetadataSchema().dump(page_metadata)
         if MARSHMALLOW_VERSION_MAJOR < 3:
-            header = header.data
-        return header
+            metadata = metadata.data
+        return metadata
 
-    @staticmethod
-    def _prepare_pagination_doc(doc, doc_info, **kwargs):
+    def _set_pagination_metadata(self, page_params, result, headers):
+        """Add pagination metadata to headers
+
+        Override this to set pagination data another way
+        """
+        if headers is None:
+            headers = {}
+        headers[self.PAGINATION_HEADER_FIELD_NAME] = json.dumps(
+            self._make_pagination_metadata(
+                page_params.page,
+                page_params.page_size,
+                page_params.item_count
+            )
+        )
+        return result, headers
+
+    def _document_pagination_metadata(self, spec, resp_doc):
+        """Document pagination metadata header
+
+        Override this to document custom pagination metadata
+        """
+        resp_doc['headers'] = {
+            self.PAGINATION_HEADER_FIELD_NAME: {
+                'description': 'Pagination metadata',
+                'schema': PaginationMetadataSchema,
+            }
+        }
+
+    def _prepare_pagination_doc(self, doc, doc_info, spec, **kwargs):
         operation = doc_info.get('pagination')
         if operation:
             parameters = operation.get('parameters')
             doc.setdefault('parameters', []).append(parameters)
             response = operation.get('response')
             doc.setdefault('responses', {}).update(response)
+            success_status_code = doc_info.get('success_status_code')
+            if success_status_code is not None:
+                self._document_pagination_metadata(
+                    spec, doc['responses'][success_status_code])
         return doc

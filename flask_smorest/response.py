@@ -105,14 +105,6 @@ class ResponseMixin:
 
                 return resp
 
-            # Document pagination header if needed
-            if getattr(func, '_paginated', False) is True:
-                doc['responses'][code]['headers'] = {
-                    self.PAGINATION_HEADER_FIELD_NAME: (
-                        self.PAGINATION_HEADER_DOC
-                    )
-                }
-
             # Document default error response
             doc['responses']['default'] = 'DEFAULT_ERROR'
 
@@ -120,6 +112,9 @@ class ResponseMixin:
             # The deepcopy avoids modifying the wrapped function doc
             wrapper._apidoc = deepcopy(getattr(wrapper, '_apidoc', {}))
             wrapper._apidoc['response'] = doc
+            # Indicate which code is the success status code
+            # Helps other decorators documenting success response
+            wrapper._apidoc['success_status_code'] = code
 
             return wrapper
 

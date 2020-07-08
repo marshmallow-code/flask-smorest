@@ -167,11 +167,11 @@ class TestPagination:
         api.register_blueprint(blp)
         spec = api.spec.to_dict()
         get = spec['paths']['/test/']['get']
-        assert 'PaginationHeader' in get_schemas(api.spec)
+        assert 'PaginationMetadata' in get_schemas(api.spec)
         assert get['responses']['200']['headers'] == {
             'X-Custom-Pagination-Header': {
                 'description': 'Pagination metadata',
-                'schema': {'$ref': '#/components/schemas/PaginationHeader'},
+                'schema': {'$ref': '#/components/schemas/PaginationMetadata'},
             }
         }
 
