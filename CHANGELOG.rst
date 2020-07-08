@@ -1,6 +1,23 @@
 Changelog
 ---------
 
+0.23.0 (2020-07-08)
++++++++++++++++++++
+
+Features:
+
+- *Backwards-incompatible*: Make API title and version mandatory parameters.
+  Before this change, the version would default to ``"1"`` and the title would
+  be ``app.name``. Those two parameters can be passed at init or as application
+  configuration parameters ``TITLE`` and ``API_VERSION``. Also rename
+  ``OpenAPIVersionNotSpecified`` as ``MissingAPIParameterError``. (:pr:`169`).
+  Thanks :user:`playpauseandstop` for the help on this.
+
+- *Backwards-incompatible*: Rework pagination documentation to allow more
+  customization. This change will break code overriding
+  ``PAGINATION_HEADER_DOC``, ``_make_pagination_header`` or
+  ``_prepare_pagination_doc`` (:pr:`153`).
+
 0.22.0 (2020-06-19)
 +++++++++++++++++++
 
