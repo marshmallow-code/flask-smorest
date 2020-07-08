@@ -8,7 +8,7 @@ import click
 import apispec
 from apispec.ext.marshmallow import MarshmallowPlugin
 
-from flask_smorest.exceptions import OpenAPIVersionNotSpecified
+from flask_smorest.exceptions import MissingAPIParameterError
 from flask_smorest.utils import prepare_response
 from .plugins import FlaskPlugin
 from .field_converters import uploadfield2properties
@@ -103,12 +103,12 @@ class DocBlueprintMixin:
     def _openapi_redoc(self):
         """Expose OpenAPI spec with ReDoc"""
         return flask.render_template(
-            'redoc.html', title=self._app.name, redoc_url=self._redoc_url)
+            'redoc.html', title=self.spec.title, redoc_url=self._redoc_url)
 
     def _openapi_swagger_ui(self):
         """Expose OpenAPI spec with Swagger UI"""
         return flask.render_template(
-            'swagger_ui.html', title=self._app.name,
+            'swagger_ui.html', title=self.spec.title,
             swagger_ui_url=self._swagger_ui_url,
             swagger_ui_supported_submit_methods=(
                 self._swagger_ui_supported_submit_methods)
@@ -119,8 +119,10 @@ class APISpecMixin(DocBlueprintMixin):
     """Add APISpec related features to Api class"""
 
     def _init_spec(
-            self, *, flask_plugin=None, marshmallow_plugin=None,
-            extra_plugins=None, openapi_version=None, **options
+            self, *,
+            flask_plugin=None, marshmallow_plugin=None, extra_plugins=None,
+            title=None, version=None, openapi_version=None,
+            **options
     ):
         # Plugins
         self.flask_plugin = flask_plugin or FlaskPlugin()
@@ -129,13 +131,25 @@ class APISpecMixin(DocBlueprintMixin):
         plugins.extend(extra_plugins or ())
 
         # APISpec options
+        title = self._app.config.get('API_TITLE', title)
+        if title is None:
+            raise MissingAPIParameterError(
+                'API title must be specified either as "API_TITLE" '
+                'app parameter or as "title" spec kwarg.'
+            )
+        version = self._app.config.get('API_VERSION', version)
+        if version is None:
+            raise MissingAPIParameterError(
+                'API version must be specified either as "API_VERSION" '
+                'app parameter or as "version" spec kwarg.'
+            )
         openapi_version = self._app.config.get(
             'OPENAPI_VERSION', openapi_version)
         if openapi_version is None:
-            raise OpenAPIVersionNotSpecified(
-                'The OpenAPI version must be specified, either as '
-                '"OPENAPI_VERSION" app parameter or as '
-                '"openapi_version" spec kwarg.')
+            raise MissingAPIParameterError(
+                'OpenAPI version must be specified either as "OPENAPI_VERSION '
+                'app parameter or as "openapi_version" spec kwarg.'
+            )
         openapi_major_version = int(openapi_version.split('.')[0])
         if openapi_major_version < 3:
             base_path = self._app.config.get('APPLICATION_ROOT')
@@ -148,11 +162,7 @@ class APISpecMixin(DocBlueprintMixin):
 
         # Instantiate spec
         self.spec = apispec.APISpec(
-            self._app.name,
-            self._app.config.get('API_VERSION', '1'),
-            openapi_version=openapi_version,
-            plugins=plugins,
-            **options,
+            title, version, openapi_version, plugins, **options,
         )
 
         # Register custom fields in spec

@@ -26,13 +26,14 @@ class Api(APISpecMixin, ErrorHandlerMixin):
     :param apispec.BasePlugin marshmallow_plugin: Marshmallow plugin
     :param list|tuple extra_plugins: List of additional ``BasePlugin``
         instances
+    :param str title: API title. Can also be passed as
+        application parameter `API_TITLE`.
+    :param str version: API version. Can also be passed as
+        application parameter `API_VERSION`.
     :param str openapi_version: OpenAPI version. Can also be passed as
         application parameter `OPENAPI_VERSION`.
 
     This allows the user to override default Flask and marshmallow plugins.
-
-    `title` and `version` APISpec parameters can't be passed here, they are set
-    according to the app configuration.
 
     For more flexibility, additional spec kwargs can also be passed as app
     parameter `API_SPEC_OPTIONS`.

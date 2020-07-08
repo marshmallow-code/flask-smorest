@@ -73,6 +73,7 @@ class TestAPISpecServeDocs:
             if swagger_ui_url is not None:
                 OPENAPI_SWAGGER_UI_URL = swagger_ui_url
 
+        title_tag = '<title>API Test</title>'
         app.config.from_object(NewAppConfig)
         Api(app)
         client = app.test_client()
@@ -95,6 +96,7 @@ class TestAPISpecServeDocs:
                 assert response_redoc.status_code == 200
                 assert (response_redoc.headers['Content-Type'] ==
                         'text/html; charset=utf-8')
+                assert title_tag in response_redoc.get_data(True)
             if (
                     app.config.get('OPENAPI_SWAGGER_UI_PATH') is None or
                     app.config.get('OPENAPI_SWAGGER_UI_URL') is None
@@ -104,6 +106,7 @@ class TestAPISpecServeDocs:
                 assert response_swagger_ui.status_code == 200
                 assert (response_swagger_ui.headers['Content-Type'] ==
                         'text/html; charset=utf-8')
+                assert title_tag in response_swagger_ui.get_data(True)
 
     @pytest.mark.parametrize('prefix', ('', '/'))
     @pytest.mark.parametrize('path', ('', '/'))
