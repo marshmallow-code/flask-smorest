@@ -285,7 +285,7 @@ class PaginationMixin:
             }
         }
 
-    def _prepare_pagination_doc(self, doc, doc_info, spec, **kwargs):
+    def _prepare_pagination_doc(self, doc, doc_info, *, spec, **kwargs):
         operation = doc_info.get('pagination')
         if operation:
             doc.setdefault('parameters', []).append(operation['parameters'])

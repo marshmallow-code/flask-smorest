@@ -247,7 +247,7 @@ class EtagMixin:
                 self._check_not_modified(new_etag)
             response.set_etag(new_etag)
 
-    def _prepare_etag_doc(self, doc, doc_info, app, method, **kwargs):
+    def _prepare_etag_doc(self, doc, doc_info, *, app, method, **kwargs):
         if (
                 doc_info.get('etag', False) and
                 not app.config.get('ETAG_DISABLED', False)

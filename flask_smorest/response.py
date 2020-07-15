@@ -157,7 +157,7 @@ class ResponseMixin:
         return data
 
     @staticmethod
-    def _prepare_response_doc(doc, doc_info, spec, **kwargs):
+    def _prepare_response_doc(doc, doc_info, *, spec, **kwargs):
         operation = doc_info.get('response')
         if operation:
             for response in operation['responses'].values():

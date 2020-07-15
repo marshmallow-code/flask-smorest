@@ -527,7 +527,7 @@ class TestCustomExamples:
                                 )
                 return super(
                     WrapperBlueprint, WrapperBlueprint
-                )._prepare_response_doc(doc, doc_info, spec, **kwargs)
+                )._prepare_response_doc(doc, doc_info, spec=spec, **kwargs)
 
         app.config['OPENAPI_VERSION'] = openapi_version
         api = Api(app)
