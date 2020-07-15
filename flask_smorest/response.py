@@ -80,8 +80,6 @@ class ResponseMixin:
 
                 # If return value is a werkzeug BaseResponse, return it
                 if isinstance(result_raw, BaseResponse):
-                    set_status_and_headers_in_response(
-                        result_raw, status, headers)
                     return result_raw
 
                 # Dump result with schema if specified
