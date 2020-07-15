@@ -158,8 +158,9 @@ class ResponseMixin:
 
     @staticmethod
     def _prepare_response_doc(doc, doc_info, spec, **kwargs):
-        operation = doc_info.get('response', {})
-        for response in operation.get('responses', {}).values():
-            prepare_response(response, spec, DEFAULT_RESPONSE_CONTENT_TYPE)
-        doc = deepupdate(doc, operation)
+        operation = doc_info.get('response')
+        if operation:
+            for response in operation['responses'].values():
+                prepare_response(response, spec, DEFAULT_RESPONSE_CONTENT_TYPE)
+            doc = deepupdate(doc, operation)
         return doc
