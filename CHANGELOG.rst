@@ -1,6 +1,19 @@
 Changelog
 ---------
 
+0.24.0 (2020-07-17)
++++++++++++++++++++
+
+Features:
+
+- *Backwards-incompatible*: Add ``OPENAPI_SWAGGER_UI_CONFIG`` to allow passing
+  a dict of Swagger UI configuration parameters. Remove
+  ``OPENAPI_SWAGGER_UI_SUPPORTED_SUBMIT_METHODS``: the same can be achieved by
+  passing ``supportedSubmitMethods`` in ``OPENAPI_SWAGGER_UI_CONFIG``. Remove
+  ``layout`` and ``deepLinking`` default overrides. Those can be passed in
+  ``OPENAPI_SWAGGER_UI_CONFIG`` as well. (:pr:`171`).
+  Thanks :user:`joshua-harrison-2011` for the pull-request.
+
 0.23.0 (2020-07-08)
 +++++++++++++++++++
 
