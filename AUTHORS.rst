@@ -16,3 +16,4 @@ Contributors (chronological)
 - Steven Loria `@sloria <https://github.com/sloria>`_
 - Jón Bjarnason `@nonnib <https://github.com/nonnib>`_
 - Igor Davydenko `@playpauseandstop <https://github.com/playpauseandstop>`_
+- Joshua Harrison `@joshua-harrison-2011 <https://github.com/joshua-harrison-2011>`_

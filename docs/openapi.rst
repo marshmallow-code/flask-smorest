@@ -303,14 +303,15 @@ page using the JS script from the script URL.
 
    Default: ``None``
 
-.. describe:: OPENAPI_SWAGGER_UI_SUPPORTED_SUBMIT_METHODS
+.. describe:: OPENAPI_SWAGGER_UI_CONFIG
 
-   List of methods for which the '*Try it out!*' feature is enabled. Should be a
-   list of lowercase HTTP methods.
+   Dictionary representing Swagger UI configuration options.  See `Swagger UI Configuration`_ for available options.
+   All JSON serializable options are supported.
 
-   Passing an empty list disables the feature globally.
+   Examples:
+      * ``{'deepLinking': True, 'supportedSubmitMethods': ['get', 'post']}``
 
-   Default: ``['get', 'put', 'post', 'delete', 'options', 'head', 'patch', 'trace']``
+   Default: ``{}``
 
 Here's an example application configuration using both ReDoc and Swagger UI:
 
@@ -327,6 +328,7 @@ Here's an example application configuration using both ReDoc and Swagger UI:
 
 .. _ReDoc: https://github.com/Rebilly/ReDoc
 .. _Swagger UI: https://swagger.io/tools/swagger-ui/
+.. _Swagger UI Configuration: https://swagger.io/docs/open-source-tools/swagger-ui/usage/configuration/
 
 Write OpenAPI Documentation File
 --------------------------------
