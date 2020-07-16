@@ -99,9 +99,11 @@ class DocBlueprintMixin:
     def _openapi_swagger_ui(self):
         """Expose OpenAPI spec with Swagger UI"""
         return flask.render_template(
-            'swagger_ui.html', title=self.spec.title,
+            'swagger_ui.html',
+            title=self.spec.title,
             swagger_ui_url=self._swagger_ui_url,
-            swagger_ui_config=self._app.config.get('OPENAPI_SWAGGER_UI_CONFIG', {})
+            swagger_ui_config=self._app.config.get(
+                'OPENAPI_SWAGGER_UI_CONFIG', {})
         )
 
 
