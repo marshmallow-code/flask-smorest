@@ -197,14 +197,22 @@ The :meth:`Api.register_converter` allows to register a converter in the
 
 .. code-block:: python
 
-    # Register MongoDB's ObjectId converter in Flask application
-    app.url_map.converters['objectid'] = ObjectIdConverter
+   # Register MongoDB's ObjectId converter in Flask application
+   app.url_map.converters['objectid'] = ObjectIdConverter
 
-    # Register converter in Api
-    api.register_converter(ObjectIdConverter, 'string', 'ObjectID')
+   # Define custom converter to schema function
+   def objectidconverter2paramschema(converter):
+       return {'type': 'string', 'format': 'ObjectID'}
 
-    @blp.route('/pets/{objectid:pet_id}')
-        ...
+   # Register converter in Api
+   api.register_converter(
+       ObjectIdConverter,
+       objectidconverter2paramschema
+   )
+
+   @blp.route('/pets/{objectid:pet_id}')
+       ...
+
 
 Enforce Order in OpenAPI Specification File
 -------------------------------------------

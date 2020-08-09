@@ -419,24 +419,12 @@ class TestBlueprint:
         spec = api.spec.to_dict()
         params = spec['paths']['/test/{item_id}']['parameters']
         assert len(params) == 2
+        assert params[0] == build_ref(api.spec, 'parameter', 'TestParameter')
+        assert params[1]['description'] == 'Item ID'
         if openapi_version == '2.0':
-            assert params == [
-                build_ref(api.spec, 'parameter', 'TestParameter'),
-                {
-                    'name': 'item_id', 'in': 'path', 'required': True,
-                    'description': 'Item ID',
-                    'format': 'int32', 'type': 'integer'
-                },
-            ]
+            assert params[1]['type'] == 'integer'
         else:
-            assert params == [
-                build_ref(api.spec, 'parameter', 'TestParameter'),
-                {
-                    'name': 'item_id', 'in': 'path', 'required': True,
-                    'description': 'Item ID',
-                    'schema': {'format': 'int32', 'type': 'integer'}
-                },
-            ]
+            assert params[1]['schema']['type'] == 'integer'
 
     @pytest.mark.parametrize('as_method_view', (True, False))
     def test_blueprint_route_path_parameter_default(self, app, as_method_view):

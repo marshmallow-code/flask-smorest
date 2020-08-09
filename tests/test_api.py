@@ -19,10 +19,105 @@ class TestApi:
     """Test Api class"""
 
     @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.2'])
+    @pytest.mark.parametrize(
+        "params",
+        [
+            ("", {"minLength": 1}),
+            ("(minlength=12)", {"minLength": 12}),
+            ("(maxlength=12)", {"minLength": 1, "maxLength": 12}),
+            ("(length=12)", {"minLength": 12, "maxLength": 12}),
+
+        ]
+    )
+    def test_api_unicode_converter(self, app, params, openapi_version):
+        app.config['OPENAPI_VERSION'] = openapi_version
+        api = Api(app)
+        blp = Blueprint('test', 'test', url_prefix='/test')
+
+        param, output = params
+
+        @blp.route('/<string{}:val>'.format(param))
+        def test(val):
+            pass
+
+        api.register_blueprint(blp)
+        spec = api.spec.to_dict()
+
+        schema = {'type': 'string'}
+        schema.update(output)
+        parameter = {'in': 'path', 'name': 'val', 'required': True}
+        if openapi_version == '2.0':
+            parameter.update(schema)
+        else:
+            parameter['schema'] = schema
+        assert spec['paths']['/test/{val}']['parameters'] == [parameter]
+
+    @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.2'])
+    @pytest.mark.parametrize(
+        "params",
+        [
+            ("", {"minimum": 0}),
+            ("(min=12)", {"minimum": 12}),
+            ("(max=12)", {"minimum": 0, "maximum": 12}),
+            ("(signed=True)", {}),
+
+        ]
+    )
+    @pytest.mark.parametrize('nb_type', ('int', 'float'))
+    def test_api_int_float_converter(
+            self, app, params, nb_type, openapi_version
+    ):
+        app.config['OPENAPI_VERSION'] = openapi_version
+        api = Api(app)
+        blp = Blueprint('test', 'test', url_prefix='/test')
+
+        param, output = params
+
+        @blp.route('/<{}{}:val>'.format(nb_type, param))
+        def test(val):
+            pass
+
+        api.register_blueprint(blp)
+        spec = api.spec.to_dict()
+
+        schema = {
+            'int': {'type': 'integer', 'format': 'int32'},
+            'float': {'type': 'number', 'format': 'float'},
+        }[nb_type]
+        schema.update(output)
+        parameter = {'in': 'path', 'name': 'val', 'required': True}
+        if openapi_version == '2.0':
+            parameter.update(schema)
+        else:
+            parameter['schema'] = schema
+        assert spec['paths']['/test/{val}']['parameters'] == [parameter]
+
+    @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.2'])
+    def test_api_uuid_converter(self, app, openapi_version):
+        app.config['OPENAPI_VERSION'] = openapi_version
+        api = Api(app)
+        blp = Blueprint('test', 'test', url_prefix='/test')
+
+        @blp.route('/<uuid:val>')
+        def test(val):
+            pass
+
+        api.register_blueprint(blp)
+        spec = api.spec.to_dict()
+
+        schema = {'type': 'string', 'format': 'uuid'}
+        parameter = {'in': 'path', 'name': 'val', 'required': True}
+        if openapi_version == '2.0':
+            parameter.update(schema)
+        else:
+            parameter['schema'] = schema
+        assert spec['paths']['/test/{val}']['parameters'] == [parameter]
+
+    @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.2'])
+    @pytest.mark.parametrize('register', (True, False))
     @pytest.mark.parametrize('view_type', ['function', 'method'])
-    @pytest.mark.parametrize('custom_format', ['custom', None])
     def test_api_register_converter(
-            self, app, view_type, custom_format, openapi_version
+            self, app, view_type, register, openapi_version
     ):
         app.config['OPENAPI_VERSION'] = openapi_version
         api = Api(app)
@@ -31,8 +126,12 @@ class TestApi:
         class CustomConverter(BaseConverter):
             pass
 
+        def converter2paramschema(converter):
+            return {'type': 'custom string', 'format': 'custom format'}
+
         app.url_map.converters['custom_str'] = CustomConverter
-        api.register_converter(CustomConverter, 'custom string', custom_format)
+        if register:
+            api.register_converter(CustomConverter, converter2paramschema)
 
         if view_type == 'function':
             @blp.route('/<custom_str:val>')
@@ -47,10 +146,10 @@ class TestApi:
         api.register_blueprint(blp)
         spec = api.spec.to_dict()
 
-        schema = {'type': 'custom string'}
-        # If custom_format is None (default), it does not appear in the spec
-        if custom_format is not None:
-            schema['format'] = 'custom'
+        if register:
+            schema = {'type': 'custom string', 'format': 'custom format'}
+        else:
+            schema = {'type': 'string'}
         parameter = {'in': 'path', 'name': 'val', 'required': True}
         if openapi_version == '2.0':
             parameter.update(schema)
@@ -59,7 +158,7 @@ class TestApi:
         assert spec['paths']['/test/{val}']['parameters'] == [parameter]
 
     @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.2'])
-    def test_api_register_converter_before_and_after_init(
+    def test_api_register_converter_before_or_after_init(
             self, app, openapi_version
     ):
         app.config['OPENAPI_VERSION'] = openapi_version
@@ -72,11 +171,17 @@ class TestApi:
         class CustomConverter_2(BaseConverter):
             pass
 
+        def converter12paramschema(converter):
+            return {'type': 'custom string 1'}
+
+        def converter22paramschema(converter):
+            return {'type': 'custom string 2'}
+
         app.url_map.converters['custom_str_1'] = CustomConverter_1
         app.url_map.converters['custom_str_2'] = CustomConverter_2
-        api.register_converter(CustomConverter_1, 'custom string 1')
+        api.register_converter(CustomConverter_1, converter12paramschema)
         api.init_app(app)
-        api.register_converter(CustomConverter_2, 'custom string 2')
+        api.register_converter(CustomConverter_2, converter22paramschema)
 
         @blp.route('/1/<custom_str_1:val>')
         def test_func_1(val):
