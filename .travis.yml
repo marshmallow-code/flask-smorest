@@ -18,7 +18,7 @@ jobs:
     - stage: PyPI Release
       if: tag IS present
       python: '3.8'
-      env: TOXENV=py37-ma3
+      env: TOXENV=py38-ma3
       install: skip
       script: echo "Releasing to PyPI..."
       deploy:
