@@ -169,21 +169,28 @@ class APISpecMixin(DocBlueprintMixin):
         # Register OpenAPI command group
         self._app.cli.add_command(openapi_cli)
 
-    def register_converter(self, converter, conv_type, conv_format=None):
+    def register_converter(self, converter, func):
         """Register custom path parameter converter
 
         :param BaseConverter converter: Converter
             Subclass of werkzeug's BaseConverter
-        :param str conv_type: Parameter type
-        :param str conv_format: Parameter format (optional)
+        :param callable func: Function returning a parameter schema from
+            a converter intance
 
         Example: ::
 
             # Register MongoDB's ObjectId converter in Flask application
             app.url_map.converters['objectid'] = ObjectIdConverter
 
-            # Register converter in Api
-            api.register_converter(ObjectIdConverter, 'string', 'ObjectID')
+            # Define custom converter to schema function
+            def objectidconverter2paramschema(converter):
+                return {'type': 'string', 'format': 'ObjectID'}
+
+            # Register converter in Api
+            api.register_converter(
+                ObjectIdConverter,
+                objectidconverter2paramschema
+            )
 
             @blp.route('/pets/{objectid:pet_id}')
                 ...
@@ -191,18 +198,18 @@ class APISpecMixin(DocBlueprintMixin):
             api.register_blueprint(blp)
 
         Once the converter is registered, all paths using it will have
-        corresponding path parameter documented with the right type and format.
+        corresponding path parameter documented with the right schema.
 
         Should be called before registering paths with
         :meth:`Blueprint.route <Blueprint.route>`.
         """
-        self._converters.append((converter, conv_type, conv_format))
+        self._converters.append((converter, func))
         # Register converter in spec if app is already initialized
         if self.spec is not None:
-            self._register_converter(converter, conv_type, conv_format)
+            self._register_converter(converter, func)
 
-    def _register_converter(self, converter, conv_type, conv_format=None):
-        self.flask_plugin.register_converter(converter, conv_type, conv_format)
+    def _register_converter(self, converter, func):
+        self.flask_plugin.register_converter(converter, func)
 
     def register_field(self, field, *args):
         """Register custom Marshmallow field

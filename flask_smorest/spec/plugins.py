@@ -14,14 +14,57 @@ from apispec import BasePlugin
 # from flask-restplus
 RE_URL = re.compile(r'<(?:[^:<>]+:)?([^<>]+)>')
 
-# From flask-apispec
+
+def baseconverter2paramschema(converter):
+    schema = {'type': 'string'}
+    return schema
+
+
+def unicodeconverter2paramschema(converter):
+    schema = {'type': 'string'}
+    bounds = re.compile(r"{([^}]*)}").findall(converter.regex)[0].split(",")
+    schema["minLength"] = int(bounds[0])
+    if len(bounds) == 1:
+        schema["maxLength"] = int(bounds[0])
+    elif bounds[1] != "":
+        schema["maxLength"] = int(bounds[1])
+    return schema
+
+
+def integerconverter2paramschema(converter):
+    schema = {'type': 'integer'}
+    if converter.max is not None:
+        schema['maximum'] = converter.max
+    if converter.min is not None:
+        schema['minimum'] = converter.min
+    if not converter.signed:
+        schema['minimum'] = max(schema.get('minimum', 0), 0)
+    return schema
+
+
+def floatconverter2paramschema(converter):
+    schema = {'type': 'number'}
+    if converter.max is not None:
+        schema['maximum'] = converter.max
+    if converter.min is not None:
+        schema['minimum'] = converter.min
+    if not converter.signed:
+        schema['minimum'] = max(schema.get('minimum', 0), 0)
+    return schema
+
+
+def uuidconverter2paramschema(converter):
+    schema = {'type': 'string', 'format': 'uuid'}
+    return schema
+
+
 DEFAULT_CONVERTER_MAPPING = {
-    werkzeug.routing.UnicodeConverter: ('string', None),
-    werkzeug.routing.IntegerConverter: ('integer', None),
-    werkzeug.routing.FloatConverter: ('number', None),
-    werkzeug.routing.UUIDConverter: ('string', 'uuid'),
+    werkzeug.routing.BaseConverter: baseconverter2paramschema,
+    werkzeug.routing.UnicodeConverter: unicodeconverter2paramschema,
+    werkzeug.routing.IntegerConverter: integerconverter2paramschema,
+    werkzeug.routing.FloatConverter: floatconverter2paramschema,
+    werkzeug.routing.UUIDConverter: uuidconverter2paramschema,
 }
-DEFAULT_TYPE = ('string', None)
 
 
 class FlaskPlugin(BasePlugin):
@@ -45,17 +88,16 @@ class FlaskPlugin(BasePlugin):
         """
         return RE_URL.sub(r'{\1}', path)
 
-    def register_converter(self, converter, conv_type, conv_format=None):
+    def register_converter(self, converter, func):
         """Register custom path parameter converter
 
         :param BaseConverter converter: Converter.
             Subclass of werkzeug's BaseConverter
-        :param str conv_type: Parameter type
-        :param str conv_format: Parameter format (optional)
+        :param callable func: Function returning a parameter schema from
+            a converter intance
         """
-        self.converter_mapping[converter] = (conv_type, conv_format)
+        self.converter_mapping[converter] = func
 
-    # Greatly inspired by flask-apispec
     def rule_to_params(self, rule):
         """Get parameters from flask Rule"""
         params = []
@@ -65,11 +107,13 @@ class FlaskPlugin(BasePlugin):
                 'name': argument,
                 'required': True,
             }
-            type_, format_ = self.converter_mapping.get(
-                type(rule._converters[argument]), DEFAULT_TYPE)
-            schema = {'type': type_}
-            if format_ is not None:
-                schema['format'] = format_
+            converter = rule._converters[argument]
+            # Inspired from apispec
+            for converter_class in type(converter).__mro__:
+                if converter_class in self.converter_mapping:
+                    func = self.converter_mapping[converter_class]
+                    break
+            schema = func(converter)
             if self.openapi_version.major < 3:
                 param.update(schema)
             else:
