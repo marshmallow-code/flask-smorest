@@ -1,6 +1,15 @@
 Changelog
 ---------
 
+0.24.1 (2020-08-10)
++++++++++++++++++++
+
+Bug fixes:
+
+- Fix bug introduced in 0.24.0 preventing setting a status code or header when
+  returning a ``Response`` object. (:pr:`178`).
+  Thanks :user:`@marksantcroos` for reporting.
+
 0.24.0 (2020-07-17)
 +++++++++++++++++++
 
@@ -200,7 +209,7 @@ Features:
   handler (:pr:`84`).
 - *Backwards-incompatible*: Remove logging from error handler. Logging can be
   achieved in application code by overriding ``handle_http_exception``.
-  Remove ``_prepare_error_response_content``. Reponse payload is computed in
+  Remove ``_prepare_error_response_content``. Response payload is computed in
   ``handle_http_exception``. (:pr:`85`)
 - *Backwards-incompatible*: Remove ``InvalidLocationError``. The mapping from
   webargs locations to OAS locations is done in apispec and no exception is
