@@ -8,6 +8,7 @@ import pytest
 
 import marshmallow as ma
 
+import flask
 from flask.views import MethodView
 
 from flask_smorest import Api, Blueprint, Page
@@ -1118,14 +1119,14 @@ class TestBlueprint:
         # Schema is ignored when response object is returned
         @blp.response(schemas.DocSchema, code=200)
         def func_response():
-            return {}, 201, {'X-header': 'test'}
+            return flask.jsonify({"test": "test"}), 201, {'X-header': 'test'}
 
         api.register_blueprint(blp)
 
         response = client.get('/test/response')
         assert response.status_code == 201
         assert response.status == '201 CREATED'
-        assert response.json == {}
+        assert response.json == {"test": "test"}
         assert response.headers['X-header'] == 'test'
 
     @pytest.mark.parametrize('decorate', (True, False))
