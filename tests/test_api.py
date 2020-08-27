@@ -81,8 +81,8 @@ class TestApi:
         spec = api.spec.to_dict()
 
         schema = {
-            'int': {'type': 'integer', 'format': 'int32'},
-            'float': {'type': 'number', 'format': 'float'},
+            'int': {'type': 'integer', 'format': 'int64'},
+            'float': {'type': 'number', 'format': 'double'},
         }[nb_type]
         schema.update(output)
         parameter = {'in': 'path', 'name': 'val', 'required': True}
@@ -226,7 +226,7 @@ class TestApi:
             if mapping[1] is not None:
                 properties['field']['format'] = mapping[1]
         else:
-            properties = {'field': {'type': 'integer', 'format': 'int32'}}
+            properties = {'field': {'type': 'integer', 'format': 'int64'}}
 
         assert get_schemas(api.spec)['Document'] == {
             'properties': properties, 'type': 'object'}

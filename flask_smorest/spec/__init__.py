@@ -232,7 +232,7 @@ class APISpecMixin(DocBlueprintMixin):
             # Map to ('string') passing type
             api.register_field(CustomString, 'string', None)
 
-            # Map to ('integer, 'int32') passing a code marshmallow field
+            # Map to ('integer, 'int64') passing a code marshmallow field
             api.register_field(CustomInteger, ma.fields.Integer)
 
         Should be called before registering schemas with

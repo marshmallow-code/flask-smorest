@@ -32,7 +32,7 @@ def unicodeconverter2paramschema(converter):
 
 
 def integerconverter2paramschema(converter):
-    schema = {'type': 'integer', 'format': 'int32'}
+    schema = {'type': 'integer', 'format': 'int64'}
     if converter.max is not None:
         schema['maximum'] = converter.max
     if converter.min is not None:
@@ -43,7 +43,7 @@ def integerconverter2paramschema(converter):
 
 
 def floatconverter2paramschema(converter):
-    schema = {'type': 'number', 'format': 'float'}
+    schema = {'type': 'number', 'format': 'double'}
     if converter.max is not None:
         schema['maximum'] = converter.max
     if converter.min is not None:
