@@ -163,7 +163,7 @@ Documentation components can be passed by accessing the internal apispec
     api.spec.components.parameter(
       'Pet name',
       'query',
-      {'description': 'Item ID', 'format': 'int32', 'required': True}
+      {'description': 'Item ID', 'required': True}
    )
 
 Register Custom Fields
@@ -180,11 +180,11 @@ or by specifying a parent field class, using :meth:`Api.register_field`:
     # Map to ('string', 'ObjectId') passing type and format
     api.register_field(ObjectId, 'string', 'ObjectId')
 
-    # Map to ('string') passing type
+    # Map to ('string', ) passing type
     api.register_field(CustomString, 'string', None)
 
-    # Map to ('integer, 'int32') passing a code marshmallow field
-    api.register_field(CustomInteger, ma.fields.Integer)
+    # Map to ('string, 'date-time') passing a marshmallow Field
+    api.register_field(CustomDateTime, ma.fields.DateTime)
 
 Register Custom Path Parameter Converters
 -----------------------------------------

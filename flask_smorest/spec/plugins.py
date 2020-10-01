@@ -17,8 +17,8 @@ RE_URL = re.compile(r'<(?:[^:<>]+:)?([^<>]+)>')
 # From flask-apispec
 DEFAULT_CONVERTER_MAPPING = {
     werkzeug.routing.UnicodeConverter: ('string', None),
-    werkzeug.routing.IntegerConverter: ('integer', 'int32'),
-    werkzeug.routing.FloatConverter: ('number', 'float'),
+    werkzeug.routing.IntegerConverter: ('integer', None),
+    werkzeug.routing.FloatConverter: ('number', None),
     werkzeug.routing.UUIDConverter: ('string', 'uuid'),
 }
 DEFAULT_TYPE = ('string', None)
