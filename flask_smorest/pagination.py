@@ -21,7 +21,6 @@ import marshmallow as ma
 from webargs.flaskparser import FlaskParser
 
 from .utils import unpack_tuple_response
-from .compat import MARSHMALLOW_VERSION_MAJOR
 
 
 class PaginationParameters:
@@ -59,10 +58,7 @@ def _pagination_parameters_schema_factory(
 
         class Meta:
             ordered = True
-            if MARSHMALLOW_VERSION_MAJOR < 3:
-                strict = True
-            else:
-                unknown = ma.EXCLUDE
+            unknown = ma.EXCLUDE
 
         page = ma.fields.Integer(
             missing=def_page,
@@ -252,10 +248,7 @@ class PaginationMixin:
                     page_metadata['previous_page'] = page - 1
                 if page < last_page:
                     page_metadata['next_page'] = page + 1
-        metadata = PaginationMetadataSchema().dump(page_metadata)
-        if MARSHMALLOW_VERSION_MAJOR < 3:
-            metadata = metadata.data
-        return metadata
+        return PaginationMetadataSchema().dump(page_metadata)
 
     def _set_pagination_metadata(self, page_params, result, headers):
         """Add pagination metadata to headers
