@@ -13,7 +13,6 @@ from .exceptions import (
     CheckEtagNotCalledError,
     PreconditionRequired, PreconditionFailed, NotModified)
 from .utils import deepupdate, get_appcontext
-from .compat import MARSHMALLOW_VERSION_MAJOR
 
 
 def _is_etag_enabled():
@@ -121,8 +120,6 @@ class EtagMixin:
             if isinstance(etag_schema, type):
                 etag_schema = etag_schema()
             raw_data = etag_schema.dump(etag_data)
-            if MARSHMALLOW_VERSION_MAJOR < 3:
-                raw_data = raw_data.data
         if extra_data:
             raw_data = (raw_data, extra_data)
         # flask's json.dumps is needed here

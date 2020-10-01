@@ -6,8 +6,6 @@ import marshmallow as ma
 
 from flask import Flask
 
-from flask_smorest.compat import MARSHMALLOW_VERSION_MAJOR
-
 from .mocks import DatabaseMock
 
 
@@ -65,25 +63,16 @@ class CounterSchema(ma.Schema):
 def schemas():
 
     class DocSchema(CounterSchema):
-        if MARSHMALLOW_VERSION_MAJOR < 3:
-            class Meta:
-                strict = True
         item_id = ma.fields.Int(dump_only=True)
         field = ma.fields.Int(attribute='db_field')
 
     class DocEtagSchema(CounterSchema):
-        if MARSHMALLOW_VERSION_MAJOR < 3:
-            class Meta:
-                strict = True
         field = ma.fields.Int(attribute='db_field')
 
     class QueryArgsSchema(ma.Schema):
         class Meta:
             ordered = True
-            if MARSHMALLOW_VERSION_MAJOR < 3:
-                strict = True
-            else:
-                unknown = ma.EXCLUDE
+            unknown = ma.EXCLUDE
         arg1 = ma.fields.String()
         arg2 = ma.fields.Integer()
 

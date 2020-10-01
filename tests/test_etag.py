@@ -16,7 +16,6 @@ from flask_smorest.exceptions import (
     CheckEtagNotCalledError,
     NotModified, PreconditionRequired, PreconditionFailed)
 from flask_smorest.utils import get_appcontext
-from flask_smorest.compat import MARSHMALLOW_VERSION_MAJOR
 
 from .mocks import ItemNotFound
 
@@ -179,8 +178,6 @@ class TestEtag:
         etag_schema = schemas.DocEtagSchema
         item = {'item_id': 1, 'db_field': 0}
         item_schema_dump = etag_schema().dump(item)
-        if MARSHMALLOW_VERSION_MAJOR < 3:
-            item_schema_dump = item_schema_dump[0]
         if extra_data is None or extra_data == {}:
             data = item
             data_dump = item_schema_dump

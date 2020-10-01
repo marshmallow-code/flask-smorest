@@ -11,7 +11,6 @@ from .utils import (
     deepupdate, get_appcontext, prepare_response,
     unpack_tuple_response, set_status_and_headers_in_response
 )
-from .compat import MARSHMALLOW_VERSION_MAJOR
 from .spec import DEFAULT_RESPONSE_CONTENT_TYPE
 
 
@@ -89,8 +88,6 @@ class ResponseMixin:
                     result_dump = result_raw
                 else:
                     result_dump = schema.dump(result_raw)
-                    if MARSHMALLOW_VERSION_MAJOR < 3:
-                        result_dump = result_dump.data
 
                 # Store result in appcontext (may be used for ETag computation)
                 appcontext = get_appcontext()

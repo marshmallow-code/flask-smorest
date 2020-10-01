@@ -13,7 +13,6 @@ from flask.views import MethodView
 
 from flask_smorest import Api, Blueprint, Page
 from flask_smorest.fields import Upload
-from flask_smorest.compat import MARSHMALLOW_VERSION_MAJOR
 
 
 from .utils import build_ref
@@ -292,9 +291,6 @@ class TestBlueprint:
         client = app.test_client()
 
         class MultipartSchema(ma.Schema):
-            if MARSHMALLOW_VERSION_MAJOR < 3:
-                class Meta:
-                    strict = True
             file_1 = Upload()
             file_2 = Upload()
 
@@ -795,9 +791,6 @@ class TestBlueprint:
             'content': {'application/json': {'example': {'test': 123}}}}
 
         class ItemSchema(ma.Schema):
-            if MARSHMALLOW_VERSION_MAJOR < 3:
-                class Meta:
-                    strict = True
             test = ma.fields.Int()
 
         @blp.route('/')
@@ -829,9 +822,6 @@ class TestBlueprint:
         doc_desc = {'description': 'Description'}
 
         class ItemSchema(ma.Schema):
-            if MARSHMALLOW_VERSION_MAJOR < 3:
-                class Meta:
-                    strict = True
             test = ma.fields.Int()
 
         @blp.route('/')
