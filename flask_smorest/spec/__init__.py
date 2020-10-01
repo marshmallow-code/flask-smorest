@@ -222,11 +222,11 @@ class APISpecMixin(DocBlueprintMixin):
             # Map to ('string', 'ObjectId') passing type and format
             api.register_field(ObjectId, 'string', 'ObjectId')
 
-            # Map to ('string') passing type
+            # Map to ('string', ) passing type
             api.register_field(CustomString, 'string', None)
 
-            # Map to ('integer, 'int32') passing a code marshmallow field
-            api.register_field(CustomInteger, ma.fields.Integer)
+            # Map to ('string, 'date-time') passing a marshmallow Field
+            api.register_field(CustomDateTime, ma.fields.DateTime)
 
         Should be called before registering schemas with
         :meth:`schema <Api.schema>`.

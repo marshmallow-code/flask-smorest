@@ -121,7 +121,7 @@ class TestApi:
             if mapping[1] is not None:
                 properties['field']['format'] = mapping[1]
         else:
-            properties = {'field': {'type': 'integer', 'format': 'int32'}}
+            properties = {'field': {'type': 'integer'}}
 
         assert get_schemas(api.spec)['Document'] == {
             'properties': properties, 'type': 'object'}
