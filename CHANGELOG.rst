@@ -1,6 +1,21 @@
 Changelog
 ---------
 
+0.25.0 (unreleased)
++++++++++++++++++++
+
+Features:
+
+- *Backwards-incompatible*: Rework Werkzeug converters documentation to make
+  it more extensible and document converter parameters (:pr:`182`).
+- *Backwards-incompatible*: Don't document ``int`` format as ``"int32"`` and
+  ``float`` format as ``"float"``, as those are platform-dependent (:pr:`188`).
+
+Other changes:
+
+- *Backwards-incompatible*: Drop support for marshmallow 2.
+- *Backwards-incompatible*: Drop support for apispec 3.
+
 0.24.1 (2020-08-10)
 +++++++++++++++++++
 
