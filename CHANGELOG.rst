@@ -1,7 +1,7 @@
 Changelog
 ---------
 
-0.25.0 (unreleased)
+0.25.0 (2020-10-02)
 +++++++++++++++++++
 
 Features:
@@ -10,6 +10,7 @@ Features:
   it more extensible and document converter parameters (:pr:`182`).
 - *Backwards-incompatible*: Don't document ``int`` format as ``"int32"`` and
   ``float`` format as ``"float"``, as those are platform-dependent (:pr:`188`).
+- Document Werkzeug's ``AnyConverter`` (:pr:`191`).
 
 Other changes:
 
