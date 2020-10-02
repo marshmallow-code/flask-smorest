@@ -55,8 +55,8 @@ def floatconverter2paramschema(converter):
 
 def anyconverter2paramschema(converter):
     schema = {'type': 'string'}
-    # https://stackoverflow.com/questions/43662474/reversing-pythons-re-escape
     schema['enum'] = [
+        # https://stackoverflow.com/questions/43662474/
         re.sub(r'\\(.)', r'\1', s) for s in converter.regex[3:-1].split('|')
     ]
     return schema
