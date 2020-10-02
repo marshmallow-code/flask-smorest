@@ -10,9 +10,9 @@ flask-smorest
     :target: https://pypi.org/project/flask-smorest/
     :alt: Python versions
 
-.. image:: https://img.shields.io/badge/marshmallow-2%20|%203-blue.svg
+.. image:: https://img.shields.io/badge/marshmallow-3-blue.svg
     :target: https://marshmallow.readthedocs.io/en/latest/upgrading.html
-    :alt: marshmallow 2/3 compatible
+    :alt: marshmallow 3 only
 
 .. image:: https://img.shields.io/badge/OAS-2%20|%203-green.svg
     :target: https://github.com/OAI/OpenAPI-Specification
