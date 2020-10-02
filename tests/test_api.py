@@ -114,6 +114,27 @@ class TestApi:
         assert spec['paths']['/test/{val}']['parameters'] == [parameter]
 
     @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.2'])
+    def test_api_any_converter(self, app, openapi_version):
+        app.config['OPENAPI_VERSION'] = openapi_version
+        api = Api(app)
+        blp = Blueprint('test', 'test', url_prefix='/test')
+
+        @blp.route('/<any(foo, bar, "foo+bar"):val>')
+        def test(val):
+            pass
+
+        api.register_blueprint(blp)
+        spec = api.spec.to_dict()
+
+        schema = {'type': 'string', 'enum': ['foo', 'bar', 'foo+bar']}
+        parameter = {'in': 'path', 'name': 'val', 'required': True}
+        if openapi_version == '2.0':
+            parameter.update(schema)
+        else:
+            parameter['schema'] = schema
+        assert spec['paths']['/test/{val}']['parameters'] == [parameter]
+
+    @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.2'])
     @pytest.mark.parametrize('register', (True, False))
     @pytest.mark.parametrize('view_type', ['function', 'method'])
     def test_api_register_converter(
