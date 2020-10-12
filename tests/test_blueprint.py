@@ -461,7 +461,7 @@ class TestBlueprint:
 
         @blp.route('/', methods=('GET', 'POST', ))
         @blp.arguments(schemas.DocSchema)
-        @blp.response(schemas.DocSchema)
+        @blp.response(200, schemas.DocSchema)
         def func(document, query_args):
             pass
 
@@ -502,12 +502,12 @@ class TestBlueprint:
         blp = Blueprint('test', 'test', url_prefix='/test')
 
         @blp.route('/schema_many_false')
-        @blp.response(schemas.DocSchema(many=False))
+        @blp.response(200, schemas.DocSchema(many=False))
         def many_false():
             pass
 
         @blp.route('/schema_many_true')
-        @blp.response(schemas.DocSchema(many=True))
+        @blp.response(200, schemas.DocSchema(many=True))
         def many_true():
             pass
 
@@ -540,12 +540,12 @@ class TestBlueprint:
         blp = Blueprint('test', 'test', url_prefix='/test')
 
         @blp.route('/route_1')
-        @blp.response(code=204)
+        @blp.response(204)
         def func_1():
             pass
 
         @blp.route('/route_2')
-        @blp.response(code=204, description='Test')
+        @blp.response(204, description='Test')
         def func_2():
             pass
 
@@ -568,7 +568,7 @@ class TestBlueprint:
         example = {'name': 'One'}
 
         @blp.route('/')
-        @blp.response(example=example)
+        @blp.response(200, example=example)
         def func():
             pass
 
@@ -595,7 +595,7 @@ class TestBlueprint:
         }
 
         @blp.route('/')
-        @blp.response(examples=examples)
+        @blp.response(200, examples=examples)
         def func():
             pass
 
@@ -612,7 +612,7 @@ class TestBlueprint:
         headers = {'X-Header': {'description': 'Custom header'}}
 
         @blp.route('/')
-        @blp.response(headers=headers)
+        @blp.response(200, headers=headers)
         def func():
             pass
 
@@ -802,7 +802,7 @@ class TestBlueprint:
             @blp.doc(**{'requestBody': doc_example})
             @blp.doc(**{'responses': {200: doc_example}})
             @blp.arguments(ItemSchema)
-            @blp.response(ItemSchema)
+            @blp.response(200, ItemSchema)
             def get(self):
                 pass
 
@@ -835,7 +835,7 @@ class TestBlueprint:
             # (Default is 200 expressed as int.)
             @blp.doc(**{'responses': {status_code: doc_desc}})
             @blp.arguments(ItemSchema)
-            @blp.response(ItemSchema, code=status_code)
+            @blp.response(status_code, ItemSchema)
             def get(self):
                 pass
 
@@ -964,42 +964,42 @@ class TestBlueprint:
         client = app.test_client()
 
         @blp.route('/response')
-        @blp.response()
+        @blp.response(200)
         def func_response():
             return {}
 
         @blp.route('/response_code_int')
-        @blp.response()
+        @blp.response(200)
         def func_response_code_int():
             return {}, 201
 
         @blp.route('/response_code_str')
-        @blp.response()
+        @blp.response(200)
         def func_response_code_str():
             return {}, '201 CREATED'
 
         @blp.route('/response_headers')
-        @blp.response()
+        @blp.response(200)
         def func_response_headers():
             return {}, {'X-header': 'test'}
 
         @blp.route('/response_code_int_headers')
-        @blp.response()
+        @blp.response(200)
         def func_response_code_int_headers():
             return {}, 201, {'X-header': 'test'}
 
         @blp.route('/response_code_str_headers')
-        @blp.response()
+        @blp.response(200)
         def func_response_code_str_headers():
             return {}, '201 CREATED', {'X-header': 'test'}
 
         @blp.route('/response_wrong_tuple')
-        @blp.response()
+        @blp.response(200)
         def func_response_wrong_tuple():
             return {}, 201, {'X-header': 'test'}, 'extra'
 
         @blp.route('/response_tuple_subclass')
-        @blp.response()
+        @blp.response(200)
         def func_response_tuple_subclass():
             class MyTuple(tuple):
                 pass
@@ -1044,37 +1044,37 @@ class TestBlueprint:
         client = app.test_client()
 
         @blp.route('/response')
-        @blp.response()
+        @blp.response(200)
         @blp.paginate(Page)
         def func_response():
             return [1, 2]
 
         @blp.route('/response_code')
-        @blp.response()
+        @blp.response(200)
         @blp.paginate(Page)
         def func_response_code():
             return [1, 2], 201
 
         @blp.route('/response_headers')
-        @blp.response()
+        @blp.response(200)
         @blp.paginate(Page)
         def func_response_headers():
             return [1, 2], {'X-header': 'test'}
 
         @blp.route('/response_code_headers')
-        @blp.response()
+        @blp.response(200)
         @blp.paginate(Page)
         def func_response_code_headers():
             return [1, 2], 201, {'X-header': 'test'}
 
         @blp.route('/response_wrong_tuple')
-        @blp.response()
+        @blp.response(200)
         @blp.paginate(Page)
         def func_response_wrong_tuple():
             return [1, 2], 201, {'X-header': 'test'}, 'extra'
 
         @blp.route('/response_tuple_subclass')
-        @blp.response()
+        @blp.response(200)
         @blp.paginate(Page)
         def func_response_tuple_subclass():
             class MyTuple(tuple):
@@ -1110,7 +1110,7 @@ class TestBlueprint:
 
         @blp.route('/response')
         # Schema is ignored when response object is returned
-        @blp.response(schemas.DocSchema, code=200)
+        @blp.response(200, schemas.DocSchema)
         def func_response():
             return flask.jsonify({"test": "test"}), 201, {'X-header': 'test'}
 

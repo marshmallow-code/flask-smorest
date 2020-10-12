@@ -87,13 +87,13 @@ the error response.
     class Pets(MethodView):
 
         @blp.arguments(PetQueryArgsSchema, location='query')
-        @blp.response(PetSchema(many=True))
+        @blp.response(200, PetSchema(many=True))
         def get(self, args):
             """List pets"""
             return Pet.get(filters=args)
 
         @blp.arguments(PetSchema)
-        @blp.response(PetSchema, code=201)
+        @blp.response(201, PetSchema)
         def post(self, new_data):
             """Add a new pet"""
             item = Pet.create(**new_data)
@@ -103,7 +103,7 @@ the error response.
     @blp.route('/<pet_id>')
     class PetsById(MethodView):
 
-        @blp.response(PetSchema)
+        @blp.response(200, PetSchema)
         def get(self, pet_id):
             """Get pet by ID"""
             try:
@@ -113,7 +113,7 @@ the error response.
             return item
 
         @blp.arguments(PetSchema)
-        @blp.response(PetSchema)
+        @blp.response(200, PetSchema)
         def put(self, update_data, pet_id):
             """Update existing pet"""
             try:
@@ -124,7 +124,7 @@ the error response.
             item.commit()
             return item
 
-        @blp.response(code=204)
+        @blp.response(204)
         def delete(self, pet_id):
             """Delete pet"""
             try:

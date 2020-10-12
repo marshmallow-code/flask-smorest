@@ -30,14 +30,14 @@ def implicit_data_and_schema_etag_blueprint(collection, schemas):
     class Resource(MethodView):
 
         @blp.etag
-        @blp.response(DocSchema(many=True))
+        @blp.response(200, DocSchema(many=True))
         @blp.paginate(Page)
         def get(self):
             return collection.items
 
         @blp.etag
         @blp.arguments(DocSchema)
-        @blp.response(DocSchema)
+        @blp.response(201, DocSchema)
         def post(self, new_item):
             return collection.post(new_item)
 
@@ -51,13 +51,13 @@ def implicit_data_and_schema_etag_blueprint(collection, schemas):
                 abort(404)
 
         @blp.etag
-        @blp.response(DocSchema)
+        @blp.response(200, DocSchema)
         def get(self, item_id):
             return self._get_item(item_id)
 
         @blp.etag
         @blp.arguments(DocSchema)
-        @blp.response(DocSchema)
+        @blp.response(200, DocSchema)
         def put(self, new_item, item_id):
             item = self._get_item(item_id)
             # Check ETag is a manual action and schema must be provided
@@ -65,7 +65,7 @@ def implicit_data_and_schema_etag_blueprint(collection, schemas):
             return collection.put(item_id, new_item)
 
         @blp.etag
-        @blp.response(code=204)
+        @blp.response(204)
         def delete(self, item_id):
             item = self._get_item(item_id)
             # Check ETag is a manual action and schema must be provided
@@ -90,7 +90,7 @@ def implicit_data_explicit_schema_etag_blueprint(collection, schemas):
     class Resource(MethodView):
 
         @blp.etag(DocEtagSchema(many=True))
-        @blp.response(DocSchema(many=True))
+        @blp.response(200, DocSchema(many=True))
         @blp.paginate()
         def get(self, pagination_parameters):
             pagination_parameters.item_count = len(collection.items)
@@ -101,7 +101,7 @@ def implicit_data_explicit_schema_etag_blueprint(collection, schemas):
 
         @blp.etag(DocEtagSchema)
         @blp.arguments(DocSchema)
-        @blp.response(DocSchema)
+        @blp.response(201, DocSchema)
         def post(self, new_item):
             return collection.post(new_item)
 
@@ -115,14 +115,14 @@ def implicit_data_explicit_schema_etag_blueprint(collection, schemas):
                 abort(404)
 
         @blp.etag(DocEtagSchema)
-        @blp.response(DocSchema)
+        @blp.response(200, DocSchema)
         def get(self, item_id):
             item = self._get_item(item_id)
             return item
 
         @blp.etag(DocEtagSchema)
         @blp.arguments(DocSchema)
-        @blp.response(DocSchema)
+        @blp.response(200, DocSchema)
         def put(self, new_item, item_id):
             item = self._get_item(item_id)
             # Check ETag is a manual action, ETag schema is used
@@ -131,7 +131,7 @@ def implicit_data_explicit_schema_etag_blueprint(collection, schemas):
             return new_item
 
         @blp.etag(DocEtagSchema)
-        @blp.response(code=204)
+        @blp.response(204)
         def delete(self, item_id):
             item = self._get_item(item_id)
             # Check ETag is a manual action, ETag schema is used
@@ -157,7 +157,7 @@ def explicit_data_no_schema_etag_blueprint(collection, schemas):
     class Resource(MethodView):
 
         @blp.etag
-        @blp.response(DocSchema(many=True))
+        @blp.response(200, DocSchema(many=True))
         @blp.paginate()
         def get(self, pagination_parameters):
             pagination_parameters.item_count = len(collection.items)
@@ -170,7 +170,7 @@ def explicit_data_no_schema_etag_blueprint(collection, schemas):
 
         @blp.etag
         @blp.arguments(DocSchema)
-        @blp.response(DocSchema)
+        @blp.response(201, DocSchema)
         def post(self, new_item):
             # Compute ETag using arbitrary data and no schema
             blp.set_etag(new_item['db_field'])
@@ -186,7 +186,7 @@ def explicit_data_no_schema_etag_blueprint(collection, schemas):
                 abort(404)
 
         @blp.etag
-        @blp.response(DocSchema)
+        @blp.response(200, DocSchema)
         def get(self, item_id):
             item = self._get_item(item_id)
             # Compute ETag using arbitrary data and no schema
@@ -195,7 +195,7 @@ def explicit_data_no_schema_etag_blueprint(collection, schemas):
 
         @blp.etag
         @blp.arguments(DocSchema)
-        @blp.response(DocSchema)
+        @blp.response(200, DocSchema)
         def put(self, new_item, item_id):
             item = self._get_item(item_id)
             # Check ETag is a manual action, no shema used
@@ -206,7 +206,7 @@ def explicit_data_no_schema_etag_blueprint(collection, schemas):
             return new_item
 
         @blp.etag
-        @blp.response(code=204)
+        @blp.response(204)
         def delete(self, item_id):
             item = self._get_item(item_id)
             # Check ETag is a manual action, no shema used
@@ -276,7 +276,7 @@ class TestFullExample:
                 data=json.dumps(item_1_data),
                 content_type='application/json'
             )
-        assert response.status_code == 200
+        assert response.status_code == 201
         item_1_id = response.json['item_id']
 
         # GET collection with wrong/outdated ETag: OK
@@ -373,7 +373,7 @@ class TestFullExample:
                 data=json.dumps(item_2_data),
                 content_type='application/json'
             )
-        assert response.status_code == 200
+        assert response.status_code == 201
 
         # GET collection with pagination set to 1 element per page
         # Content is the same (item_1) but pagination metadata has changed
@@ -449,7 +449,7 @@ class TestCustomExamples:
         blp = WrapperBlueprint('test', __name__, url_prefix='/test')
 
         @blp.route('/')
-        @blp.response(schemas.DocSchema)
+        @blp.response(200, schemas.DocSchema)
         def func():
             return {'item_id': 1, 'db_field': 42}
 
@@ -535,7 +535,7 @@ class TestCustomExamples:
         blp = WrapperBlueprint('test', __name__, url_prefix='/test')
 
         @blp.route('/')
-        @blp.response(schemas.DocSchema(many=True))
+        @blp.response(200, schemas.DocSchema(many=True))
         @blp.paginate(Page)
         def func():
             return [

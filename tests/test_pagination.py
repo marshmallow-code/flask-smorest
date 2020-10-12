@@ -29,7 +29,7 @@ def pagination_blueprint(collection, schemas, as_method_view, custom_params):
     if as_method_view:
         @blp.route('/')
         class Resource(MethodView):
-            @blp.response(schemas.DocSchema(many=True))
+            @blp.response(200, schemas.DocSchema(many=True))
             @blp.paginate(
                 page=page, page_size=page_size, max_page_size=max_page_size)
             def get(self, pagination_parameters):
@@ -40,7 +40,7 @@ def pagination_blueprint(collection, schemas, as_method_view, custom_params):
                 ]
     else:
         @blp.route('/')
-        @blp.response(schemas.DocSchema(many=True))
+        @blp.response(200, schemas.DocSchema(many=True))
         @blp.paginate(
             page=page, page_size=page_size, max_page_size=max_page_size)
         def get_resources(pagination_parameters):
@@ -67,14 +67,14 @@ def post_pagination_blueprint(
     if as_method_view:
         @blp.route('/')
         class Resource(MethodView):
-            @blp.response(schemas.DocSchema(many=True))
+            @blp.response(200, schemas.DocSchema(many=True))
             @blp.paginate(Page, page=page,
                           page_size=page_size, max_page_size=max_page_size)
             def get(self):
                 return collection.items
     else:
         @blp.route('/')
-        @blp.response(schemas.DocSchema(many=True))
+        @blp.response(200, schemas.DocSchema(many=True))
         @blp.paginate(Page, page=page,
                       page_size=page_size, max_page_size=max_page_size)
         def get_resources():
@@ -129,7 +129,7 @@ class TestPagination:
         blp = CustomBlueprint('test', __name__, url_prefix='/test')
 
         @blp.route('/')
-        @blp.response()
+        @blp.response(200)
         @blp.paginate()
         def func(pagination_parameters):
             pagination_parameters.item_count = 2
@@ -158,7 +158,7 @@ class TestPagination:
         blp = CustomBlueprint('test', __name__, url_prefix='/test')
 
         @blp.route('/')
-        @blp.response()
+        @blp.response(200)
         @blp.paginate()
         def func(pagination_parameters):
             """Dummy view func"""
@@ -185,7 +185,7 @@ class TestPagination:
         blp = CustomBlueprint('test', __name__, url_prefix='/test')
 
         @blp.route('/')
-        @blp.response()
+        @blp.response(200)
         @blp.paginate()
         def func(pagination_parameters):
             # Here, we purposely forget to set item_count
@@ -319,7 +319,7 @@ class TestPagination:
         blp = Blueprint('test', __name__, url_prefix='/test')
 
         @blp.route('/')
-        @blp.response()
+        @blp.response(200)
         @blp.paginate(Page)
         def func():
             return range(30)
@@ -347,7 +347,7 @@ class TestPagination:
 
         @blp.route('/')
         @blp.arguments(schemas.QueryArgsSchema, location="query")
-        @blp.response()
+        @blp.response(200)
         @blp.paginate(Page)
         def func(query_args):
             assert query_args['arg1'] == 'Test'

@@ -4,9 +4,9 @@
 Response
 ========
 
-Use :meth:`Blueprint.response <Blueprint.response>` to specify a
-:class:`Schema <marshmallow.Schema>` class or instance to serialize the
-response and a status code (defaults to ``200``).
+Use :meth:`Blueprint.response <Blueprint.response>` to specify a status code
+and a :class:`Schema <marshmallow.Schema>` class or instance to serialize the
+response.
 
 In the following examples, the ``GET`` and ``PUT`` methods return an instance
 of ``Pet`` serialized with ``PetSchema``:
@@ -17,12 +17,12 @@ of ``Pet`` serialized with ``PetSchema``:
     @blp.route('/<pet_id>')
     class PetsById(MethodView):
 
-        @blp.response(PetSchema)
+        @blp.response(200, PetSchema)
         def get(self, pet_id):
             return Pet.get_by_id(pet_id)
 
         @blp.arguments(PetSchema)
-        @blp.response(PetSchema)
+        @blp.response(200, PetSchema)
         def put(self, update_data, pet_id):
             pet = Pet.get_by_id(pet_id)
             pet.update(update_data)
@@ -36,7 +36,7 @@ Here, the ``DELETE`` returns an empty response so no schema is specified.
     @blp.route('/<pet_id>')
     class PetsById(MethodView):
 
-        @blp.response(code=204)
+        @blp.response(204)
         def delete(self, pet_id):
             Pet.delete(pet_id)
 
@@ -49,11 +49,6 @@ If a view function returns a list of objects, the :class:`Schema
     @blp.route('/')
     class Pets(MethodView):
 
-        @blp.response(PetSchema(many=True))
+        @blp.response(200, PetSchema(many=True))
         def get(self, args):
             return Pet.get()
-
-.. note:: Even if a view function returns an empty response with a default
-   ``200`` code, decorating it with 
-   :meth:`Blueprint.response <Blueprint.response>` is useful anyway, to return
-   a proper Flask :class:`Response <flask.Response>` object.

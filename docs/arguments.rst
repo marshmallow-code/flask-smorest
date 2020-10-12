@@ -18,12 +18,12 @@ injected in the view function.
     class Pets(MethodView):
 
         @blp.arguments(PetQueryArgsSchema, location='query')
-        @blp.response(PetSchema(many=True))
+        @blp.response(200, PetSchema(many=True))
         def get(self, args):
             return Pet.get(filters=args)
 
         @blp.arguments(PetSchema)
-        @blp.response(PetSchema, code=201)
+        @blp.response(201, PetSchema)
         def post(self, pet_data):
             return Pet.create(**pet_data)
 
@@ -56,7 +56,7 @@ as keyword arguments instead.
     class Pets(MethodView):
 
         @blp.arguments(PetQueryArgsSchema, location='query', as_kwargs=True)
-        @blp.response(PetSchema(many=True))
+        @blp.response(200, PetSchema(many=True))
         def get(self, **kwargs):
             return Pet.get(filters=**kwargs)
 
@@ -157,7 +157,7 @@ arguments from multiple locations:
 
         @blp.arguments(PetSchema)
         @blp.arguments(QueryArgsSchema, location="query")
-        @blp.response(PetSchema, code=201)
+        @blp.response(201, PetSchema)
         def post(self, pet_data, query_args):
             pet = Pet.create(**pet_data)
             # Use query args
@@ -218,7 +218,7 @@ fields. The files are injected in the view function as a ``dict`` of werkzeug
 
     @blp.route('/', methods=['POST'])
     @blp.arguments(MultipartFileSchema, location='files')
-    @blp.response(code=201)
+    @blp.response(201)
     def func(files):
         base_dir = '/path/to/storage/dir/'
         file_1 = files['file_1']
