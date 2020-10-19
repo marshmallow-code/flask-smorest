@@ -22,12 +22,12 @@ flask-smorest
     :target: https://flask-smorest.readthedocs.io/en/latest/license.html
     :alt: License
 
-.. image:: https://img.shields.io/travis/marshmallow-code/flask-smorest/master.svg
-    :target: https://travis-ci.org/marshmallow-code/flask-smorest
+.. image:: https://dev.azure.com/lafrech/flask-smorest/_apis/build/status/marshmallow-code.flask-smorest?branchName=master
+    :target: https://dev.azure.com/lafrech/flask-smorest/_build/latest?definitionId=1&branchName=master
     :alt: Build status
 
-.. image:: https://coveralls.io/repos/github/marshmallow-code/flask-smorest/badge.svg?branch=master
-    :target: https://coveralls.io/github/marshmallow-code/flask-smorest/?branch=master
+.. image:: https://img.shields.io/azure-devops/coverage/lafrech/flask-smorest/1
+    :target: https://dev.azure.com/lafrech/flask-smorest/_build/latest?definitionId=1&branchName=master
     :alt: Code coverage
 
 .. image:: https://readthedocs.org/projects/flask-smorest/badge/
