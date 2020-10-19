@@ -11,10 +11,6 @@ class MissingAPIParameterError(FlaskSmorestError):
     """Missing API parameter"""
 
 
-class CheckEtagNotCalledError(FlaskSmorestError):
-    """ETag enabled on resource but check_etag not called"""
-
-
 class NotModified(wexc.HTTPException, FlaskSmorestError):
     """Resource was not modified (Etag is unchanged)
 
