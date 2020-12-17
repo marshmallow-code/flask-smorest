@@ -8,14 +8,14 @@ Two pagination modes are supported:
 - Post-pagination: the resource returns an iterator (typically a DB cursor) and
   a pager is provided to paginate the data and get the total number of items.
 """
-
 from copy import deepcopy
 from collections import OrderedDict
 from functools import wraps
 import http
 import json
+import warnings
 
-from flask import request, current_app
+from flask import request
 
 import marshmallow as ma
 from webargs.flaskparser import FlaskParser
@@ -199,8 +199,8 @@ class PaginationMixin:
                 # Set pagination metadata in response
                 if self.PAGINATION_HEADER_FIELD_NAME is not None:
                     if page_params.item_count is None:
-                        current_app.logger.warning(
-                            'item_count not set in endpoint {}'
+                        warnings.warn(
+                            'item_count not set in endpoint {}.'
                             .format(request.endpoint)
                         )
                     else:

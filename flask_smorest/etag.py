@@ -3,6 +3,7 @@
 from functools import wraps
 from copy import deepcopy
 import http
+import warnings
 
 import hashlib
 
@@ -10,7 +11,6 @@ from marshmallow import Schema
 from flask import request, current_app, json
 
 from .exceptions import (
-    CheckEtagNotCalledError,
     PreconditionRequired, PreconditionFailed, NotModified)
 from .utils import deepupdate, get_appcontext
 
@@ -150,15 +150,16 @@ class EtagMixin:
         Must be called from resource code to check ETag.
 
         Unfortunately, there is no way to call it automatically. It is the
-        developer's responsability to do it. However, a warning is logged at
+        developer's responsability to do it. However, a warning is issued at
         runtime if this function was not called.
 
-        Logs a warning if called in a method other than one of
-        PUT, PATCH, DELETE.
+        Issues a warning if called in a method other than PUT, PATCH, or
+        DELETE.
         """
         if request.method not in self.METHODS_NEEDING_CHECK_ETAG:
-            current_app.logger.warning(
-                'ETag cannot be checked on {} request.'.format(request.method))
+            warnings.warn(
+                'ETag cannot be checked on {} request.'.format(request.method)
+            )
         if _is_etag_enabled():
             etag_schema = etag_schema or _get_etag_ctx().get('etag_schema')
             new_etag = self._generate_etag(etag_data, etag_schema)
@@ -169,23 +170,18 @@ class EtagMixin:
     def _verify_check_etag(self):
         """Verify check_etag was called in resource code
 
-        Log a warning if ETag is enabled but check_etag was not called in
+        Issues a warning if ETag is enabled but check_etag was not called in
         resource code in a PUT, PATCH or DELETE method.
-
-        Raise CheckEtagNotCalledError when in debug or testing mode.
 
         This is called automatically. It is meant to warn the developer about
         an issue in his ETag management.
         """
         if request.method in self.METHODS_NEEDING_CHECK_ETAG:
             if not _get_etag_ctx().get('etag_checked'):
-                message = (
+                warnings.warn(
                     'ETag not checked in endpoint {} on {} request.'
-                    .format(request.endpoint, request.method))
-                app = current_app
-                app.logger.warning(message)
-                if app.debug or app.testing:
-                    raise CheckEtagNotCalledError(message)
+                    .format(request.endpoint, request.method)
+                )
 
     def _check_not_modified(self, etag):
         """Raise NotModified if etag is in If-None-Match header
@@ -207,12 +203,13 @@ class EtagMixin:
         decorated with the ``response`` decorator, in which case the ETag is
         computed by default from response data if ``set_etag`` is not called.
 
-        Logs a warning if called in a method other than one of
-        GET, HEAD, POST, PUT, PATCH.
+        Issues a warning if called in a method other than GET, HEAD, POST, PUT
+        or PATCH.
         """
         if request.method not in self.METHODS_ALLOWING_SET_ETAG:
-            current_app.logger.warning(
-                'ETag cannot be set on {} request.'.format(request.method))
+            warnings.warn(
+                'ETag cannot be set on {} request.'.format(request.method)
+            )
         if _is_etag_enabled():
             etag_schema = etag_schema or _get_etag_ctx().get('etag_schema')
             new_etag = self._generate_etag(etag_data, etag_schema)

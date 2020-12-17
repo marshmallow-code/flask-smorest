@@ -3,7 +3,6 @@
 from itertools import product
 from collections import namedtuple
 import json
-from unittest import mock
 
 import pytest
 
@@ -196,16 +195,18 @@ class TestPagination:
         api.register_blueprint(blp)
         client = app.test_client()
 
-        with mock.patch.object(app.logger, 'warning') as mock_warning:
+        with pytest.warns(None) as record:
             response = client.get('/test/')
-            assert response.status_code == 200
-            assert 'X-Pagination' not in response.headers
-            if header_name is None:
-                assert mock_warning.call_count == 0
-            else:
-                assert mock_warning.call_count == 1
-                assert mock_warning.call_args == (
-                    ('item_count not set in endpoint test.func',), )
+        if header_name is None:
+            assert not record
+        else:
+            assert len(record) == 1
+            assert record[0].category == UserWarning
+            assert str(record[0].message) == (
+                'item_count not set in endpoint test.func.'
+            )
+        assert response.status_code == 200
+        assert 'X-Pagination' not in response.headers
 
     @pytest.mark.parametrize('collection', [1000, ], indirect=True)
     def test_pagination_parameters(self, app_fixture):

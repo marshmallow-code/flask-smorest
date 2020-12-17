@@ -201,9 +201,8 @@ It is up to the developer to call
 :meth:`Blueprint.check_etag <Blueprint.check_etag>` in the view function. It
 can't be automatic.
 
-If ETag is enabled and :meth:`check_etag <Blueprint.check_etag>` is not called,
-a warning is logged at runtime. When in `DEBUG` or `TESTING` mode, an exception
-is raised.
+A warning is issued if ETag is enabled and
+:meth:`check_etag <Blueprint.check_etag>` is not called.
 
 Include Headers Content in ETag
 -------------------------------
