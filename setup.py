@@ -8,7 +8,7 @@ with open('README.rst', encoding='utf-8') as f:
 
 setup(
     name='flask-smorest',
-    version='0.25.1',
+    version='0.26.0',
     description='Flask/Marshmallow-based REST API framework',
     long_description=long_description,
     url='https://github.com/marshmallow-code/flask-smorest',
