@@ -45,10 +45,10 @@ setup(
     },
     python_requires='>=3.6',
     install_requires=[
-        'werkzeug>=0.15',
-        'flask>=1.1.0',
-        'marshmallow>=3.0.0',
-        'webargs>=6.0.0',
-        'apispec>=4.0.0',
+        'werkzeug>=0.15,<2',
+        'flask>=1.1.0,<2',
+        'marshmallow>=3.0.0,<4',
+        'webargs>=6.0.0,<7',
+        'apispec>=4.0.0,<5',
     ],
 )
