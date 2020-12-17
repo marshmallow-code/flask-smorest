@@ -1,6 +1,17 @@
 Changelog
 ---------
 
+0.25.1 (2020-12-17)
++++++++++++++++++++
+
+Features:
+
+- Official Python 3.9 support (:pr:`195`).
+
+Other changes:
+
+- Bound dependencies versions in setup.py (:pr:`202`).
+
 0.25.0 (2020-10-02)
 +++++++++++++++++++
 
