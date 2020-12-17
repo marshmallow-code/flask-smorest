@@ -1,6 +1,24 @@
 Changelog
 ---------
 
+0.26.0 (2020-12-17)
++++++++++++++++++++
+
+Features:
+
+- *Backwards-incompatible*: Use warnings.warn rather than log warnings in
+  application log (:pr:`194`).
+
+Other changes:
+
+- *Backwards-incompatible*: Support webargs 6. Drop support for webargs 7.
+  The main change is about management of unknown fields in requests. Users
+  should refer to webargs documentation, sections
+  `Upgrading to 7.0 <https://webargs.readthedocs.io/en/latest/upgrading.html#upgrading-to-7-0>`_
+  and
+  `Setting unknown <https://webargs.readthedocs.io/en/latest/advanced.html#advanced-setting-unknown>`_.
+  (:pr:`203`)
+
 0.25.1 (2020-12-17)
 +++++++++++++++++++
 
