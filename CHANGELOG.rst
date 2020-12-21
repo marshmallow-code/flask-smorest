@@ -11,7 +11,7 @@ Features:
 
 Other changes:
 
-- *Backwards-incompatible*: Support webargs 6. Drop support for webargs 7.
+- *Backwards-incompatible*: Support webargs 7. Drop support for webargs 6.
   The main change is about management of unknown fields in requests. Users
   should refer to webargs documentation, sections
   `Upgrading to 7.0 <https://webargs.readthedocs.io/en/latest/upgrading.html#upgrading-to-7-0>`_
