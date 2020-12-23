@@ -15,8 +15,7 @@ from flask_smorest import Api, Blueprint, Page
 from flask_smorest.fields import Upload
 
 
-from .utils import build_ref
-
+from .utils import build_ref, get_responses
 
 LOCATIONS_MAPPING = (
     ('querystring', 'query',),
@@ -396,6 +395,7 @@ class TestBlueprint:
             spec['paths']['/test/']['get']['responses'][str(error_code)] ==
             build_ref(api.spec, 'response', http.HTTPStatus(error_code).name)
         )
+        assert http.HTTPStatus(error_code).name in get_responses(api.spec)
 
     @pytest.mark.parametrize('openapi_version', ('2.0', '3.0.2'))
     def test_blueprint_route_parameters(self, app, openapi_version):
