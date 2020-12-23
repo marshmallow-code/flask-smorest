@@ -69,6 +69,7 @@ class Blueprint(
     def __init__(self, *args, **kwargs):
 
         self.description = kwargs.pop('description', '')
+        self.auto_default_error = kwargs.pop('auto_default_error', True)
 
         super().__init__(*args, **kwargs)
 

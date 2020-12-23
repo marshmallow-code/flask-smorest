@@ -637,6 +637,21 @@ class TestBlueprint:
             api.spec, 'response', 'DEFAULT_ERROR'
         )
 
+    def test_blueprint_response_documents_default_no_error_response(self, app):
+        api = Api(app)
+        blp = Blueprint('test', 'test', url_prefix='/test',
+                        auto_default_error=False)
+
+        @blp.route('/')
+        @blp.response()
+        def func():
+            pass
+
+        api.register_blueprint(blp)
+
+        get = api.spec.to_dict()['paths']['/test/']['get']
+        assert 'default' not in get['responses']
+
     @pytest.mark.parametrize('openapi_version', ('2.0', '3.0.2'))
     def test_blueprint_pagination(self, app, schemas, openapi_version):
         app.config['OPENAPI_VERSION'] = openapi_version

@@ -102,8 +102,9 @@ class ResponseMixin:
 
                 return resp
 
-            # Document default error response
-            doc['responses']['default'] = 'DEFAULT_ERROR'
+            if self.auto_default_error:  # from Blueprint
+                # Document default error response
+                doc['responses']['default'] = 'DEFAULT_ERROR'
 
             # Store doc in wrapper function
             # The deepcopy avoids modifying the wrapped function doc
