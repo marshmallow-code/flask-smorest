@@ -13,7 +13,7 @@ setup(
     long_description=long_description,
     url='https://github.com/marshmallow-code/flask-smorest',
     author='Jérôme Lafréchoux',
-    author_email='jlafrechoux@nobatek.com',
+    author_email='jerome@jolimont.fr',
     license='MIT',
     # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
     classifiers=[
