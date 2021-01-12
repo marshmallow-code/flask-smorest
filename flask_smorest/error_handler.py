@@ -9,10 +9,10 @@ class ErrorSchema(ma.Schema):
 
     Not actually used to dump payload, but only for documentation purposes
     """
-    code = ma.fields.Integer(description='Error code')
-    status = ma.fields.String(description='Error name')
-    message = ma.fields.String(description='Error message')
-    errors = ma.fields.Dict(description='Errors')
+    code = ma.fields.Integer(metadata={'description': 'Error code'})
+    status = ma.fields.String(metadata={'description': 'Error name'})
+    message = ma.fields.String(metadata={'description': 'Error message'})
+    errors = ma.fields.Dict(metadata={'description': 'Errors'})
 
 
 class ErrorHandlerMixin:
