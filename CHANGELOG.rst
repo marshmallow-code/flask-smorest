@@ -1,6 +1,18 @@
 Changelog
 ---------
 
+0.27.0 (2021-01-13)
++++++++++++++++++++
+
+Bug fixes:
+
+- Don't pass field metadata as kwargs (deprecated in marshmallow 3.10.0)
+  (:pr:`205`).
+
+Other changes:
+
+- *Backwards-incompatible*: Require marshmallow >= 3.10.0 (:pr:`205`).
+
 0.26.0 (2020-12-17)
 +++++++++++++++++++
 
