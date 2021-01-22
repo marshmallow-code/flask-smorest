@@ -76,11 +76,78 @@ view function.
         def post(pet_data, query_args):
             return Pet.create(pet_data, **query_args)
 
+Dealing With Unknown Arguments
+------------------------------
+
+When input data contains unknown fields, a marshmallow ``Schema`` may raise a
+``ValidationError`` (default), exclude those fields, or include them without
+validation. This can be controlled by the ``unknown`` Meta attribute of the
+``Schema``, which can be set to ``RAISE``, ``EXCLUDE`` or ``INCLUDE``.
+
+Webargs, used internally by the ``arguments`` decorator, sets this parameter
+depending on the location of the argument. ``EXCLUDE`` is used for all
+locations except ``json``, ``form``, ``json_or_form``, or ``path``, where
+``RAISE`` is used.
+
+This can be customized in the ``FlaskParser`` imported from webargs. The
+easiest way is to mutate ``DEFAULT_UNKNOWN_BY_LOCATION`` in the parser class:
+
+.. code-block:: python
+
+    import marshmallow as ma
+    from webargs.flaskparser import FlaskParser
+
+    FlaskParser.DEFAULT_UNKNOWN_BY_LOCATION["json"] = ma.EXCLUDE
+
+It can also be achieved by subclassing the parser and set the child class in a
+base :class:`Blueprint` class:
+
+.. code-block:: python
+
+    import marshmallow as ma
+    from webargs.flaskparser import FlaskParser
+    from flask_smorest import Blueprint
+
+    MyFlaskParser(FlaskParser):
+        DEFAULT_UNKNOWN_BY_LOCATION = {
+            "query": ma.RAISE,
+            "json": ma.RAISE,
+            # ...
+        }
+
+    MyBlueprint(Blueprint):
+        ARGUMENTS_PARSER = MyFlaskParser()
+
+This latter method is recommended if several parsers are instantiated with
+different ``unknown`` values, for instance to get a different behaviour in
+different ``Blueprint``s.
+
+Setting `None` as `DEFAULT_UNKNOWN_BY_LOCATION` instead of a location/value
+mapping disables the feature to fall back to the `Schema`'s ``unknown`` value
+and marshmallow default (``RAISE``).
+
+.. note:: The pagination feature in flask-smorest uses its own ``FlaskParser``
+   instance to parse pagination parameters from query arguments. It is affected
+   by mutations of ``FlaskParser.DEFAULT_UNKNOWN_BY_LOCATION`` setting a value
+   other than ``EXCLUDE`` for ``query``.
+
+.. note:: More default about customizing ``unknown`` can be found in `webargs
+   documentation
+   <https://webargs.readthedocs.io/en/latest/advanced.html#setting-unknown>`_.
+
+.. note:: The unknown value passed by webargs only applies to first level
+   fields, not to nested fields. To set ``EXCLUDE`` for ``json`` locations
+   using ``Schema``s with ``Nested`` fields, one must set ``EXCLUDE`` in the
+   parser but also set ``unkown=EXCLUDE`` as Meta attribute in nested schemas.
+   In practice, this is easily achieved using a base schema class. This should
+   be improved in the future, as discussed in `webargs issue #580
+   <https://github.com/marshmallow-code/webargs/issues/580>`_.
+
 Multiple Arguments Schemas
 --------------------------
 
-To define arguments from multiple locations, calls to ``arguments`` decorator
-can be stacked:
+Calls to ``arguments`` decorator can be stacked, for instance to define
+arguments from multiple locations:
 
 .. code-block:: python
     :emphasize-lines: 4,5
@@ -97,42 +164,9 @@ can be stacked:
             ...
             return pet
 
-It is possible to define multiple arguments for the same location. However,
-with marshmallow 3, schemas raise by default on unknown fields, so they should
-be tweaked to define ``unknown`` meta attribute as ``EXCLUDE``.
-
-.. code-block:: python
-    :emphasize-lines: 5,12
-
-    # With marshmallow 3, define unknown=EXCLUDE
-    class QueryArgsSchema1(ma.Schema):
-        class Meta:
-            ordered = True
-            unknown = ma.EXCLUDE
-        arg1 = ma.fields.String()
-        arg2 = ma.fields.Integer()
-
-    class QueryArgsSchema2(ma.Schema):
-        class Meta:
-            ordered = True
-            unknown = ma.EXCLUDE
-        arg3 = ma.fields.String()
-        arg4 = ma.fields.Integer()
-
-    @blp.route('/')
-    class Pets(MethodView):
-
-        @blp.arguments(QueryArgsSchema1, location="query")
-        @blp.arguments(QueryArgsSchema2, location="query")
-        @blp.response(PetSchema, code=201)
-        def get(self, query_args_1, query_args_2):
-            query = {}
-            query.update(query_args_1)
-            query.update(query_args_2)
-            return Pet.get(**query)
-
-This also applies when using both query arguments and ``pagination`` decorator,
-as the pagination feature uses query arguments for pagination parameters.
+It can also be done to define multiple arguments for the same location. Of
+course, this only makes sense for locations where ``unknown`` is set to
+``EXCLUDE``.
 
 Content Type
 ------------
