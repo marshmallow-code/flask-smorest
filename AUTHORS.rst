@@ -17,3 +17,4 @@ Contributors (chronological)
 - Jón Bjarnason `@nonnib <https://github.com/nonnib>`_
 - Igor Davydenko `@playpauseandstop <https://github.com/playpauseandstop>`_
 - Joshua Harrison `@joshua-harrison-2011 <https://github.com/joshua-harrison-2011>`_
+- Martin Roy `@lindycoder <https://github.com/lindycoder>`_
