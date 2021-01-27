@@ -444,13 +444,13 @@ class TestRefResponsesPlugin:
             self, openapi_version, http_status_code, http_status_name):
         """Responses should be added to spec."""
         spec = apispec.APISpec('title', 'version', openapi_version)
+        plugin = RefResponsesPlugin()
+        plugin.init_spec(spec)
 
         operations = {'get': {'responses': {
             http_status_code: http_status_name,
         }}}
 
-        plugin = RefResponsesPlugin()
-        plugin.init_spec(spec)
         plugin.operation_helper(operations=operations)
 
         components = spec.to_dict()
@@ -459,3 +459,55 @@ class TestRefResponsesPlugin:
 
         assert len(components['responses']) == 1
         assert http_status_name in components['responses']
+
+    @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.2'])
+    def test_multi_operation_multi_reponses(self, openapi_version):
+        """Should loop all operations and all responses."""
+        spec = apispec.APISpec('title', 'version', openapi_version)
+        plugin = RefResponsesPlugin()
+        plugin.init_spec(spec)
+
+        operations = {
+            'get': {'responses': {
+                http.HTTPStatus.OK.value:
+                    http.HTTPStatus.OK.name,
+                http.HTTPStatus.NO_CONTENT.value:
+                    http.HTTPStatus.NO_CONTENT.name,
+            }},
+            'post': {'responses': {
+                http.HTTPStatus.OK.value:
+                    http.HTTPStatus.OK.name,  # Ignored repeat
+                http.HTTPStatus.CREATED.value:
+                    http.HTTPStatus.CREATED.name,
+            }},
+        }
+
+        plugin.operation_helper(operations=operations)
+
+        components = spec.to_dict()
+        if openapi_version == '3.0.2':
+            components = components['components']
+
+        assert len(components['responses']) == 3  # 200, 201, 204
+
+    @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.2'])
+    def test_repeated_response(self, openapi_version):
+        """Repeated response, different endpoint."""
+        spec = apispec.APISpec('title', 'version', openapi_version)
+        plugin = RefResponsesPlugin()
+        plugin.init_spec(spec)
+
+        operations = {'get': {'responses': {
+            http.HTTPStatus.OK.value: http.HTTPStatus.OK.name,
+        }}}
+
+        # operation_helper is called on each path, so this simulates
+        # 2 endpoints with the same response
+        plugin.operation_helper(operations=copy.deepcopy(operations))
+        plugin.operation_helper(operations=copy.deepcopy(operations))
+
+        components = spec.to_dict()
+        if openapi_version == '3.0.2':
+            components = components['components']
+
+        assert len(components['responses']) == 1
