@@ -11,7 +11,7 @@ import apispec
 
 from flask_smorest import Api, Blueprint
 from flask_smorest.exceptions import MissingAPIParameterError
-from flask_smorest.spec import RefResponsesPlugin
+from flask_smorest.spec import ResponseReferencesPlugin
 
 from .utils import get_schemas
 
@@ -430,7 +430,7 @@ class TestRefResponsesPlugin:
         Applicable responses are string in the defined applicable responses.
         Any other cases should pass right through without changing anything.
         """
-        plugin = RefResponsesPlugin()
+        plugin = ResponseReferencesPlugin()
         expected = copy.deepcopy(kwargs)
         plugin.operation_helper(**kwargs)
         assert kwargs == expected  # Nothing mutated
@@ -444,7 +444,7 @@ class TestRefResponsesPlugin:
             self, openapi_version, http_status_code, http_status_name):
         """Responses should be added to spec."""
         spec = apispec.APISpec('title', 'version', openapi_version)
-        plugin = RefResponsesPlugin()
+        plugin = ResponseReferencesPlugin()
         plugin.init_spec(spec)
 
         operations = {'get': {'responses': {
@@ -464,7 +464,7 @@ class TestRefResponsesPlugin:
     def test_multi_operation_multi_reponses(self, openapi_version):
         """Should loop all operations and all responses."""
         spec = apispec.APISpec('title', 'version', openapi_version)
-        plugin = RefResponsesPlugin()
+        plugin = ResponseReferencesPlugin()
         plugin.init_spec(spec)
 
         operations = {
@@ -494,7 +494,7 @@ class TestRefResponsesPlugin:
     def test_repeated_response(self, openapi_version):
         """Repeated response, different endpoint."""
         spec = apispec.APISpec('title', 'version', openapi_version)
-        plugin = RefResponsesPlugin()
+        plugin = ResponseReferencesPlugin()
         plugin.init_spec(spec)
 
         operations = {'get': {'responses': {

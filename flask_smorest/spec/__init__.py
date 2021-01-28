@@ -1,28 +1,23 @@
 """API specification using OpenAPI"""
 import json
-import http
 
 import flask
-from apispec import BasePlugin
 from flask import current_app
 import click
 import apispec
 from apispec.ext.marshmallow import MarshmallowPlugin
 
 from flask_smorest.exceptions import MissingAPIParameterError
-from flask_smorest.utils import prepare_response
-from .plugins import FlaskPlugin
+from .plugins import FlaskPlugin, ResponseReferencesPlugin
 from .field_converters import uploadfield2properties
-from ..error_handler import ErrorSchema
+from .constants import (
+    DEFAULT_REQUEST_BODY_CONTENT_TYPE, DEFAULT_RESPONSE_CONTENT_TYPE,
+)
 
 
 def _add_leading_slash(string):
     """Add leading slash to a string if there is None"""
     return string if string.startswith('/') else '/' + string
-
-
-DEFAULT_REQUEST_BODY_CONTENT_TYPE = 'application/json'
-DEFAULT_RESPONSE_CONTENT_TYPE = 'application/json'
 
 
 class DocBlueprintMixin:
@@ -113,17 +108,23 @@ class APISpecMixin(DocBlueprintMixin):
     """Add APISpec related features to Api class"""
 
     def _init_spec(
-            self, *,
-            flask_plugin=None, marshmallow_plugin=None, extra_plugins=None,
-            title=None, version=None, openapi_version=None,
+            self,
+            *,
+            flask_plugin=None,
+            marshmallow_plugin=None,
             response_plugin=None,
+            extra_plugins=None,
+            title=None,
+            version=None,
+            openapi_version=None,
             **options
     ):
         # Plugins
         self.flask_plugin = flask_plugin or FlaskPlugin()
         self.ma_plugin = marshmallow_plugin or MarshmallowPlugin()
-        self.resp_plugin = (response_plugin
-                            or RefResponsesPlugin(self.ERROR_SCHEMA))
+        self.resp_plugin = (
+            response_plugin or ResponseReferencesPlugin(self.ERROR_SCHEMA)
+        )
         plugins = [self.flask_plugin, self.ma_plugin, self.resp_plugin]
         plugins.extend(extra_plugins or ())
 
@@ -250,63 +251,6 @@ class APISpecMixin(DocBlueprintMixin):
 
     def _register_field(self, field, *args):
         self.ma_plugin.map_to_openapi_type(*args)(field)
-
-
-class RefResponsesPlugin(BasePlugin):
-    """Plugin to add responses to spec."""
-
-    def __init__(self, default_error_schema=ErrorSchema,
-                 default_response_content_type=DEFAULT_RESPONSE_CONTENT_TYPE):
-        self.error_schema = default_error_schema
-        self.content_type = default_response_content_type
-
-        self._available = self._available_responses()
-        self._registered = set()
-
-    def init_spec(self, spec):
-        super().init_spec(spec)
-        self.spec = spec
-
-    def operation_helper(self, operations=None, **kwargs):
-        """Inspired by MarshmallowPlugin.operation_helper
-
-        Looking for `str` responses, adding the corresponding spec responses.
-        `APISpec.clean_operations` will add a $ref for any response that is not
-        a `dict`, it's this plugin's role to ensure that $ref rexists.
-        """
-        for operation in (operations or {}).values():
-            if not isinstance(operation, dict):
-                continue
-            for response in operation.get("responses", {}).values():
-                if (isinstance(response, str)
-                        and response in self._available
-                        and response not in self._registered):
-
-                    self._add_to_spec(response)
-
-    def _add_to_spec(self, response):
-        resp = self._available[response]
-        prepare_response(resp, self.spec, self.content_type)
-        self.spec.components.response(response, resp)
-        self._registered.add(response)
-
-    def _available_responses(self):
-        """Build responses for all status codes."""
-        responses = {
-            status.name: {
-                'description': status.phrase,
-                'schema': self.error_schema,
-            }
-            for status in http.HTTPStatus
-        }
-
-        # Also add a default error response
-        responses['DEFAULT_ERROR'] = {
-            'description': 'Default error response',
-            'schema': self.error_schema,
-        }
-
-        return responses
 
 
 openapi_cli = flask.cli.AppGroup('openapi', help='OpenAPI commands.')
