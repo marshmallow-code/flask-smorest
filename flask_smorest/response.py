@@ -102,9 +102,6 @@ class ResponseMixin:
 
                 return resp
 
-            # Document default error response
-            doc['responses']['default'] = 'DEFAULT_ERROR'
-
             # Store doc in wrapper function
             # The deepcopy avoids modifying the wrapped function doc
             wrapper._apidoc = deepcopy(getattr(wrapper, '_apidoc', {}))
@@ -155,7 +152,9 @@ class ResponseMixin:
 
     @staticmethod
     def _prepare_response_doc(doc, doc_info, *, spec, **kwargs):
-        operation = doc_info.get('response')
+        operation = doc_info.get('response', {})
+        # Document default error response
+        operation.setdefault('responses', {})['default'] = "DEFAULT_ERROR"
         if operation:
             for response in operation['responses'].values():
                 prepare_response(response, spec, DEFAULT_RESPONSE_CONTENT_TYPE)
