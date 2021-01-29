@@ -110,6 +110,8 @@ class DocBlueprintMixin:
 class APISpecMixin(DocBlueprintMixin):
     """Add APISpec related features to Api class"""
 
+    DEFAULT_ERROR_RESPONSE_NAME = "DEFAULT_ERROR"
+
     def _init_spec(
             self, *,
             flask_plugin=None, marshmallow_plugin=None, extra_plugins=None,
@@ -259,12 +261,17 @@ class APISpecMixin(DocBlueprintMixin):
             self.spec.components.response(status.name, response)
 
         # Also register a default error response
-        response = {
-            'description': 'Default error response',
-            'schema': self.ERROR_SCHEMA,
-        }
-        prepare_response(response, self.spec, DEFAULT_RESPONSE_CONTENT_TYPE)
-        self.spec.components.response('DEFAULT_ERROR', response)
+        if self.DEFAULT_ERROR_RESPONSE_NAME:
+            response = {
+                'description': 'Default error response',
+                'schema': self.ERROR_SCHEMA,
+            }
+            prepare_response(
+                response, self.spec, DEFAULT_RESPONSE_CONTENT_TYPE)
+            self.spec.components.response(
+                self.DEFAULT_ERROR_RESPONSE_NAME,
+                response
+            )
 
 
 openapi_cli = flask.cli.AppGroup('openapi', help='OpenAPI commands.')
