@@ -621,12 +621,11 @@ class TestBlueprint:
         get = api.spec.to_dict()['paths']['/test/']['get']
         assert get['responses']['200']['headers'] == headers
 
-    def test_blueprint_response_documents_default_error_response(self, app):
+    def test_blueprint_documents_default_error_response(self, app):
         api = Api(app)
         blp = Blueprint('test', 'test', url_prefix='/test')
 
         @blp.route('/')
-        @blp.response()
         def func():
             pass
 
