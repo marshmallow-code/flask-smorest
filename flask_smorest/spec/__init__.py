@@ -107,6 +107,8 @@ class DocBlueprintMixin:
 class APISpecMixin(DocBlueprintMixin):
     """Add APISpec related features to Api class"""
 
+    DEFAULT_ERROR_RESPONSE_NAME = "DEFAULT_ERROR"
+
     def _init_spec(
             self,
             *,

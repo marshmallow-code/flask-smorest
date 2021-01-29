@@ -151,10 +151,12 @@ class ResponseMixin:
         return data
 
     @staticmethod
-    def _prepare_response_doc(doc, doc_info, *, spec, **kwargs):
+    def _prepare_response_doc(doc, doc_info, *, api, spec, **kwargs):
         operation = doc_info.get('response', {})
         # Document default error response
-        operation.setdefault('responses', {})['default'] = "DEFAULT_ERROR"
+        if api.DEFAULT_ERROR_RESPONSE_NAME:
+            operation.setdefault('responses', {})['default'] = (
+                api.DEFAULT_ERROR_RESPONSE_NAME)
         if operation:
             for response in operation['responses'].values():
                 prepare_response(response, spec, DEFAULT_RESPONSE_CONTENT_TYPE)
