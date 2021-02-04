@@ -621,8 +621,17 @@ class TestBlueprint:
         get = api.spec.to_dict()['paths']['/test/']['get']
         assert get['responses']['200']['headers'] == headers
 
-    def test_blueprint_documents_default_error_response(self, app):
-        api = Api(app)
+    @pytest.mark.parametrize('default_error', ('default', 'override', 'None'))
+    def test_blueprint_documents_default_error_response(
+            self, app, default_error
+    ):
+        class MyApi(Api):
+            if default_error == "override":
+                DEFAULT_ERROR_RESPONSE_NAME = "MY_DEFAULT_ERROR"
+            elif default_error == "None":
+                DEFAULT_ERROR_RESPONSE_NAME = None
+
+        api = MyApi(app)
         blp = Blueprint('test', 'test', url_prefix='/test')
 
         @blp.route('/')
@@ -632,9 +641,16 @@ class TestBlueprint:
         api.register_blueprint(blp)
 
         get = api.spec.to_dict()['paths']['/test/']['get']
-        assert get['responses']['default'] == build_ref(
-            api.spec, 'response', 'DEFAULT_ERROR'
-        )
+        if default_error == "None":
+            assert "responses" not in get
+        else:
+            error_response = {
+                "default": "DEFAULT_ERROR",
+                "override": "MY_DEFAULT_ERROR",
+            }[default_error]
+            assert get['responses']['default'] == build_ref(
+                api.spec, 'response', error_response
+            )
 
     @pytest.mark.parametrize('openapi_version', ('2.0', '3.0.2'))
     def test_blueprint_pagination(self, app, schemas, openapi_version):
