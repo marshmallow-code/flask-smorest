@@ -1,6 +1,5 @@
 """API specification using OpenAPI"""
 import json
-import http
 
 import flask
 from flask import current_app
@@ -9,18 +8,16 @@ import apispec
 from apispec.ext.marshmallow import MarshmallowPlugin
 
 from flask_smorest.exceptions import MissingAPIParameterError
-from flask_smorest.utils import prepare_response
-from .plugins import FlaskPlugin
+from .plugins import FlaskPlugin, ResponseReferencesPlugin
 from .field_converters import uploadfield2properties
+from .constants import (
+    DEFAULT_REQUEST_BODY_CONTENT_TYPE, DEFAULT_RESPONSE_CONTENT_TYPE,
+)
 
 
 def _add_leading_slash(string):
     """Add leading slash to a string if there is None"""
     return string if string.startswith('/') else '/' + string
-
-
-DEFAULT_REQUEST_BODY_CONTENT_TYPE = 'application/json'
-DEFAULT_RESPONSE_CONTENT_TYPE = 'application/json'
 
 
 class DocBlueprintMixin:
@@ -111,15 +108,24 @@ class APISpecMixin(DocBlueprintMixin):
     """Add APISpec related features to Api class"""
 
     def _init_spec(
-            self, *,
-            flask_plugin=None, marshmallow_plugin=None, extra_plugins=None,
-            title=None, version=None, openapi_version=None,
+            self,
+            *,
+            flask_plugin=None,
+            marshmallow_plugin=None,
+            response_plugin=None,
+            extra_plugins=None,
+            title=None,
+            version=None,
+            openapi_version=None,
             **options
     ):
         # Plugins
         self.flask_plugin = flask_plugin or FlaskPlugin()
         self.ma_plugin = marshmallow_plugin or MarshmallowPlugin()
-        plugins = [self.flask_plugin, self.ma_plugin]
+        self.resp_plugin = (
+            response_plugin or ResponseReferencesPlugin(self.ERROR_SCHEMA)
+        )
+        plugins = [self.flask_plugin, self.ma_plugin, self.resp_plugin]
         plugins.extend(extra_plugins or ())
 
         # APISpec options
@@ -245,26 +251,6 @@ class APISpecMixin(DocBlueprintMixin):
 
     def _register_field(self, field, *args):
         self.ma_plugin.map_to_openapi_type(*args)(field)
-
-    def _register_responses(self):
-        """Register default responses for all status codes"""
-        # Register a response for each status code
-        for status in http.HTTPStatus:
-            response = {
-                'description': status.phrase,
-                'schema': self.ERROR_SCHEMA,
-            }
-            prepare_response(
-                response, self.spec, DEFAULT_RESPONSE_CONTENT_TYPE)
-            self.spec.components.response(status.name, response)
-
-        # Also register a default error response
-        response = {
-            'description': 'Default error response',
-            'schema': self.ERROR_SCHEMA,
-        }
-        prepare_response(response, self.spec, DEFAULT_RESPONSE_CONTENT_TYPE)
-        self.spec.components.response('DEFAULT_ERROR', response)
 
 
 openapi_cli = flask.cli.AppGroup('openapi', help='OpenAPI commands.')

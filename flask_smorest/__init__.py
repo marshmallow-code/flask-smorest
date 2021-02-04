@@ -70,9 +70,6 @@ class Api(APISpecMixin, ErrorHandlerMixin):
         # Register error handlers
         self._register_error_handlers()
 
-        # Register responses
-        self._register_responses()
-
     def register_blueprint(self, blp, **options):
         """Register a blueprint in the application
 
