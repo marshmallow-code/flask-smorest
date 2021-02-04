@@ -1,6 +1,23 @@
 Changelog
 ---------
 
+0.28.0 (2021-02-04)
++++++++++++++++++++
+
+Features:
+
+* Pass ``Api`` instance to _prepare_*_doc callbacks (:pr:`222`).
+* Allow the user to opt-out of the feature adding a default error to each
+  response and allow customization of the default error name (:pr:`222`).
+- *Backwards-incompatible*: Only add referenced default responses to the spec,
+  using ``ResponseReferencesPlugin``. (:pr:`208`)
+  Thanks :user:`lindycoder` for the pull-request.
+
+Bug fixes:
+
+* Document error response even if ``@response`` decorator is not used
+  (:pr:`222`).
+
 0.27.0 (2021-01-13)
 +++++++++++++++++++
 
