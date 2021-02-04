@@ -162,7 +162,7 @@ class Blueprint(
         # Store parameters doc info from route decorator
         endpoint_doc_info['parameters'] = parameters
 
-    def register_views_in_doc(self, app, spec):
+    def register_views_in_doc(self, api, app, spec):
         """Register views information in documentation
 
         If a schema in a parameter or a response appears in the spec
@@ -186,6 +186,7 @@ class Blueprint(
                     operation_doc = func(
                         operation_doc,
                         operation_doc_info,
+                        api=api,
                         app=app,
                         spec=spec,
                         method=method_l
