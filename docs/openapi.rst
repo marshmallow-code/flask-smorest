@@ -98,6 +98,12 @@ documentation. Additional ``example`` and ``examples`` parameters can be used
 to provide examples (``examples`` is only valid for OpenAPI v3). Additional
 ``headers`` parameters can be used to document response headers.
 
+A default error response is added automatically to the documentation of all
+resources. It is defined as a `response` component in the spec named
+``"DEFAULT_ERROR"``. The name can be customized by setting
+``Api.DEFAULT_ERROR_RESPONSE_NAME``. The feature can be opted out by setting it
+to ``None``.
+
 Document Path Parameters
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
