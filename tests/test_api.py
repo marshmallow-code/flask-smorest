@@ -411,8 +411,8 @@ class TestApi:
             Api(app)
 
 
-class TestRefResponsesPlugin:
-    """Test RefResponsesPlugin class"""
+class TestResponseReferencesPlugin:
+    """Test ResponseReferencesPlugin class"""
 
     @pytest.mark.parametrize('kwargs', [
         ({}),

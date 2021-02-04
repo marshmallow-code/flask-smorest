@@ -14,8 +14,8 @@ from flask.views import MethodView
 from flask_smorest import Api, Blueprint, Page
 from flask_smorest.fields import Upload
 
-
 from .utils import build_ref, get_responses
+
 
 LOCATIONS_MAPPING = (
     ('querystring', 'query',),
