@@ -414,6 +414,7 @@ class TestApi:
 class TestResponseReferencesPlugin:
     """Test ResponseReferencesPlugin class"""
 
+    @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.2'])
     @pytest.mark.parametrize('kwargs', [
         ({}),
         ({'operations': None}),
@@ -424,16 +425,18 @@ class TestResponseReferencesPlugin:
         ({'operations': {'get': {'responses': {200: {}}}}}),
         ({'operations': {'get': {'responses': {200: 'unknown response'}}}}),
     ])
-    def test_operation_helper_unapplicable(self, kwargs):
-        """Should ignore if there are no applicable responses.
+    def test_operation_helper_unapplicable(self, kwargs, openapi_version):
+        """ResponseReferencesPlugin doesn't mutate responses without references
 
         Applicable responses are string in the defined applicable responses.
         Any other cases should pass right through without changing anything.
         """
+        spec = apispec.APISpec('title', 'version', openapi_version)
         plugin = ResponseReferencesPlugin()
+        plugin.init_spec(spec)
         expected = copy.deepcopy(kwargs)
         plugin.operation_helper(**kwargs)
-        assert kwargs == expected  # Nothing mutated
+        assert kwargs == expected
 
     @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.2'])
     @pytest.mark.parametrize('http_status_code, http_status_name', [
@@ -511,3 +514,30 @@ class TestResponseReferencesPlugin:
             components = components['components']
 
         assert len(components['responses']) == 1
+
+    @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.2'])
+    def test_response_already_registered(self, openapi_version):
+        """Test response registered before auto-registration"""
+        spec = apispec.APISpec('title', 'version', openapi_version)
+        plugin = ResponseReferencesPlugin()
+        plugin.init_spec(spec)
+
+        test_response = {"test": "test"}
+
+        spec.components.response(http.HTTPStatus.OK.name, test_response)
+
+        operations = {'get': {'responses': {
+            http.HTTPStatus.OK.value: http.HTTPStatus.OK.name,
+        }}}
+
+        plugin.operation_helper(operations=operations)
+
+        components = spec.to_dict()
+        if openapi_version == '3.0.2':
+            components = components['components']
+
+        # Manually registered response takes precedence
+        # over default response from HTTPStatus
+        assert len(components['responses']) == 1
+        assert components["responses"][
+            http.HTTPStatus.OK.name] == test_response

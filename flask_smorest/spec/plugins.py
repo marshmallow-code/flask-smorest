@@ -182,7 +182,6 @@ class ResponseReferencesPlugin(BasePlugin):
         self.error_schema = error_schema
         self.content_type = response_content_type
         self._available = self._available_responses()
-        self._registered = set()
 
     def init_spec(self, spec):
         super().init_spec(spec)
@@ -201,13 +200,12 @@ class ResponseReferencesPlugin(BasePlugin):
             for response in operation.get("responses", {}).values():
                 if (
                         isinstance(response, str)
-                        and response not in self._registered
+                        and response not in self.spec.components.responses
                         and response in self._available
                 ):
                     resp = self._available[response]
                     prepare_response(resp, self.spec, self.content_type)
                     self.spec.components.response(response, resp)
-                    self._registered.add(response)
 
     def _available_responses(self):
         """Build responses for all status codes."""
