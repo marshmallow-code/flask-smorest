@@ -8,7 +8,7 @@ from werkzeug.wrappers import BaseResponse
 from flask import jsonify
 
 from .utils import (
-    deepupdate, get_appcontext, prepare_response,
+    deepupdate, remove_none, get_appcontext, prepare_response,
     unpack_tuple_response, set_status_and_headers_in_response
 )
 from .spec import DEFAULT_RESPONSE_CONTENT_TYPE
@@ -55,17 +55,13 @@ class ResponseMixin:
         doc_schema = self._make_doc_response_schema(schema)
         if description is None:
             description = http.HTTPStatus(int(code)).phrase
-        resp_doc = {
-            k: v
-            for k, v in {
-                "schema": doc_schema,
-                "description": description,
-                "example": example,
-                "examples": examples,
-                "headers": headers,
-            }.items()
-            if v is not None
-        }
+        resp_doc = remove_none({
+            "schema": doc_schema,
+            "description": description,
+            "example": example,
+            "examples": examples,
+            "headers": headers,
+        })
 
         def decorator(func):
 
@@ -143,17 +139,13 @@ class ResponseMixin:
             doc_schema = self._make_doc_response_schema(schema)
             if description is None:
                 description = http.HTTPStatus(int(code)).phrase
-            resp_doc = {
-                k: v
-                for k, v in {
-                    "schema": doc_schema,
-                    "description": description,
-                    "example": example,
-                    "examples": examples,
-                    "headers": headers,
-                }.items()
-                if v is not None
-            }
+            resp_doc = remove_none({
+                "schema": doc_schema,
+                "description": description,
+                "example": example,
+                "examples": examples,
+                "headers": headers,
+            })
 
         def decorator(func):
 
