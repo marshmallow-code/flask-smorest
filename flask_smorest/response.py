@@ -18,15 +18,15 @@ class ResponseMixin:
     """Extend Blueprint to add response handling"""
 
     def response(
-            self, schema=None, *, code=200, description=None,
+            self, code, schema=None, *, description=None,
             example=None, examples=None, headers=None
     ):
         """Decorator generating an endpoint response
 
+        :param int|str|HTTPStatus code: HTTP status code.
+            Used if none is returned from the view function.
         :param schema: :class:`Schema <marshmallow.Schema>` class or instance.
             If not None, will be used to serialize response data.
-        :param int|str|HTTPStatus code: HTTP status code (default: 200).
-            Used if none is returned from the view function.
         :param str description: Description of the response (default: None).
         :param dict example: Example of response message.
         :param list examples: Examples of response message.

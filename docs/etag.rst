@@ -41,13 +41,13 @@ though it is the same as the response schema.
     class Pet(MethodView):
 
         @blp.etag
-        @blp.response(PetSchema(many=True))
+        @blp.response(200, PetSchema(many=True))
         def get(self):
             return Pet.get()
 
         @blp.etag
         @blp.arguments(PetSchema)
-        @blp.response(PetSchema)
+        @blp.response(201, PetSchema)
         def post(self, new_data):
             return Pet.create(**new_data)
 
@@ -55,13 +55,13 @@ though it is the same as the response schema.
     class PetById(MethodView):
 
         @blp.etag
-        @blp.response(PetSchema)
+        @blp.response(200, PetSchema)
         def get(self, pet_id):
             return Pet.get_by_id(pet_id)
 
         @blp.etag
         @blp.arguments(PetSchema)
-        @blp.response(PetSchema)
+        @blp.response(200, PetSchema)
         def put(self, update_data, pet_id):
             pet = Pet.get_by_id(pet_id)
             # Check ETag is a manual action and schema must be provided
@@ -70,7 +70,7 @@ though it is the same as the response schema.
             return pet
 
         @blp.etag
-        @blp.response(code=204)
+        @blp.response(204)
         def delete(self, pet_id):
             pet = Pet.get_by_id(pet_id)
             # Check ETag is a manual action and schema must be provided
@@ -95,13 +95,13 @@ In this case, a specific ETag schema should be provided to
     class Pet(MethodView):
 
         @blp.etag(PetEtagSchema(many=True))
-        @blp.response(PetSchema(many=True))
+        @blp.response(200, PetSchema(many=True))
         def get(self):
             return Pet.get()
 
         @blp.etag(PetEtagSchema)
         @blp.arguments(PetSchema)
-        @blp.response(PetSchema)
+        @blp.response(201, PetSchema)
         def post(self, new_pet):
             return Pet.create(**new_data)
 
@@ -109,13 +109,13 @@ In this case, a specific ETag schema should be provided to
     class PetById(MethodView):
 
         @blp.etag(PetEtagSchema)
-        @blp.response(PetSchema)
+        @blp.response(200, PetSchema)
         def get(self, pet_id):
             return Pet.get_by_id(pet_id)
 
         @blp.etag(PetEtagSchema)
         @blp.arguments(PetSchema)
-        @blp.response(PetSchema)
+        @blp.response(200, PetSchema)
         def put(self, new_pet, pet_id):
             pet = Pet.get_by_id(pet_id)
             # Check ETag is a manual action and schema must be provided
@@ -124,7 +124,7 @@ In this case, a specific ETag schema should be provided to
             return pet
 
         @blp.etag(PetEtagSchema)
-        @blp.response(code=204)
+        @blp.response(204)
         def delete(self, pet_id):
             pet = self._get_pet(pet_id)
             # Check ETag is a manual action, ETag schema is used
@@ -149,7 +149,7 @@ to pass an ETag schema to :meth:`set_etag <Blueprint.set_etag>` and
     class Pet(MethodView):
 
         @blp.etag
-        @blp.response(PetSchema(many=True))
+        @blp.response(200, PetSchema(many=True))
         def get(self):
             pets = Pet.get()
             # Compute ETag using arbitrary data
@@ -158,7 +158,7 @@ to pass an ETag schema to :meth:`set_etag <Blueprint.set_etag>` and
 
         @blp.etag
         @blp.arguments(PetSchema)
-        @blp.response(PetSchema)
+        @blp.response(201, PetSchema)
         def post(self, new_data):
             # Compute ETag using arbitrary data
             blp.set_etag(new_data['update_time'])
@@ -168,7 +168,7 @@ to pass an ETag schema to :meth:`set_etag <Blueprint.set_etag>` and
     class PetById(MethodView):
 
         @blp.etag
-        @blp.response(PetSchema)
+        @blp.response(200, PetSchema)
         def get(self, pet_id):
             # Compute ETag using arbitrary data
             blp.set_etag(new_data['update_time'])
@@ -176,7 +176,7 @@ to pass an ETag schema to :meth:`set_etag <Blueprint.set_etag>` and
 
         @blp.etag
         @blp.arguments(PetSchema)
-        @blp.response(PetSchema)
+        @blp.response(200, PetSchema)
         def put(self, update_data, pet_id):
             pet = Pet.get_by_id(pet_id)
             # Check ETag is a manual action
@@ -187,7 +187,7 @@ to pass an ETag schema to :meth:`set_etag <Blueprint.set_etag>` and
             return pet
 
         @blp.etag
-        @blp.response(code=204)
+        @blp.response(204)
         def delete(self, pet_id):
             pet = Pet.get_by_id(pet_id)
             # Check ETag is a manual action

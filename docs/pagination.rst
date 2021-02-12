@@ -32,7 +32,7 @@ as ``item_count`` attribute of the `PaginationParameters` object.
     @blp.route('/')
     class Pets(MethodView):
 
-        @blp.response(PetSchema(many=True))
+        @blp.response(200, PetSchema(many=True))
         @blp.paginate()
         def get(self, pagination_parameters):
             pagination_parameters.item_count = Pet.size
@@ -82,7 +82,7 @@ Mongoengine's :class:`QuerySet <mongoengine.queryset.QuerySet>`,...
     @blp.route('/')
     class Pets(MethodView):
 
-        @blp.response(PetSchema(many=True))
+        @blp.response(200, PetSchema(many=True))
         @blp.paginate(CursorPage)
         def get(self):
             return Pet.get()
