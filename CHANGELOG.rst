@@ -1,6 +1,17 @@
 Changelog
 ---------
 
+0.29.0 (2021-02-13)
++++++++++++++++++++
+
+Features:
+
+- *Backwards-incompatible*: In ``@response`` decorator, rename ``code``
+  argument into ``status_code`` and make it positional
+  (:pr:`193` and :pr:`159`).
+- Add ``Blueprint.alt_response`` decorator to document alternative responses
+  (:pr:`159`).
+
 0.28.0 (2021-02-04)
 +++++++++++++++++++
 
