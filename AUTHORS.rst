@@ -19,3 +19,4 @@ Contributors (chronological)
 - Joshua Harrison `@joshua-harrison-2011 <https://github.com/joshua-harrison-2011>`_
 - Martin Roy `@lindycoder <https://github.com/lindycoder>`_
 - Martijn Pieters `@mjpieters <https://github.com/mjpieters>`_
+- Stephen Rosen `@sirosen <https://github.com/sirosen>`_
