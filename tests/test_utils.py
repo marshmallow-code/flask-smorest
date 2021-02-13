@@ -1,4 +1,6 @@
-from flask_smorest.utils import deepupdate, load_info_from_docstring
+from flask_smorest.utils import (
+    deepupdate, remove_none, load_info_from_docstring
+)
 
 
 class TestUtils:
@@ -33,6 +35,11 @@ class TestUtils:
             },
             'age': {'category': 'puppy'},
         }
+
+    def test_remove_none(self):
+        mapping = {"a": 0, "b": "1", "c": "", "d": False, "e": None}
+        result = remove_none(mapping)
+        assert result == {"a": 0, "b": "1", "c": "", "d": False}
 
     def test_load_info_from_docstring(self):
         assert (load_info_from_docstring(None)) == {}

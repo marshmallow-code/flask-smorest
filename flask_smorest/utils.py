@@ -23,6 +23,11 @@ def deepupdate(original, update):
     return original
 
 
+def remove_none(mapping):
+    """Remove None values in a dict"""
+    return {k: v for k, v in mapping.items() if v is not None}
+
+
 # XXX: Does this belong here?
 def get_appcontext():
     """Return extension section from top of appcontext stack"""
