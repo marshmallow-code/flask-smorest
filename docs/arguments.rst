@@ -99,8 +99,8 @@ easiest way is to mutate ``DEFAULT_UNKNOWN_BY_LOCATION`` in the parser class:
 
     FlaskParser.DEFAULT_UNKNOWN_BY_LOCATION["json"] = ma.EXCLUDE
 
-It can also be achieved by subclassing the parser and set the child class in a
-base :class:`Blueprint` class:
+It can also be achieved by subclassing the parser and setting
+``ARGUMENTS_PARSER`` in a base :class:`Blueprint` class:
 
 .. code-block:: python
 
@@ -108,22 +108,22 @@ base :class:`Blueprint` class:
     from webargs.flaskparser import FlaskParser
     from flask_smorest import Blueprint
 
-    MyFlaskParser(FlaskParser):
+    class MyFlaskParser(FlaskParser):
         DEFAULT_UNKNOWN_BY_LOCATION = {
             "query": ma.RAISE,
             "json": ma.RAISE,
             # ...
         }
 
-    MyBlueprint(Blueprint):
+    class MyBlueprint(Blueprint):
         ARGUMENTS_PARSER = MyFlaskParser()
 
 This latter method is recommended if several parsers are instantiated with
 different ``unknown`` values, for instance to get a different behaviour in
-different ``Blueprint``s.
+different ``Blueprint`` s.
 
-Setting `None` as `DEFAULT_UNKNOWN_BY_LOCATION` instead of a location/value
-mapping disables the feature to fall back to the `Schema`'s ``unknown`` value
+Setting ``None`` as ``DEFAULT_UNKNOWN_BY_LOCATION`` instead of a location/value
+mapping disables the feature to fall back to the ``Schema``'s ``unknown`` value
 and marshmallow default (``RAISE``).
 
 .. note:: The pagination feature in flask-smorest uses its own ``FlaskParser``
