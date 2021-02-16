@@ -93,7 +93,7 @@ Bug fixes:
 
 - Fix bug introduced in 0.24.0 preventing setting a status code or header when
   returning a ``Response`` object. (:pr:`178`).
-  Thanks :user:`@marksantcroos` for reporting.
+  Thanks :user:`marksantcroos` for reporting.
 
 0.24.0 (2020-07-17)
 +++++++++++++++++++
