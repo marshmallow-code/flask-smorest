@@ -72,9 +72,9 @@ which results in a ``HTTPException``, or if it returns a ``Response`` object
 which is returned as is.
 
 Those alternative responses can be documented using the
-:meth:`Blueprint.response <Blueprint.alt_response>` decorator. Its signature is
-the same as ``response`` but its parameters are only used to document the
-response.
+:meth:`Blueprint.alt_response <Blueprint.alt_response>` decorator. Its
+signature is the same as ``response`` but its parameters are only used to
+document the response.
 
 A view function may only be decorated once with ``response`` but can be
 decorated multiple times with nested ``alt_response``.
