@@ -150,15 +150,29 @@ class APISpecMixin(DocBlueprintMixin):
                 'OpenAPI version must be specified either as "OPENAPI_VERSION '
                 'app parameter or as "openapi_version" spec kwarg.'
             )
+        apispec_opt = self._app.config.get('API_SPEC_OPTIONS', {})
+        base_path = self._app.config.get('APPLICATION_ROOT')
         openapi_major_version = int(openapi_version.split('.')[0])
         if openapi_major_version < 3:
-            base_path = self._app.config.get('APPLICATION_ROOT')
             options.setdefault('basePath', base_path)
             options.setdefault(
                 'produces', [DEFAULT_RESPONSE_CONTENT_TYPE, ])
             options.setdefault(
                 'consumes', [DEFAULT_REQUEST_BODY_CONTENT_TYPE, ])
-        options.update(self._app.config.get('API_SPEC_OPTIONS', {}))
+        else:
+            # ref: https://swagger.io/docs/specification/api-host-and-base-path/
+            # Set the server to APPLICATION_ROOT if it's not in the application configuration. 
+            # This is for applications wrapped in DispatcherMiddleware.
+            servers_opt = apispec_opt.get("servers", [])
+            if not servers_opt:
+                servers_opt = [
+                    {
+                        "url": base_path
+                    }
+                ]
+                apispec_opt["servers"] = servers_opt
+
+        options.update(apispec_opt)
 
         # Instantiate spec
         self.spec = apispec.APISpec(
