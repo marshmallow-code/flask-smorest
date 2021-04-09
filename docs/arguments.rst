@@ -84,20 +84,32 @@ When input data contains unknown fields, a marshmallow ``Schema`` may raise a
 validation. This can be controlled by the ``unknown`` Meta attribute of the
 ``Schema``, which can be set to ``RAISE``, ``EXCLUDE`` or ``INCLUDE``.
 
-Webargs, used internally by the ``arguments`` decorator, sets this parameter
-depending on the location of the argument. ``EXCLUDE`` is used for all
-locations except ``json``, ``form``, ``json_or_form``, or ``path``, where
-``RAISE`` is used.
+Marshmallow also allows to pass an ``unknown`` argument to change this on the
+fly on each load. This parameter, if not ``None``, overrides the Meta
+attribute. But it does not propagate to nested ``Schema`` s.
 
-This can be customized in the ``FlaskParser`` imported from webargs. The
-easiest way is to mutate ``DEFAULT_UNKNOWN_BY_LOCATION`` in the parser class:
+``json``, ``form`` or ``json_or_form`` locations may contain nested schemas, so
+the only way to change behaviour about ``unknown`` (for instance to set it to
+``EXCLUDE``), is to set it in a Meta attribute. This can be done conveniently
+in a base ``Schema`` class.
+
+For locations that typically don't use nested ``Schema`` s (``query_string``,
+``headers``, ``cookies`` and ``files``), ``unknown=EXCLUDE`` is passed, as it
+is considered a more sensible default.
+
+The ``unknown`` argument passed to the ``Schema`` for each location can be
+customized in the ``FlaskParser`` imported from webargs.
+
+The easiest way is to mutate ``DEFAULT_UNKNOWN_BY_LOCATION`` in the parser
+class:
 
 .. code-block:: python
 
     import marshmallow as ma
     from webargs.flaskparser import FlaskParser
 
-    FlaskParser.DEFAULT_UNKNOWN_BY_LOCATION["json"] = ma.EXCLUDE
+    # Don't do that when using the pagination feature. See below.
+    FlaskParser.DEFAULT_UNKNOWN_BY_LOCATION["query"] = ma.RAISE
 
 It can also be achieved by subclassing the parser and setting
 ``ARGUMENTS_PARSER`` in a base :class:`Blueprint` class:
@@ -111,7 +123,6 @@ It can also be achieved by subclassing the parser and setting
     class MyFlaskParser(FlaskParser):
         DEFAULT_UNKNOWN_BY_LOCATION = {
             "query": ma.RAISE,
-            "json": ma.RAISE,
             # ...
         }
 
@@ -119,29 +130,28 @@ It can also be achieved by subclassing the parser and setting
         ARGUMENTS_PARSER = MyFlaskParser()
 
 This latter method is recommended if several parsers are instantiated with
-different ``unknown`` values, for instance to get a different behaviour in
+different ``unknown`` values, for instance to get different behaviours in
 different ``Blueprint`` s.
 
+For the reason stated above, setting a value there for locations containing
+nested ``Schema`` s is not recommended because that value would only apply to
+the first level and would not propagate to nested ``Schema`` s.
+
+Setting ``None`` for a location disables the feature for that location: no
+``unknown`` argument is passed and marshmallow uses the ``Schema``'s
+``unknown`` Meta attribute or falls back to marshmallow default (``RAISE``).
+
 Setting ``None`` as ``DEFAULT_UNKNOWN_BY_LOCATION`` instead of a location/value
-mapping disables the feature to fall back to the ``Schema``'s ``unknown`` value
-and marshmallow default (``RAISE``).
+mapping disables the feature for all locations.
 
 .. note:: The pagination feature in flask-smorest uses its own ``FlaskParser``
    instance to parse pagination parameters from query arguments. It is affected
    by mutations of ``FlaskParser.DEFAULT_UNKNOWN_BY_LOCATION`` setting a value
    other than ``EXCLUDE`` for ``query``.
 
-.. note:: More default about customizing ``unknown`` can be found in `webargs
+.. note:: More info about customizing ``unknown`` can be found in `webargs
    documentation
    <https://webargs.readthedocs.io/en/latest/advanced.html#setting-unknown>`_.
-
-.. note:: The unknown value passed by webargs only applies to first level
-   fields, not to nested fields. To set ``EXCLUDE`` for ``json`` locations
-   using ``Schema``s with ``Nested`` fields, one must set ``EXCLUDE`` in the
-   parser but also set ``unkown=EXCLUDE`` as Meta attribute in nested schemas.
-   In practice, this is easily achieved using a base schema class. This should
-   be improved in the future, as discussed in `webargs issue #580
-   <https://github.com/marshmallow-code/webargs/issues/580>`_.
 
 Multiple Arguments Schemas
 --------------------------
