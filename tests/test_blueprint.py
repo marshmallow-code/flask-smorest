@@ -666,7 +666,9 @@ class TestBlueprint:
             'example 1': {'error_id': 'E1', 'text': 'client error 1'},
             'example 2': {'error_id': 'E2', 'text': 'client error 2'},
         }
-        headers = {'X-Custom-Header': 'Header value'}
+        headers = {'X-Custom-Header': {
+            'description': 'Custom header', 'schema': {'type': 'integer'}
+        }}
 
         @blp.route('/')
         @blp.alt_response(400, schemas.ClientErrorSchema)
