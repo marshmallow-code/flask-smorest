@@ -1,6 +1,15 @@
 Changelog
 ---------
 
+0.30.0 (2021-04-13)
++++++++++++++++++++
+
+Other changes:
+
+- *Backwards-incompatible*: Support webargs 8. Drop support for webargs 7.
+  The main change is about management of unknown fields in requests.
+  ``unknown`` defaults to ``None`` for body locations. (:pr:`239`)
+
 0.29.0 (2021-02-13)
 +++++++++++++++++++
 
