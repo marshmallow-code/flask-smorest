@@ -33,7 +33,7 @@ class ArgumentsMixin:
         :param bool required: Whether argument is required (default: True).
         :param str description: Argument description.
         :param dict example: Parameter example.
-        :param list examples: List of parameter examples.
+        :param dict examples: Parameter examples.
         :param dict kwargs: Keyword arguments passed to the webargs
             :meth:`use_args <webargs.core.Parser.use_args>` decorator used
             internally.
