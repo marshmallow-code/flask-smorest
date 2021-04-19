@@ -29,7 +29,7 @@ class ResponseMixin:
             If not None, will be used to serialize response data.
         :param str description: Description of the response (default: None).
         :param dict example: Example of response message.
-        :param list examples: Examples of response message.
+        :param dict examples: Examples of response message.
         :param dict headers: Headers returned by the response.
 
         The decorated function is expected to return the same types of value
@@ -125,7 +125,7 @@ class ResponseMixin:
             When passing a reference, arguments below are ignored.
         :param str description: Description of the response (default: None).
         :param dict example: Example of response message.
-        :param list examples: Examples of response message.
+        :param dict examples: Examples of response message.
         :param dict headers: Headers returned by the response.
         """
         # If a ref is passed
