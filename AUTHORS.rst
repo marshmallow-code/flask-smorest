@@ -20,3 +20,4 @@ Contributors (chronological)
 - Martin Roy `@lindycoder <https://github.com/lindycoder>`_
 - Martijn Pieters `@mjpieters <https://github.com/mjpieters>`_
 - Stephen Rosen `@sirosen <https://github.com/sirosen>`_
+- Grey Li `@greyli <https://github.com/greyli>`_
