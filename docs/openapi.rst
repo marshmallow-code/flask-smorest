@@ -150,13 +150,6 @@ Note that ``app.config`` overrides ``spec_kwargs``. The example above produces
 
     {'host': 'example.com', 'x-internal-id': '2', ...}
 
-.. note:: Again, flask-smorest tries to provide as much information as
-   possible, but some values can only by provided by the user.
-
-   When using OpenAPI v2, `basePath` is automatically set from the value of the
-   flask parameter `APPLICATION_ROOT`. In OpenAPI v3, `basePath` is removed,
-   and the `servers` attribute can only be set by the user.
-
 Document Top-level Components
 -----------------------------
 
