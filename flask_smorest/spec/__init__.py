@@ -152,8 +152,6 @@ class APISpecMixin(DocBlueprintMixin):
             )
         openapi_major_version = int(openapi_version.split('.')[0])
         if openapi_major_version < 3:
-            base_path = self._app.config.get('APPLICATION_ROOT')
-            options.setdefault('basePath', base_path)
             options.setdefault(
                 'produces', [DEFAULT_RESPONSE_CONTENT_TYPE, ])
             options.setdefault(
