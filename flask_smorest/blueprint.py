@@ -103,7 +103,7 @@ class Blueprint(
             to function name).
         :param list parameters: List of parameters relevant to all operations
             in this path, only used to document the resource.
-        :param dict options: Options to be forwarded to the underlying
+        :param options: Options to be forwarded to the underlying
             :class:`werkzeug.routing.Rule <Rule>` object.
         """
         def decorator(func):

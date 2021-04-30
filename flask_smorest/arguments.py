@@ -34,7 +34,7 @@ class ArgumentsMixin:
         :param str description: Argument description.
         :param dict example: Parameter example.
         :param dict examples: Parameter examples.
-        :param dict kwargs: Keyword arguments passed to the webargs
+        :param kwargs: Keyword arguments passed to the webargs
             :meth:`use_args <webargs.core.Parser.use_args>` decorator used
             internally.
 

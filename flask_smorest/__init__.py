@@ -16,7 +16,7 @@ class Api(APISpecMixin, ErrorHandlerMixin):
     Provides helpers to build a REST API using Flask.
 
     :param Flask app: Flask application
-    :param dict spec_kwargs: kwargs to pass to internal APISpec instance
+    :param spec_kwargs: kwargs to pass to internal APISpec instance
 
     The ``spec_kwargs`` dictionary is passed as kwargs to the internal APISpec
     instance. **flask-smorest** adds a few parameters to the original
@@ -51,7 +51,7 @@ class Api(APISpecMixin, ErrorHandlerMixin):
     def init_app(self, app, *, spec_kwargs=None):
         """Initialize Api with application
 
-        :param dict spec_kwargs: kwargs to pass to internal APISpec instance.
+        :param spec_kwargs: kwargs to pass to internal APISpec instance.
             Updates ``spec_kwargs`` passed in ``Api`` init.
         """
         self._app = app
@@ -76,7 +76,7 @@ class Api(APISpecMixin, ErrorHandlerMixin):
         Also registers documentation for the blueprint/resource
 
         :param Blueprint blp: Blueprint to register
-        :param dict options: Keyword arguments overriding Blueprint defaults
+        :param options: Keyword arguments overriding Blueprint defaults
 
         Must be called after app is initialized.
         """
