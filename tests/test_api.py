@@ -350,20 +350,6 @@ class TestApi:
         assert response.status_code == 200
         assert response.json == {'response': 'OK'}
 
-    @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.2'])
-    @pytest.mark.parametrize('base_path', [None, '/', '/v1'])
-    def test_api_apispec_sets_base_path(self, app, openapi_version, base_path):
-        app.config['OPENAPI_VERSION'] = openapi_version
-        if base_path is not None:
-            app.config['APPLICATION_ROOT'] = base_path
-        api = Api(app)
-        spec = api.spec.to_dict()
-
-        if openapi_version == '2.0':
-            assert spec['basePath'] == base_path or '/'
-        else:
-            assert 'basePath' not in spec
-
     @pytest.mark.parametrize(
         'parameter',
         [
