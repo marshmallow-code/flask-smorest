@@ -4,7 +4,7 @@ from copy import deepcopy
 from functools import wraps
 import http
 
-from werkzeug.wrappers import BaseResponse
+from werkzeug import Response
 from flask import jsonify
 
 from .utils import (
@@ -72,8 +72,8 @@ class ResponseMixin:
                 result_raw, r_status_code, r_headers = unpack_tuple_response(
                     func(*args, **kwargs))
 
-                # If return value is a werkzeug BaseResponse, return it
-                if isinstance(result_raw, BaseResponse):
+                # If return value is a werkzeug Response, return it
+                if isinstance(result_raw, Response):
                     set_status_and_headers_in_response(
                         result_raw, r_status_code, r_headers)
                     return result_raw
