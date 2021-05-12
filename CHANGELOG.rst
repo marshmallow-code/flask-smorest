@@ -1,6 +1,19 @@
 Changelog
 ---------
 
+0.31.0 (2021-05-12)
++++++++++++++++++++
+
+Features:
+
+- Support Flask 2 and Werkzeug 2 (:pr:`243`).
+
+Other changes:
+
+- *Backwards-incompatible*: Drop Flask < 2 and Werkzeug < 2 (:pr:`243`).
+- *Backwards-incompatible*: Remove feature setting ``basePath`` from
+  ``APPLICATION_ROOT`` (:pr:`242`).
+
 0.30.0 (2021-04-13)
 +++++++++++++++++++
 
