@@ -8,7 +8,7 @@ OpenAPI
 known as Swagger) for the API.
 
 That documentation can be made accessible as a JSON file, along with a nice web
-interface such as `ReDoc`_ or `Swagger UI`_.
+interface such as `ReDoc`_, `Swagger UI`_ or `RapiDoc`_.
 
 API parameters
 --------------
@@ -264,7 +264,8 @@ interactively. This feature is accessible through Flask app parameters.
 
    Default: ``openapi.json``
 
-Both `ReDoc`_ and `Swagger UI`_ interfaces are available to present the API.
+`ReDoc`_, `Swagger UI`_ and `RapiDoc` interfaces are available to present the
+API.
 
 Their configuration logics are similar. If an application path and a script URL
 are set, then `flask-smorest` adds a route at that path to serve the interface
@@ -309,7 +310,8 @@ page using the JS script from the script URL.
 
 .. describe:: OPENAPI_SWAGGER_UI_CONFIG
 
-   Dictionary representing Swagger UI configuration options.  See `Swagger UI Configuration`_ for available options.
+   Dictionary representing Swagger UI configuration options.
+   See `Swagger UI Configuration`_ for available options.
    All JSON serializable options are supported.
 
    Examples:
@@ -317,7 +319,34 @@ page using the JS script from the script URL.
 
    Default: ``{}``
 
-Here's an example application configuration using both ReDoc and Swagger UI:
+.. describe:: OPENAPI_RAPIDOC_PATH
+
+   Path to the RapiDoc page, relative to the base path.
+
+   Default: ``None``
+
+.. describe:: OPENAPI_RAPIDOC_URL
+
+   URL to the RapiDoc script.
+
+   Examples:
+      * https://unpkg.com/rapidoc/dist/rapidoc-min.js
+      * https://cdn.jsdelivr.net/npm/rapidoc@9.0.0/dist/rapidoc-min.js
+      * https://cdn.jsdelivr.net/npm/rapidoc/dist/rapidoc-min.js
+
+   Default: ``None``
+
+.. describe:: OPENAPI_RAPIDOC_CONFIG
+
+   Dictionary representing RapiDoc configuration options.
+   See `RapiDoc API`_ for available options.
+
+   Examples:
+      * ``{"theme": "dark"}``
+
+   Default: ``{}``
+
+Here's an example application configuration using all available UIs:
 
 .. code-block:: python
 
@@ -329,10 +358,14 @@ Here's an example application configuration using both ReDoc and Swagger UI:
        OPENAPI_REDOC_URL = "https://cdn.jsdelivr.net/npm/redoc@next/bundles/redoc.standalone.js"
        OPENAPI_SWAGGER_UI_PATH = "/swagger-ui"
        OPENAPI_SWAGGER_UI_URL = "https://cdn.jsdelivr.net/npm/swagger-ui-dist/"
+       OPENAPI_RAPIDOC_PATH = "/rapidoc"
+       OPENAPI_RAPIDOC_URL = "https://unpkg.com/rapidoc/dist/rapidoc-min.js"
 
 .. _ReDoc: https://github.com/Rebilly/ReDoc
 .. _Swagger UI: https://swagger.io/tools/swagger-ui/
 .. _Swagger UI Configuration: https://swagger.io/docs/open-source-tools/swagger-ui/usage/configuration/
+.. _RapiDoc: https://mrin9.github.io/RapiDoc/
+.. _RapiDoc API: https://mrin9.github.io/RapiDoc/api.html
 
 Write OpenAPI Documentation File
 --------------------------------
