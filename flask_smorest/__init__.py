@@ -7,7 +7,7 @@ from .blueprint import Blueprint  # noqa
 from .pagination import Page  # noqa
 from .error_handler import ErrorHandlerMixin
 
-__version__ = '0.31.0'
+__version__ = '0.31.1'
 
 
 class Api(APISpecMixin, ErrorHandlerMixin):
