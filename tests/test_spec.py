@@ -167,9 +167,77 @@ class TestAPISpecServeDocs:
                         'text/html; charset=utf-8')
                 assert title_tag in response_swagger_ui.get_data(True)
 
+    def test_apispec_serve_spec_swagger_ui_config(self, app):
+        class NewAppConfig(AppConfig):
+            OPENAPI_URL_PREFIX = "/"
+            OPENAPI_SWAGGER_UI_PATH = "/"
+            OPENAPI_SWAGGER_UI_URL = "https://domain.tld/swagger-ui"
+            OPENAPI_SWAGGER_UI_CONFIG = {
+                "supportedSubmitMethods": ["get", "put", "post", "delete"],
+            }
+
+        app.config.from_object(NewAppConfig)
+        Api(app)
+        client = app.test_client()
+        response_swagger_ui = client.get("/")
+        assert (
+            'var override_config = {'
+            '"supportedSubmitMethods": ["get", "put", "post", "delete"]'
+            '};'
+        ) in response_swagger_ui.get_data(True)
+
+    @pytest.mark.parametrize('prefix', (None, 'docs_url_prefix'))
+    @pytest.mark.parametrize('rapidoc_path', (None, 'rapidoc'))
+    @pytest.mark.parametrize('rapidoc_url', (None, 'https://my-rapidoc/'))
+    def test_apispec_serve_spec_rapidoc(
+            self, app, prefix, rapidoc_path, rapidoc_url
+    ):
+        class NewAppConfig(AppConfig):
+            if prefix is not None:
+                OPENAPI_URL_PREFIX = prefix
+            if rapidoc_path is not None:
+                OPENAPI_RAPIDOC_PATH = rapidoc_path
+            if rapidoc_url is not None:
+                OPENAPI_RAPIDOC_URL = rapidoc_url
+
+        title_tag = '<title>API Test</title>'
+        app.config.from_object(NewAppConfig)
+        Api(app)
+        client = app.test_client()
+        response_rapidoc = client.get('/docs_url_prefix/rapidoc')
+        if app.config.get('OPENAPI_URL_PREFIX') is None:
+            assert response_rapidoc.status_code == 404
+        else:
+            if (
+                    app.config.get('OPENAPI_RAPIDOC_PATH') is None or
+                    app.config.get('OPENAPI_RAPIDOC_URL') is None
+            ):
+                assert response_rapidoc.status_code == 404
+            else:
+                assert response_rapidoc.status_code == 200
+                assert (response_rapidoc.headers['Content-Type'] ==
+                        'text/html; charset=utf-8')
+                assert title_tag in response_rapidoc.get_data(True)
+
+    def test_apispec_serve_spec_rapidoc_config(self, app):
+        class NewAppConfig(AppConfig):
+            OPENAPI_URL_PREFIX = "/"
+            OPENAPI_RAPIDOC_PATH = "/"
+            OPENAPI_RAPIDOC_URL = "https://domain.tld/rapidoc"
+            OPENAPI_RAPIDOC_CONFIG = {"theme": "dark"}
+
+        app.config.from_object(NewAppConfig)
+        Api(app)
+        client = app.test_client()
+        response_rapidoc = client.get("/")
+        assert "theme = dark" in response_rapidoc.get_data(True)
+
     @pytest.mark.parametrize('prefix', ('', '/'))
     @pytest.mark.parametrize('path', ('', '/'))
-    @pytest.mark.parametrize('tested', ('json', 'redoc', 'swagger-ui'))
+    @pytest.mark.parametrize(
+        'tested',
+        ('json', 'redoc', 'swagger-ui', 'rapidoc')
+    )
     def test_apispec_serve_spec_empty_path(self, app, prefix, path, tested):
         """Test empty string or (equivalently) single slash as paths
 
@@ -180,11 +248,13 @@ class TestAPISpecServeDocs:
             OPENAPI_URL_PREFIX = prefix
             OPENAPI_REDOC_URL = "https://domain.tld/redoc"
             OPENAPI_SWAGGER_UI_URL = "https://domain.tld/swagger-ui"
+            OPENAPI_RAPIDOC_URL = "https://domain.tld/rapidoc"
 
         mapping = {
             'json': 'OPENAPI_JSON_PATH',
             'redoc': 'OPENAPI_REDOC_PATH',
             'swagger-ui': 'OPENAPI_SWAGGER_UI_PATH',
+            'rapidoc': 'OPENAPI_RAPIDOC_PATH',
         }
         setattr(NewAppConfig, mapping[tested], path)
 

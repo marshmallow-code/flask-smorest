@@ -45,8 +45,9 @@ built upon `Flask <https://palletsprojects.com/p/flask/>`_ and
 - Explicit validation error messages returned in response
 - Database-agnostic
 - OpenAPI (Swagger) specification automatically generated and exposed with
-  `ReDoc <https://github.com/Rebilly/ReDoc>`_ or
-  `Swagger UI <https://swagger.io/tools/swagger-ui/>`_
+  `ReDoc <https://github.com/Rebilly/ReDoc>`_,
+  `Swagger UI <https://swagger.io/tools/swagger-ui/>`_ or
+  `RapiDoc <https://mrin9.github.io/RapiDoc/>`_
 - Pagination
 - ETag
 

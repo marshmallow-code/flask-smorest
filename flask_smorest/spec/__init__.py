@@ -47,6 +47,7 @@ class DocBlueprintMixin:
                 view_func=self._openapi_json)
             self._register_redoc_rule(blueprint)
             self._register_swagger_ui_rule(blueprint)
+            self._register_rapidoc_rule(blueprint)
             self._app.register_blueprint(blueprint)
 
     def _register_redoc_rule(self, blueprint):
@@ -80,6 +81,21 @@ class DocBlueprintMixin:
                     endpoint='openapi_swagger_ui',
                     view_func=self._openapi_swagger_ui)
 
+    def _register_rapidoc_rule(self, blueprint):
+        """Register RapiDoc rule
+
+        The RapiDoc script URL should be specified as OPENAPI_RAPIDOC_URL.
+        """
+        rapidoc_path = self._app.config.get('OPENAPI_RAPIDOC_PATH')
+        if rapidoc_path is not None:
+            rapidoc_url = self._app.config.get('OPENAPI_RAPIDOC_URL')
+            if rapidoc_url is not None:
+                self._rapidoc_url = rapidoc_url
+                blueprint.add_url_rule(
+                    _add_leading_slash(rapidoc_path),
+                    endpoint='openapi_rapidoc',
+                    view_func=self._openapi_rapidoc)
+
     def _openapi_json(self):
         """Serve JSON spec file"""
         # We don't use Flask.jsonify here as it would sort the keys
@@ -101,6 +117,15 @@ class DocBlueprintMixin:
             swagger_ui_url=self._swagger_ui_url,
             swagger_ui_config=self._app.config.get(
                 'OPENAPI_SWAGGER_UI_CONFIG', {})
+        )
+
+    def _openapi_rapidoc(self):
+        """Expose OpenAPI spec with RapiDoc"""
+        return flask.render_template(
+            'rapidoc.html',
+            title=self.spec.title,
+            rapidoc_url=self._rapidoc_url,
+            rapidoc_config=self._app.config.get('OPENAPI_RAPIDOC_CONFIG', {})
         )
 
 
