@@ -44,49 +44,85 @@ class TestAPISpec:
 
 
 class TestAPISpecServeDocs:
-    """Test APISpec class docs serving features"""
+    """Test APISpec class doc-serving features"""
 
     @pytest.mark.parametrize(
-        'prefix', (None, 'docs_url_prefix', '/docs_url_prefix',
-                   'docs_url_prefix/', '/docs_url_prefix/'))
-    @pytest.mark.parametrize('json_path', (None, 'openapi.json'))
-    @pytest.mark.parametrize('redoc_path', (None, 'redoc'))
-    @pytest.mark.parametrize('redoc_url', (None, 'https://my-redoc/'))
-    @pytest.mark.parametrize('swagger_ui_path', (None, 'swagger-ui'))
-    @pytest.mark.parametrize('swagger_ui_url', (None, 'https://my-swagger/'))
-    def test_apispec_serve_spec(
-            self, app, prefix, json_path, redoc_path, redoc_url,
-            swagger_ui_path, swagger_ui_url):
-        """Test default values and leading/trailing slashes issues"""
+        'prefix',
+        (
+            None,
+            'docs_url_prefix',
+            '/docs_url_prefix',
+            'docs_url_prefix/',
+            '/docs_url_prefix/'
+        )
+    )
+    def test_apispec_serve_spec_prefix(self, app, prefix):
+        """Test url prefix default value and leading/trailing slashes issues"""
+        class NewAppConfig(AppConfig):
+            if prefix is not None:
+                OPENAPI_URL_PREFIX = prefix
 
+        app.config.from_object(NewAppConfig)
+        Api(app)
+        client = app.test_client()
+        resp_json_docs = client.get('/docs_url_prefix/openapi.json')
+        if app.config.get('OPENAPI_URL_PREFIX') is None:
+            assert resp_json_docs.status_code == 404
+        else:
+            assert resp_json_docs.json['info'] == {
+                'version': '1', 'title': 'API Test'}
+
+    @pytest.mark.parametrize('prefix', (None, 'docs_url_prefix'))
+    @pytest.mark.parametrize('json_path', (None, 'spec.json'))
+    def test_apispec_serve_spec_json_path(self, app, prefix, json_path):
         class NewAppConfig(AppConfig):
             if prefix is not None:
                 OPENAPI_URL_PREFIX = prefix
             if json_path is not None:
                 OPENAPI_JSON_PATH = json_path
+
+        app.config.from_object(NewAppConfig)
+        Api(app)
+        client = app.test_client()
+        resp_json_docs_default = client.get('/docs_url_prefix/openapi.json')
+        resp_json_docs_custom = client.get('/docs_url_prefix/spec.json')
+        if app.config.get('OPENAPI_URL_PREFIX') is None:
+            assert resp_json_docs_default.status_code == 404
+            assert resp_json_docs_custom.status_code == 404
+        else:
+            if json_path is None:
+                assert resp_json_docs_default.json['info'] == (
+                    {'version': '1', 'title': 'API Test'}
+                )
+                assert resp_json_docs_custom.status_code == 404
+            else:
+                assert resp_json_docs_custom.json['info'] == (
+                    {'version': '1', 'title': 'API Test'}
+                )
+                assert resp_json_docs_default.status_code == 404
+
+    @pytest.mark.parametrize('prefix', (None, 'docs_url_prefix'))
+    @pytest.mark.parametrize('redoc_path', (None, 'redoc'))
+    @pytest.mark.parametrize('redoc_url', (None, 'https://my-redoc/'))
+    def test_apispec_serve_spec_redoc(
+            self, app, prefix, redoc_path, redoc_url
+    ):
+        class NewAppConfig(AppConfig):
+            if prefix is not None:
+                OPENAPI_URL_PREFIX = prefix
             if redoc_path is not None:
                 OPENAPI_REDOC_PATH = redoc_path
             if redoc_url is not None:
                 OPENAPI_REDOC_URL = redoc_url
-            if swagger_ui_path is not None:
-                OPENAPI_SWAGGER_UI_PATH = swagger_ui_path
-            if swagger_ui_url is not None:
-                OPENAPI_SWAGGER_UI_URL = swagger_ui_url
 
         title_tag = '<title>API Test</title>'
         app.config.from_object(NewAppConfig)
         Api(app)
         client = app.test_client()
-        response_json_docs = client.get('/docs_url_prefix/openapi.json')
         response_redoc = client.get('/docs_url_prefix/redoc')
-        response_swagger_ui = client.get('/docs_url_prefix/swagger-ui')
         if app.config.get('OPENAPI_URL_PREFIX') is None:
-            assert response_json_docs.status_code == 404
             assert response_redoc.status_code == 404
-            assert response_swagger_ui.status_code == 404
         else:
-            assert response_json_docs.json['info'] == {
-                'version': '1', 'title': 'API Test'}
             if (
                     app.config.get('OPENAPI_REDOC_PATH') is None or
                     app.config.get('OPENAPI_REDOC_URL') is None
@@ -97,6 +133,29 @@ class TestAPISpecServeDocs:
                 assert (response_redoc.headers['Content-Type'] ==
                         'text/html; charset=utf-8')
                 assert title_tag in response_redoc.get_data(True)
+
+    @pytest.mark.parametrize('prefix', (None, 'docs_url_prefix'))
+    @pytest.mark.parametrize('swagger_ui_path', (None, 'swagger-ui'))
+    @pytest.mark.parametrize('swagger_ui_url', (None, 'https://my-swagger/'))
+    def test_apispec_serve_spec_swagger_ui(
+            self, app, prefix, swagger_ui_path, swagger_ui_url
+    ):
+        class NewAppConfig(AppConfig):
+            if prefix is not None:
+                OPENAPI_URL_PREFIX = prefix
+            if swagger_ui_path is not None:
+                OPENAPI_SWAGGER_UI_PATH = swagger_ui_path
+            if swagger_ui_url is not None:
+                OPENAPI_SWAGGER_UI_URL = swagger_ui_url
+
+        title_tag = '<title>API Test</title>'
+        app.config.from_object(NewAppConfig)
+        Api(app)
+        client = app.test_client()
+        response_swagger_ui = client.get('/docs_url_prefix/swagger-ui')
+        if app.config.get('OPENAPI_URL_PREFIX') is None:
+            assert response_swagger_ui.status_code == 404
+        else:
             if (
                     app.config.get('OPENAPI_SWAGGER_UI_PATH') is None or
                     app.config.get('OPENAPI_SWAGGER_UI_URL') is None
