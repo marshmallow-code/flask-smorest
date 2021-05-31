@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+0.31.1 (2021-06-01)
++++++++++++++++++++
+
+Features:
+
+- Support RapiDoc interface to expose the API spec (:pr:`248`).
+
 0.31.0 (2021-05-12)
 +++++++++++++++++++
 
