@@ -200,6 +200,19 @@ class TestAPISpecServeDocs:
                         'text/html; charset=utf-8')
                 assert title_tag in response_rapidoc.get_data(True)
 
+    def test_apispec_serve_spec_rapidoc_config(self, app):
+        class NewAppConfig(AppConfig):
+            OPENAPI_URL_PREFIX = "/"
+            OPENAPI_RAPIDOC_PATH = "/"
+            OPENAPI_RAPIDOC_URL = "https://domain.tld/rapidoc"
+            OPENAPI_RAPIDOC_CONFIG = {"theme": "dark"}
+
+        app.config.from_object(NewAppConfig)
+        Api(app)
+        client = app.test_client()
+        response_rapidoc = client.get("/")
+        assert "theme = dark" in response_rapidoc.get_data(True)
+
     @pytest.mark.parametrize('prefix', ('', '/'))
     @pytest.mark.parametrize('path', ('', '/'))
     @pytest.mark.parametrize(

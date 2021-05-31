@@ -124,7 +124,8 @@ class DocBlueprintMixin:
         return flask.render_template(
             'rapidoc.html',
             title=self.spec.title,
-            rapidoc_url=self._rapidoc_url
+            rapidoc_url=self._rapidoc_url,
+            rapidoc_config=self._app.config.get('OPENAPI_RAPIDOC_CONFIG', {})
         )
 
 
