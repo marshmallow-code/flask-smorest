@@ -22,7 +22,7 @@ flask-smorest
     :target: https://flask-smorest.readthedocs.io/en/latest/license.html
     :alt: License
 
-.. image:: https://github.com/github/docs/actions/workflows/build-release.yml/badge.svg
+.. image:: https://github.com/marshmallow-code/flask-smorest/actions/workflows/build-release.yml/badge.svg
     :target: https://github.com/marshmallow-code/flask-smorest/actions?query=workflow%3Abuild
     :alt: Build status
 
