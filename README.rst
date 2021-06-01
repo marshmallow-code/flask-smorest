@@ -22,12 +22,12 @@ flask-smorest
     :target: https://flask-smorest.readthedocs.io/en/latest/license.html
     :alt: License
 
-.. image:: https://dev.azure.com/lafrech/flask-smorest/_apis/build/status/marshmallow-code.flask-smorest?branchName=master
-    :target: https://dev.azure.com/lafrech/flask-smorest/_build/latest?definitionId=1&branchName=master
+.. image:: https://github.com/github/docs/actions/workflows/main.yml/badge.svg
+    :target: https://github.com/marshmallow-code/flask-smorest/actions?query=workflow%3Abuild
     :alt: Build status
 
-.. image:: https://img.shields.io/azure-devops/coverage/lafrech/flask-smorest/1
-    :target: https://dev.azure.com/lafrech/flask-smorest/_build/latest?definitionId=1&branchName=master
+.. image:: https://codecov.io/gh/marshmallow-code/flask-smorest/branch/master/graph/badge.svg?token=F676tOSaLF
+    :target: https://codecov.io/gh/marshmallow-code/flask-smorest
     :alt: Code coverage
 
 .. image:: https://readthedocs.org/projects/flask-smorest/badge/
