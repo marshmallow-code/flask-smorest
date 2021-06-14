@@ -250,9 +250,30 @@ class EtagMixin:
             method_u = method.upper()
             if method_u in self.METHODS_CHECKING_NOT_MODIFIED:
                 responses[304] = http.HTTPStatus(304).name
+                doc.setdefault("parameters", []).append({
+                    'name': 'If-None-Match',
+                    'in': 'header',
+                    'description': 'Tag to check against',
+                    'schema': {'type': 'string'}})
             if method_u in self.METHODS_NEEDING_CHECK_ETAG:
                 responses[412] = http.HTTPStatus(412).name
                 responses[428] = http.HTTPStatus(428).name
+                doc.setdefault("parameters", []).append({
+                    'name': 'If-Match',
+                    'in': 'header',
+                    'required': True,
+                    'description': 'Tag to check against',
+                    'schema': {'type': 'string'}})
+            if method_u in self.METHODS_ALLOWING_SET_ETAG:
+                success_status_code = doc_info.get('success_status_code')
+                if success_status_code is not None:
+                    header = {
+                        'description': 'Tag for the returned entry',
+                        'schema': {'type': 'string'}
+                    }
+                    doc['responses'][success_status_code] \
+                        .setdefault('headers', {})['ETag'] = header
+
             if responses:
                 doc = deepupdate(doc, {'responses': responses})
         return doc

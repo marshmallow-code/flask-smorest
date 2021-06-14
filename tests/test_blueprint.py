@@ -1305,11 +1305,13 @@ class TestBlueprint:
 
         if decorate:
             @blp.route('/', methods=[method])
+            @blp.response(204)
             @blp.etag
             def func():
                 pass
         else:
             @blp.route('/', methods=[method])
+            @blp.response(204)
             def func():
                 pass
 
@@ -1317,14 +1319,29 @@ class TestBlueprint:
 
         operation = api.spec.to_dict()['paths']['/test/'][method.lower()]
         responses = operation.get('responses', {})
+        response_headers = responses.get("204", {}).get("headers", {})
+        parameters = operation.get('parameters', {})
+
+        def find_header(name):
+            return [x for x in parameters
+                    if x.get('in') == 'header' and x.get('name') == name]
 
         if not decorate or etag_disabled:
             assert '304' not in responses
             assert '412' not in responses
             assert '428' not in responses
+            assert len(find_header('If-None-Match')) == 0
+            assert len(find_header('If-Match')) == 0
+            assert 'ETag' not in response_headers
         else:
             assert ('304' in responses) == (method in ['GET', 'HEAD'])
             assert ('412' in responses) == (
                 method in ['PUT', 'PATCH', 'DELETE'])
             assert ('428' in responses) == (
                 method in ['PUT', 'PATCH', 'DELETE'])
+            assert (len(find_header('If-None-Match')) == 1) == (
+                method in ['GET', 'HEAD'])
+            assert (len(find_header('If-Match')) == 1) == (
+                method in ['PUT', 'PATCH', 'DELETE'])
+            assert ('ETag' in response_headers) == (
+                method in ['GET', 'HEAD', 'POST', 'PUT', 'PATCH'])
