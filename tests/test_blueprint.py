@@ -1291,29 +1291,41 @@ class TestBlueprint:
         assert response.headers['X-header'] == 'test'
 
     @pytest.mark.parametrize('decorate', (True, False))
+    @pytest.mark.parametrize('has_response', (True, False))
     @pytest.mark.parametrize('etag_disabled', (True, False))
     @pytest.mark.parametrize(
         'method',
         ('OPTIONS', 'HEAD', 'GET', 'POST', 'PUT', 'PATCH', 'DELETE')
     )
     def test_blueprint_etag_documents_responses(
-            self, app, method, decorate, etag_disabled,
+            self, app, method, decorate, etag_disabled, has_response,
     ):
         app.config['ETAG_DISABLED'] = etag_disabled
         api = Api(app)
         blp = Blueprint('test', 'test', url_prefix='/test')
 
         if decorate:
-            @blp.route('/', methods=[method])
-            @blp.response(204)
-            @blp.etag
-            def func():
-                pass
+            if has_response:
+                @blp.route('/', methods=[method])
+                @blp.response(204)
+                @blp.etag
+                def func():
+                    pass
+            else:
+                @blp.route('/', methods=[method])
+                @blp.etag
+                def func():
+                    pass
         else:
-            @blp.route('/', methods=[method])
-            @blp.response(204)
-            def func():
-                pass
+            if has_response:
+                @blp.route('/', methods=[method])
+                @blp.response(204)
+                def func():
+                    pass
+            else:
+                @blp.route('/', methods=[method])
+                def func():
+                    pass
 
         api.register_blueprint(blp)
 
@@ -1343,5 +1355,5 @@ class TestBlueprint:
                 method in ['GET', 'HEAD'])
             assert (len(find_header('If-Match')) == 1) == (
                 method in ['PUT', 'PATCH', 'DELETE'])
-            assert ('ETag' in response_headers) == (
+            assert not has_response or ('ETag' in response_headers) == (
                 method in ['GET', 'HEAD', 'POST', 'PUT', 'PATCH'])
