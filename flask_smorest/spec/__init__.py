@@ -285,7 +285,7 @@ openapi_cli = flask.cli.AppGroup('openapi', help='OpenAPI commands.')
 def print_openapi_doc():
     """Print OpenAPI document."""
     api = current_app.extensions['flask-smorest']['ext_obj']
-    print(json.dumps(api.spec.to_dict(), indent=2))
+    click.echo(json.dumps(api.spec.to_dict(), indent=2))
 
 
 @openapi_cli.command('write')
@@ -293,4 +293,4 @@ def print_openapi_doc():
 def write_openapi_doc(output_file):
     """Write OpenAPI document to a file."""
     api = current_app.extensions['flask-smorest']['ext_obj']
-    output_file.write(json.dumps(api.spec.to_dict(), indent=2))
+    click.echo(json.dumps(api.spec.to_dict(), indent=2), file=output_file)
