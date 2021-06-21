@@ -1,6 +1,16 @@
 Changelog
 ---------
 
+0.31.2 (2021-06-21)
++++++++++++++++++++
+
+Bug fixes:
+
+- Document ETag headers in OpenAPI spec (:pr:`254`).
+  Thanks :user:`TimDiekmann` for the PR.
+- Use ``click.echo`` for spec output commands (:pr:`255`).
+  Thanks :user:`greyli` for the PR.
+
 0.31.1 (2021-06-01)
 +++++++++++++++++++
 
