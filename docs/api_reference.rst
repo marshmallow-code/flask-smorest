@@ -27,6 +27,7 @@ Blueprint
 
     .. automethod:: arguments
     .. automethod:: response
+    .. automethod:: alt_response
     .. automethod:: paginate
     .. automethod:: etag
     .. automethod:: check_etag
