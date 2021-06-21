@@ -21,3 +21,4 @@ Contributors (chronological)
 - Martijn Pieters `@mjpieters <https://github.com/mjpieters>`_
 - Stephen Rosen `@sirosen <https://github.com/sirosen>`_
 - Grey Li `@greyli <https://github.com/greyli>`_
+- Tim Diekmann `@TimDiekmann <https://github.com/TimDiekmann`_
