@@ -13,6 +13,7 @@ from flask_smorest import Api, Blueprint
 from flask_smorest.exceptions import MissingAPIParameterError
 from flask_smorest.spec import ResponseReferencesPlugin
 
+from .conftest import AppConfig
 from .utils import get_schemas
 
 
@@ -395,6 +396,28 @@ class TestApi:
                 match='OpenAPI version must be specified'
         ):
             Api(app)
+
+    def test_api_multiple_apis(self, app):
+        """Test it is possible to create multiple Apis against the same app"""
+        Api(app)
+        Api(app)
+
+        class NewAppConfig(AppConfig):
+            OPENAPI_URL_PREFIX = "/"
+            OPENAPI_SWAGGER_UI_PATH = "/"
+            OPENAPI_SWAGGER_UI_URL = "https://domain.tld/swagger-ui"
+            OPENAPI_SWAGGER_UI_CONFIG = {
+                "supportedSubmitMethods": ["get", "put", "post", "delete"],
+            }
+
+        app.config.from_object(NewAppConfig)
+        Api(app)
+        with pytest.raises(
+                ValueError,
+                match='The name \'api-docs\' is already registered'
+        ):
+            Api(app)
+        Api(app, doc_kwargs={"name": "api-docs-2"})
 
 
 class TestResponseReferencesPlugin:

@@ -17,6 +17,7 @@ class Api(APISpecMixin, ErrorHandlerMixin):
 
     :param Flask app: Flask application
     :param spec_kwargs: kwargs to pass to internal APISpec instance
+    :param doc_kwargs: kwargs to pass to internal DocBlueprintMixin
 
     The ``spec_kwargs`` dictionary is passed as kwargs to the internal APISpec
     instance. **flask-smorest** adds a few parameters to the original
@@ -38,9 +39,10 @@ class Api(APISpecMixin, ErrorHandlerMixin):
     For more flexibility, additional spec kwargs can also be passed as app
     parameter `API_SPEC_OPTIONS`.
     """
-    def __init__(self, app=None, *, spec_kwargs=None):
+    def __init__(self, app=None, *, spec_kwargs=None, doc_kwargs=None):
         self._app = app
         self._spec_kwargs = spec_kwargs or {}
+        self._doc_kwargs = doc_kwargs or {}
         self.spec = None
         # Use lists to enforce order
         self._fields = []
@@ -48,7 +50,7 @@ class Api(APISpecMixin, ErrorHandlerMixin):
         if app is not None:
             self.init_app(app)
 
-    def init_app(self, app, *, spec_kwargs=None):
+    def init_app(self, app, *, spec_kwargs=None, doc_kwargs=None):
         """Initialize Api with application
 
         :param spec_kwargs: kwargs to pass to internal APISpec instance.
@@ -65,7 +67,8 @@ class Api(APISpecMixin, ErrorHandlerMixin):
         self._init_spec(**{**self._spec_kwargs, **(spec_kwargs or {})})
 
         # Initialize blueprint serving spec
-        self._register_doc_blueprint()
+        self._register_doc_blueprint(
+            **{**self._doc_kwargs, **(doc_kwargs or {})})
 
         # Register error handlers
         self._register_error_handlers()

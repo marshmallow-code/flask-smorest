@@ -23,17 +23,24 @@ def _add_leading_slash(string):
 class DocBlueprintMixin:
     """Extend Api to serve the spec in a dedicated blueprint."""
 
-    def _register_doc_blueprint(self):
+    def _register_doc_blueprint(
+        self, url_prefix=None, name=None,
+        redoc_path=None, redoc_url=None,
+        swagger_ui_path=None, swagger_ui_url=None,
+        rapidoc_path=None, rapidoc_url=None
+    ):
         """Register a blueprint in the application to expose the spec
 
         Doc Blueprint contains routes to
         - json spec file
         - spec UI (ReDoc, Swagger UI).
         """
-        api_url = self._app.config.get('OPENAPI_URL_PREFIX', None)
+        api_url = (
+            url_prefix or self._app.config.get('OPENAPI_URL_PREFIX', None)
+        )
         if api_url is not None:
-            blueprint = flask.Blueprint(
-                'api-docs',
+            self._doc_blueprint = blueprint = flask.Blueprint(
+                name or 'api-docs',
                 __name__,
                 url_prefix=_add_leading_slash(api_url),
                 template_folder='./templates',
@@ -45,19 +52,24 @@ class DocBlueprintMixin:
                 _add_leading_slash(json_path),
                 endpoint='openapi_json',
                 view_func=self._openapi_json)
-            self._register_redoc_rule(blueprint)
-            self._register_swagger_ui_rule(blueprint)
-            self._register_rapidoc_rule(blueprint)
+            self._register_redoc_rule(
+                blueprint, redoc_path=redoc_path, redoc_url=redoc_url)
+            self._register_swagger_ui_rule(
+                blueprint,
+                swagger_ui_path=swagger_ui_path,
+                swagger_ui_url=swagger_ui_url)
+            self._register_rapidoc_rule(
+                blueprint, rapidoc_path=rapidoc_path, rapidoc_url=rapidoc_url)
             self._app.register_blueprint(blueprint)
 
-    def _register_redoc_rule(self, blueprint):
+    def _register_redoc_rule(self, blueprint, redoc_path=None, redoc_url=None):
         """Register ReDoc rule
 
         The ReDoc script URL should be specified as OPENAPI_REDOC_URL.
         """
-        redoc_path = self._app.config.get('OPENAPI_REDOC_PATH')
+        redoc_path = redoc_path or self._app.config.get('OPENAPI_REDOC_PATH')
         if redoc_path is not None:
-            redoc_url = self._app.config.get('OPENAPI_REDOC_URL')
+            redoc_url = redoc_url or self._app.config.get('OPENAPI_REDOC_URL')
             if redoc_url is not None:
                 self._redoc_url = redoc_url
                 blueprint.add_url_rule(
@@ -65,15 +77,22 @@ class DocBlueprintMixin:
                     endpoint='openapi_redoc',
                     view_func=self._openapi_redoc)
 
-    def _register_swagger_ui_rule(self, blueprint):
+    def _register_swagger_ui_rule(
+        self, blueprint, swagger_ui_path=None, swagger_ui_url=None
+    ):
         """Register Swagger UI rule
 
         The Swagger UI scripts base URL should be specified as
         OPENAPI_SWAGGER_UI_URL.
         """
-        swagger_ui_path = self._app.config.get('OPENAPI_SWAGGER_UI_PATH')
+        swagger_ui_path = (
+            swagger_ui_path or self._app.config.get('OPENAPI_SWAGGER_UI_PATH')
+        )
         if swagger_ui_path is not None:
-            swagger_ui_url = self._app.config.get('OPENAPI_SWAGGER_UI_URL')
+            swagger_ui_url = (
+                swagger_ui_url or
+                self._app.config.get('OPENAPI_SWAGGER_UI_URL')
+            )
             if swagger_ui_url is not None:
                 self._swagger_ui_url = swagger_ui_url
                 blueprint.add_url_rule(
@@ -81,7 +100,9 @@ class DocBlueprintMixin:
                     endpoint='openapi_swagger_ui',
                     view_func=self._openapi_swagger_ui)
 
-    def _register_rapidoc_rule(self, blueprint):
+    def _register_rapidoc_rule(
+        self, blueprint, rapidoc_path=None, rapidoc_url=None
+    ):
         """Register RapiDoc rule
 
         The RapiDoc script URL should be specified as OPENAPI_RAPIDOC_URL.
@@ -107,7 +128,8 @@ class DocBlueprintMixin:
     def _openapi_redoc(self):
         """Expose OpenAPI spec with ReDoc"""
         return flask.render_template(
-            'redoc.html', title=self.spec.title, redoc_url=self._redoc_url)
+            'redoc.html', title=self.spec.title, redoc_url=self._redoc_url,
+            openapi_json=f"{self._doc_blueprint.name}.openapi_json")
 
     def _openapi_swagger_ui(self):
         """Expose OpenAPI spec with Swagger UI"""
@@ -116,7 +138,8 @@ class DocBlueprintMixin:
             title=self.spec.title,
             swagger_ui_url=self._swagger_ui_url,
             swagger_ui_config=self._app.config.get(
-                'OPENAPI_SWAGGER_UI_CONFIG', {})
+                'OPENAPI_SWAGGER_UI_CONFIG', {}),
+            openapi_json=f"{self._doc_blueprint.name}.openapi_json"
         )
 
     def _openapi_rapidoc(self):
@@ -125,7 +148,8 @@ class DocBlueprintMixin:
             'rapidoc.html',
             title=self.spec.title,
             rapidoc_url=self._rapidoc_url,
-            rapidoc_config=self._app.config.get('OPENAPI_RAPIDOC_CONFIG', {})
+            rapidoc_config=self._app.config.get('OPENAPI_RAPIDOC_CONFIG', {}),
+            openapi_json=f"{self._doc_blueprint.name}.openapi_json"
         )
 
 
