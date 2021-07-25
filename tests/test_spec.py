@@ -230,7 +230,7 @@ class TestAPISpecServeDocs:
         Api(app)
         client = app.test_client()
         response_rapidoc = client.get("/")
-        assert "theme = dark" in response_rapidoc.get_data(True)
+        assert 'theme = "dark"' in response_rapidoc.get_data(True)
 
     @pytest.mark.parametrize('prefix', ('', '/'))
     @pytest.mark.parametrize('path', ('', '/'))
