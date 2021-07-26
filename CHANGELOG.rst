@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+0.31.3 (2021-07-26)
++++++++++++++++++++
+
+Bug fixes:
+
+- Quote RapiDoc parameters (:pr:`262`). Thanks :user:`TimDiekmann` for the PR.
+
 0.31.2 (2021-06-21)
 +++++++++++++++++++
 
