@@ -1,13 +1,14 @@
 """Test Api class"""
-
 from collections import OrderedDict
 import json
+import http
 
 import pytest
 
-from flask_smorest import Api
+from flask_smorest import Api, Blueprint
 
 from .conftest import AppConfig
+from .utils import get_responses, build_ref
 
 
 class TestAPISpec:
@@ -25,6 +26,50 @@ class TestAPISpec:
         else:
             assert 'produces' not in spec
             assert 'consumes' not in spec
+
+    @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.2'])
+    def test_api_lazy_registers_error_responses(self, app, openapi_version):
+        """Test error responses are registered"""
+        app.config['OPENAPI_VERSION'] = openapi_version
+        api = Api(app)
+
+        # Declare a dummy response to ensure get_response doesn't fail
+        response_1 = {"description": "Reponse 1"}
+        api.spec.components.response("Response_1", response_1)
+
+        # No route registered -> default errors not registered
+        responses = get_responses(api.spec)
+        for status in http.HTTPStatus:
+            assert status.name not in responses
+
+        # Register routes with all error responses
+        blp = Blueprint('test', 'test', url_prefix='/test')
+
+        for status in http.HTTPStatus:
+
+            @blp.route(f"/{status.name}")
+            @blp.alt_response(400, status.name)
+            def test(val):
+                pass
+
+        api.register_blueprint(blp)
+
+        # Errors are now registered
+        for status in http.HTTPStatus:
+            if openapi_version == '2.0':
+                assert responses[status.name] == {
+                    'description': status.phrase,
+                    'schema': build_ref(api.spec, 'schema', 'Error'),
+                }
+            else:
+                assert responses[status.name] == {
+                    'description': status.phrase,
+                    'content': {
+                        'application/json': {
+                            'schema': build_ref(api.spec, 'schema', 'Error')
+                        }
+                    }
+                }
 
     def test_apispec_print_openapi_doc(self, app):
         api = Api(app)

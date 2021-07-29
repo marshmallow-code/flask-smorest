@@ -1,7 +1,4 @@
 """Test Api class"""
-import copy
-import http
-
 import pytest
 
 from flask.views import MethodView
@@ -11,9 +8,8 @@ import apispec
 
 from flask_smorest import Api, Blueprint
 from flask_smorest.exceptions import MissingAPIParameterError
-from flask_smorest.spec import ResponseReferencesPlugin
 
-from .utils import get_schemas
+from .utils import get_schemas, get_responses
 
 
 class TestApi:
@@ -396,104 +392,29 @@ class TestApi:
         ):
             Api(app)
 
-
-class TestResponseReferencesPlugin:
-    """Test ResponseReferencesPlugin class"""
-
-    @pytest.mark.parametrize('kwargs', [
-        ({}),
-        ({'operations': None}),
-        ({'operations': {}}),
-        ({'operations': {'get': 'not a dict'}}),
-        ({'operations': {'get': {}}}),
-        ({'operations': {'get': {'responses': {}}}}),
-        ({'operations': {'get': {'responses': {200: {}}}}}),
-        ({'operations': {'get': {'responses': {200: 'unknown response'}}}}),
-    ])
-    def test_operation_helper_unapplicable(self, kwargs):
-        """Should ignore if there are no applicable responses.
-
-        Applicable responses are string in the defined applicable responses.
-        Any other cases should pass right through without changing anything.
-        """
-        plugin = ResponseReferencesPlugin()
-        expected = copy.deepcopy(kwargs)
-        plugin.operation_helper(**kwargs)
-        assert kwargs == expected  # Nothing mutated
-
     @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.2'])
-    @pytest.mark.parametrize('http_status_code, http_status_name', [
-        *[(s.value, s.name) for s in http.HTTPStatus],
-        ('DEFAULT_ERROR', 'DEFAULT_ERROR'),
-    ])
-    def test_api_registers_error_responses(
-            self, openapi_version, http_status_code, http_status_name):
-        """Responses should be added to spec."""
-        spec = apispec.APISpec('title', 'version', openapi_version)
-        plugin = ResponseReferencesPlugin()
-        plugin.init_spec(spec)
+    def test_api_lazy_registers_default_error_response(
+            self, app, openapi_version
+    ):
+        """Test default error response is registered"""
+        app.config['OPENAPI_VERSION'] = openapi_version
+        api = Api(app)
 
-        operations = {'get': {'responses': {
-            http_status_code: http_status_name,
-        }}}
+        # Declare a dummy response to ensure get_response doesn't fail
+        response_1 = {"description": "Reponse 1"}
+        api.spec.components.response("Response_1", response_1)
 
-        plugin.operation_helper(operations=operations)
+        # No route registered -> default error not registered
+        assert "DEFAULT_ERROR" not in get_responses(api.spec)
 
-        components = spec.to_dict()
-        if openapi_version == '3.0.2':
-            components = components['components']
+        # Register a route
+        blp = Blueprint('test', 'test', url_prefix='/test')
 
-        assert len(components['responses']) == 1
-        assert http_status_name in components['responses']
+        @blp.route('/test')
+        def test(val):
+            pass
 
-    @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.2'])
-    def test_multi_operation_multi_reponses(self, openapi_version):
-        """Should loop all operations and all responses."""
-        spec = apispec.APISpec('title', 'version', openapi_version)
-        plugin = ResponseReferencesPlugin()
-        plugin.init_spec(spec)
+        api.register_blueprint(blp)
 
-        operations = {
-            'get': {'responses': {
-                http.HTTPStatus.OK.value:
-                    http.HTTPStatus.OK.name,
-                http.HTTPStatus.NO_CONTENT.value:
-                    http.HTTPStatus.NO_CONTENT.name,
-            }},
-            'post': {'responses': {
-                http.HTTPStatus.OK.value:
-                    http.HTTPStatus.OK.name,  # Ignored repeat
-                http.HTTPStatus.CREATED.value:
-                    http.HTTPStatus.CREATED.name,
-            }},
-        }
-
-        plugin.operation_helper(operations=operations)
-
-        components = spec.to_dict()
-        if openapi_version == '3.0.2':
-            components = components['components']
-
-        assert len(components['responses']) == 3  # 200, 201, 204
-
-    @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.2'])
-    def test_repeated_response(self, openapi_version):
-        """Repeated response, different endpoint."""
-        spec = apispec.APISpec('title', 'version', openapi_version)
-        plugin = ResponseReferencesPlugin()
-        plugin.init_spec(spec)
-
-        operations = {'get': {'responses': {
-            http.HTTPStatus.OK.value: http.HTTPStatus.OK.name,
-        }}}
-
-        # operation_helper is called on each path, so this simulates
-        # 2 endpoints with the same response
-        plugin.operation_helper(operations=copy.deepcopy(operations))
-        plugin.operation_helper(operations=copy.deepcopy(operations))
-
-        components = spec.to_dict()
-        if openapi_version == '3.0.2':
-            components = components['components']
-
-        assert len(components['responses']) == 1
+        # Default error is now registered
+        assert "DEFAULT_ERROR" in get_responses(api.spec)

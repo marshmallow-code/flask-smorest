@@ -1,14 +1,9 @@
 """apispec plugins"""
 from collections.abc import Mapping
-import http
 import re
 
 import werkzeug.routing
 from apispec import BasePlugin
-
-from flask_smorest.utils import prepare_response
-from flask_smorest.error_handler import ErrorSchema
-from .constants import DEFAULT_RESPONSE_CONTENT_TYPE
 
 
 # from flask-restplus
@@ -158,69 +153,3 @@ class FlaskPlugin(BasePlugin):
                 parameters.append(path_p)
 
         return self.flaskpath2openapi(rule.rule)
-
-
-class ResponseReferencesPlugin(BasePlugin):
-    """Plugin to add responses to spec
-
-    This plugin automatically adds a response component for default responses
-    on-the-fly when it is referenced in an operation.
-
-    It applies to all HTTP status responses and to the default error response,
-    allowing the user to pass responses as string like
-    "UNPROCESSABLE_ENTITY" or "DEFAULT_ERROR".
-
-    :param error_schema: :class:`Schema <marshmallow.Schema>` defining the
-        error response structure.
-    :param str content_type: Content type used in default responses.
-    """
-    def __init__(
-            self,
-            error_schema=ErrorSchema,
-            response_content_type=DEFAULT_RESPONSE_CONTENT_TYPE
-    ):
-        self.error_schema = error_schema
-        self.content_type = response_content_type
-        self._available = self._available_responses()
-        self._registered = set()
-
-    def init_spec(self, spec):
-        super().init_spec(spec)
-        self.spec = spec
-
-    def operation_helper(self, operations=None, **kwargs):
-        """Inspired by MarshmallowPlugin.operation_helper
-
-        Looking for `str` responses, adding the corresponding spec responses.
-        `APISpec.clean_operations` will add a $ref for any response that is not
-        a `dict`, it's this plugin's role to ensure that $ref exists.
-        """
-        for operation in (operations or {}).values():
-            if not isinstance(operation, dict):
-                continue
-            for response in operation.get("responses", {}).values():
-                if (
-                        isinstance(response, str)
-                        and response not in self._registered
-                        and response in self._available
-                ):
-                    resp = self._available[response]
-                    prepare_response(resp, self.spec, self.content_type)
-                    self.spec.components.response(response, resp)
-                    self._registered.add(response)
-
-    def _available_responses(self):
-        """Build responses for all status codes."""
-        responses = {
-            status.name: {
-                'description': status.phrase,
-                'schema': self.error_schema,
-            }
-            for status in http.HTTPStatus
-        }
-        # Also add a default error response
-        responses['DEFAULT_ERROR'] = {
-            'description': 'Default error response',
-            'schema': self.error_schema,
-        }
-        return responses
