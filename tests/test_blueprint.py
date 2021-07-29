@@ -109,26 +109,33 @@ class TestBlueprint:
                 assert 'consumes' not in get
 
     @pytest.mark.parametrize('openapi_version', ('2.0', '3.0.2'))
-    def test_blueprint_multiple_registrations(self, app, openapi_version):
-        """Check blueprint can be registered multiple times
+    def test_blueprint_register_with_custom_name_and_prefix(
+            self, app, openapi_version
+    ):
+        """Check blueprint can be registered with custom name and prefix
 
-        The internal doc structure is modified during the reigistration
-        process. If it is not deepcopied, the second registration fails.
+        Also check the doc is not modified by the first registration.
         """
         app.config['OPENAPI_VERSION'] = openapi_version
-        blp = Blueprint('test', __name__, url_prefix='/test')
+        blp = Blueprint('test', __name__)
 
         @blp.route('/')
         def func():
             pass
 
         api = Api(app)
-        api.register_blueprint(blp)
-        spec_1 = api.spec.to_dict()
-        api = Api(app)
-        api.register_blueprint(blp)
-        spec_2 = api.spec.to_dict()
-        assert spec_1 == spec_2
+        api.register_blueprint(blp, name="Test 1", url_prefix='/test_1')
+        api.register_blueprint(blp, name="Test 2", url_prefix='/test_2')
+        spec = api.spec.to_dict()
+
+        # Check tags are correctly set and docs only differ by tags
+        assert [t["name"] for t in spec["tags"]] == ["Test 1", "Test 2"]
+        assert list(spec["paths"].keys()) == ["/test_1/", "/test_2/"]
+        path_1 = spec["paths"]["/test_1/"]
+        path_2 = spec["paths"]["/test_2/"]
+        assert path_1["get"].pop("tags") == ["Test 1"]
+        assert path_2["get"].pop("tags") == ["Test 2"]
+        assert path_1 == path_2
 
     @pytest.mark.parametrize('openapi_version', ('2.0', '3.0.2'))
     @pytest.mark.parametrize('location_map', LOCATIONS_MAPPING)

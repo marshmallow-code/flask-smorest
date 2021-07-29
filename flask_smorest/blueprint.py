@@ -162,7 +162,7 @@ class Blueprint(
         # Store parameters doc info from route decorator
         endpoint_doc_info['parameters'] = parameters
 
-    def register_views_in_doc(self, api, app, spec):
+    def register_views_in_doc(self, api, app, spec, *, name):
         """Register views information in documentation
 
         If a schema in a parameter or a response appears in the spec
@@ -193,13 +193,13 @@ class Blueprint(
                     )
                 operation_doc.update(operation_doc_info['docstring'])
                 # Tag all operations with Blueprint name
-                operation_doc['tags'] = [self.name]
+                operation_doc['tags'] = [name]
                 # Complete doc with manual doc info
                 manual_doc = operation_doc_info.get('manual_doc', {})
                 doc[method_l] = deepupdate(operation_doc, manual_doc)
 
             # Thanks to self.route, there can only be one rule per endpoint
-            full_endpoint = '.'.join((self.name, endpoint))
+            full_endpoint = '.'.join((name, endpoint))
             rule = next(app.url_map.iter_rules(full_endpoint))
             spec.path(rule=rule, operations=doc, parameters=parameters)
 
