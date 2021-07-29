@@ -61,11 +61,11 @@ def _pagination_parameters_schema_factory(
             unknown = ma.EXCLUDE
 
         page = ma.fields.Integer(
-            missing=def_page,
+            load_default=def_page,
             validate=ma.validate.Range(min=1)
         )
         page_size = ma.fields.Integer(
-            missing=def_page_size,
+            load_default=def_page_size,
             validate=ma.validate.Range(min=1, max=def_max_page_size)
         )
 
