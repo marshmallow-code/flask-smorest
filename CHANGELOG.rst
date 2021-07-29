@@ -1,6 +1,21 @@
 Changelog
 ---------
 
+0.32.0 (2021-07-29)
++++++++++++++++++++
+
+Features:
+
+- Support ``Blueprint`` registration with custom names (a feature introduced in
+  Flask 2.0.1) (:pr:`266`).
+- Replace ``missing`` with ``load_default`` in ``PaginationParametersSchema``.
+  The latter is deprecated in marshmallow 3.13.0. (:pr:`265`)
+
+Other changes:
+
+- *Backwards-incompatible*: Drop marshmallow < 3.13.0 (:pr:`265`)
+- *Backwards-incompatible*: Support apispec 5. Drop apispec < 5.0.0 (:pr:`265`)
+
 0.31.3 (2021-07-26)
 +++++++++++++++++++
 
