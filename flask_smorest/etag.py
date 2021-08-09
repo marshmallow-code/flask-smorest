@@ -15,6 +15,27 @@ from .exceptions import (
 from .utils import deepupdate, get_appcontext
 
 
+IF_NONE_MATCH_HEADER = {
+    'name': 'If-None-Match',
+    'in': 'header',
+    'description': 'Tag to check against',
+    'schema': {'type': 'string'},
+}
+
+IF_MATCH_HEADER = {
+    'name': 'If-Match',
+    'in': 'header',
+    'required': True,
+    'description': 'Tag to check against',
+    'schema': {'type': 'string'}
+}
+
+ETAG_HEADER = {
+    'description': 'Tag for the returned entry',
+    'schema': {'type': 'string'}
+}
+
+
 def _is_etag_enabled():
     """Return True if ETag feature enabled application-wise"""
     return not current_app.config.get('ETAG_DISABLED', False)
@@ -241,7 +262,7 @@ class EtagMixin:
                 self._check_not_modified(new_etag)
             response.set_etag(new_etag)
 
-    def _prepare_etag_doc(self, doc, doc_info, *, app, method, **kwargs):
+    def _prepare_etag_doc(self, doc, doc_info, *, app, spec, method, **kwargs):
         if (
                 doc_info.get('etag', False) and
                 not app.config.get('ETAG_DISABLED', False)
@@ -250,29 +271,19 @@ class EtagMixin:
             method_u = method.upper()
             if method_u in self.METHODS_CHECKING_NOT_MODIFIED:
                 responses[304] = http.HTTPStatus(304).name
-                doc.setdefault("parameters", []).append({
-                    'name': 'If-None-Match',
-                    'in': 'header',
-                    'description': 'Tag to check against',
-                    'schema': {'type': 'string'}})
+                doc.setdefault("parameters", []).append("IF_NONE_MATCH")
             if method_u in self.METHODS_NEEDING_CHECK_ETAG:
                 responses[412] = http.HTTPStatus(412).name
                 responses[428] = http.HTTPStatus(428).name
-                doc.setdefault("parameters", []).append({
-                    'name': 'If-Match',
-                    'in': 'header',
-                    'required': True,
-                    'description': 'Tag to check against',
-                    'schema': {'type': 'string'}})
+                doc.setdefault("parameters", []).append("IF_MATCH")
             if method_u in self.METHODS_ALLOWING_SET_ETAG:
                 success_status_code = doc_info.get('success_status_code')
                 if success_status_code is not None:
-                    header = {
-                        'description': 'Tag for the returned entry',
-                        'schema': {'type': 'string'}
-                    }
-                    doc['responses'][success_status_code] \
-                        .setdefault('headers', {})['ETag'] = header
+                    doc['responses'][success_status_code].setdefault(
+                        'headers', {})['ETag'] = (
+                            ETAG_HEADER if spec.openapi_version.major < 3
+                            else "ETAG"
+                        )
 
             if responses:
                 doc = deepupdate(doc, {'responses': responses})

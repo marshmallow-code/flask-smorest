@@ -6,9 +6,10 @@ import http
 import pytest
 
 from flask_smorest import Api, Blueprint
+from flask_smorest import etag as fs_etag
 
 from .conftest import AppConfig
-from .utils import get_responses, build_ref
+from .utils import get_responses, get_headers, get_parameters, build_ref
 
 
 class TestAPISpec:
@@ -70,6 +71,56 @@ class TestAPISpec:
                         }
                     }
                 }
+
+    @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.2'])
+    def test_api_lazy_registers_etag_headers(self, app, openapi_version):
+        """Test etag headers are registered"""
+        app.config['OPENAPI_VERSION'] = openapi_version
+        api = Api(app)
+
+        # Declare dummy components to ensure get_* don't fail
+        if openapi_version == "3.0.2":
+            header_1 = {"description": "Header 1"}
+            api.spec.components.header("Header_1", header_1)
+        parameter_1 = {"description": "Parameter 1"}
+        api.spec.components.parameter("Parameter_1", "header", parameter_1)
+
+        # No route registered -> etag headers not registered
+        if openapi_version == "3.0.2":
+            headers = get_headers(api.spec)
+            assert headers == {"Header_1": header_1}
+        parameters = get_parameters(api.spec)
+        assert parameters == {
+            "Parameter_1": {
+                **parameter_1,
+                "in": "header",
+                "name": "Parameter_1"
+            }
+        }
+
+        # Register routes with etag
+        blp = Blueprint('test', 'test', url_prefix='/test')
+
+        @blp.route("/etag_get", methods=["GET"])
+        @blp.etag
+        @blp.response(200)
+        def test_get(val):
+            pass
+
+        @blp.route("/etag_pet", methods=["PUT"])
+        @blp.etag
+        @blp.response(200)
+        def test_put(val):
+            pass
+
+        api.register_blueprint(blp)
+
+        if openapi_version == "3.0.2":
+            headers = get_headers(api.spec)
+            assert headers["ETAG"] == fs_etag.ETAG_HEADER
+        parameters = get_parameters(api.spec)
+        assert parameters["IF_NONE_MATCH"] == fs_etag.IF_NONE_MATCH_HEADER
+        assert parameters["IF_MATCH"] == fs_etag.IF_MATCH_HEADER
 
     def test_apispec_print_openapi_doc(self, app):
         api = Api(app)

@@ -10,6 +10,7 @@ from apispec.ext.marshmallow import MarshmallowPlugin
 
 from flask_smorest.exceptions import MissingAPIParameterError
 from flask_smorest.utils import prepare_response
+from flask_smorest import etag as fs_etag
 from .plugins import FlaskPlugin
 from .field_converters import uploadfield2properties
 from .constants import (
@@ -198,6 +199,9 @@ class APISpecMixin(DocBlueprintMixin):
         # Lazy register default responses
         self._register_responses()
 
+        # Lazy register ETag headers
+        self._register_etag_headers()
+
         # Register OpenAPI command group
         self._app.cli.add_command(openapi_cli)
 
@@ -297,6 +301,14 @@ class APISpecMixin(DocBlueprintMixin):
         }
         prepare_response(response, self.spec, DEFAULT_RESPONSE_CONTENT_TYPE)
         self.spec.components.response('DEFAULT_ERROR', response, lazy=True)
+
+    def _register_etag_headers(self):
+        self.spec.components.parameter(
+            "IF_NONE_MATCH", "header", fs_etag.IF_NONE_MATCH_HEADER, lazy=True)
+        self.spec.components.parameter(
+            "IF_MATCH", "header", fs_etag.IF_MATCH_HEADER, lazy=True)
+        if self.spec.openapi_version.major >= 3:
+            self.spec.components.header("ETAG", fs_etag.ETAG_HEADER, lazy=True)
 
 
 openapi_cli = flask.cli.AppGroup('openapi', help='OpenAPI commands.')
