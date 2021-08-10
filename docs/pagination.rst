@@ -129,7 +129,6 @@ It contains the pagination information.
     #     'previous_page': 1, 'next_page': 3,
     # }
 
-The name of the header can be changed by overriding
-``PAGINATION_HEADER_FIELD_NAME`` class attribute of the
-:class:`Blueprint <Blueprint>` class. When setting this attribute to ``None``,
-no pagination header is added to the response.
+The name of the header can be changed by overriding ``PAGINATION_HEADER_NAME``
+class attribute of the :class:`Blueprint <Blueprint>` class. When setting this
+attribute to ``None``, no pagination header is added to the response.

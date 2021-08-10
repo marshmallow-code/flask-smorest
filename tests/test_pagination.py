@@ -120,11 +120,11 @@ class TestPagination:
 
     @pytest.mark.parametrize('header_name', ('X-Dummy-Name', None))
     def test_pagination_custom_header_field_name(self, app, header_name):
-        """Test PAGINATION_HEADER_FIELD_NAME overriding"""
+        """Test PAGINATION_HEADER_NAME overriding"""
         api = Api(app)
 
         class CustomBlueprint(Blueprint):
-            PAGINATION_HEADER_FIELD_NAME = header_name
+            PAGINATION_HEADER_NAME = header_name
 
         blp = CustomBlueprint('test', __name__, url_prefix='/test')
 
@@ -153,7 +153,7 @@ class TestPagination:
         api = Api(app)
 
         class CustomBlueprint(Blueprint):
-            PAGINATION_HEADER_FIELD_NAME = 'X-Custom-Pagination-Header'
+            PAGINATION_HEADER_NAME = 'X-Custom-Pagination-Header'
 
         blp = CustomBlueprint('test', __name__, url_prefix='/test')
 
@@ -180,7 +180,7 @@ class TestPagination:
         api = Api(app)
 
         class CustomBlueprint(Blueprint):
-            PAGINATION_HEADER_FIELD_NAME = header_name
+            PAGINATION_HEADER_NAME = header_name
 
         blp = CustomBlueprint('test', __name__, url_prefix='/test')
 

@@ -131,7 +131,7 @@ class PaginationMixin:
 
     # Name of field to use for pagination metadata response header
     # Can be overridden. If None, no pagination header is returned.
-    PAGINATION_HEADER_FIELD_NAME = 'X-Pagination'
+    PAGINATION_HEADER_NAME = 'X-Pagination'
 
     # Global default pagination parameters
     # Can be overridden to provide custom defaults
@@ -197,7 +197,7 @@ class PaginationMixin:
                     result = pager(result, page_params=page_params).items
 
                 # Set pagination metadata in response
-                if self.PAGINATION_HEADER_FIELD_NAME is not None:
+                if self.PAGINATION_HEADER_NAME is not None:
                     if page_params.item_count is None:
                         warnings.warn(
                             'item_count not set in endpoint {}.'
@@ -257,7 +257,7 @@ class PaginationMixin:
         """
         if headers is None:
             headers = {}
-        headers[self.PAGINATION_HEADER_FIELD_NAME] = json.dumps(
+        headers[self.PAGINATION_HEADER_NAME] = json.dumps(
             self._make_pagination_metadata(
                 page_params.page,
                 page_params.page_size,
@@ -272,7 +272,7 @@ class PaginationMixin:
         Override this to document custom pagination metadata
         """
         resp_doc['headers'] = {
-            self.PAGINATION_HEADER_FIELD_NAME: {
+            self.PAGINATION_HEADER_NAME: {
                 'description': 'Pagination metadata',
                 'schema': PaginationMetadataSchema,
             }
