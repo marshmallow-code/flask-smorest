@@ -11,6 +11,7 @@ from apispec.ext.marshmallow import MarshmallowPlugin
 from flask_smorest.exceptions import MissingAPIParameterError
 from flask_smorest.utils import prepare_response
 from flask_smorest import etag as fs_etag
+from flask_smorest import pagination as fs_pagination
 from .plugins import FlaskPlugin
 from .field_converters import uploadfield2properties
 from .constants import (
@@ -202,6 +203,9 @@ class APISpecMixin(DocBlueprintMixin):
         # Lazy register ETag headers
         self._register_etag_headers()
 
+        # Lazy register pagination header
+        self._register_pagination_header()
+
         # Register OpenAPI command group
         self._app.cli.add_command(openapi_cli)
 
@@ -309,6 +313,11 @@ class APISpecMixin(DocBlueprintMixin):
             "IF_MATCH", "header", fs_etag.IF_MATCH_HEADER, lazy=True)
         if self.spec.openapi_version.major >= 3:
             self.spec.components.header("ETAG", fs_etag.ETAG_HEADER, lazy=True)
+
+    def _register_pagination_header(self):
+        if self.spec.openapi_version.major >= 3:
+            self.spec.components.header(
+                "PAGINATION", fs_pagination.PAGINATION_HEADER, lazy=True)
 
 
 openapi_cli = flask.cli.AppGroup('openapi', help='OpenAPI commands.')

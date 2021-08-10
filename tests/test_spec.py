@@ -122,6 +122,35 @@ class TestAPISpec:
         assert parameters["IF_NONE_MATCH"] == fs_etag.IF_NONE_MATCH_HEADER
         assert parameters["IF_MATCH"] == fs_etag.IF_MATCH_HEADER
 
+    def test_api_lazy_registers_pagination_header(self, app):
+        """Test pagination header is registered"""
+        api = Api(app)
+
+        # Declare dummy header to ensure get_headers doesn't fail
+        header_1 = {"description": "Header 1"}
+        api.spec.components.header("Header_1", header_1)
+
+        # No route registered -> parameter header not registered
+        headers = get_headers(api.spec)
+        assert headers == {"Header_1": header_1}
+
+        # Register routes with pagination
+        blp = Blueprint('test', 'test', url_prefix='/test')
+
+        @blp.route("/")
+        @blp.response(200)
+        @blp.paginate()
+        def test_get(val):
+            pass
+
+        api.register_blueprint(blp)
+
+        headers = get_headers(api.spec)
+        assert headers["PAGINATION"] == {
+            'description': 'Pagination metadata',
+            'schema': {'$ref': '#/components/schemas/PaginationMetadata'},
+        }
+
     def test_apispec_print_openapi_doc(self, app):
         api = Api(app)
         result = app.test_cli_runner().invoke(args=('openapi', 'print'))
