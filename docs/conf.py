@@ -92,9 +92,9 @@ html_theme_options = {
     'description_font_style': 'italic',
     'github_user': 'marshmallow-code',
     'github_repo': 'flask-smorest',
-    'github_button': False,
     'github_banner': True,
-    'travis_button': True,
+    'github_type': 'star',
+    'opencollective': 'marshmallow',
     'code_font_size': '0.8em',
     'extra_nav_links': OrderedDict([
         (
@@ -106,4 +106,13 @@ html_theme_options = {
             'http://github.com/marshmallow-code/flask-smorest'
         ),
     ]),
+}
+
+html_sidebars = {
+    "**": [
+        "about.html",
+        "donate.html",
+        "navigation.html",
+        "searchbox.html"
+    ],
 }
