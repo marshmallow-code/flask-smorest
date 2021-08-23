@@ -1,6 +1,14 @@
 Changelog
 ---------
 
+0.33.1 (unreleased)
++++++++++++++++++++
+
+Bug fixes:
+
+- When registering a ``MethodView``, if methods are specified with the
+  ``methods`` argument, only document those methods (:pr:`274`).
+
 0.33.0 (2021-08-23)
 +++++++++++++++++++
 
