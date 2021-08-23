@@ -516,6 +516,38 @@ class TestBlueprint:
                     schema_ref
                 )
 
+    def test_blueprint_route_method_view_method_specify_methods(
+            self, app, schemas
+    ):
+        """Test calling route on MethodView specifying methods
+
+        Checks only registered methods appear in the doc
+        """
+        api = Api(app)
+        blp = Blueprint('test', __name__, url_prefix='/test')
+
+        @blp.route('/', methods=('GET', 'PUT', ))
+        class Resource(MethodView):
+
+            def get(self):
+                return "get"
+
+            def post(self):
+                return "post"
+
+            def put(self):
+                return "put"
+
+        api.register_blueprint(blp)
+        spec = api.spec.to_dict()
+
+        client = app.test_client()
+        assert client.get('test/').status_code == 200
+        assert client.post('test/').status_code == 405
+        assert client.put('test/').status_code == 200
+
+        assert tuple(spec["paths"]["/test/"].keys()) == ("get", "put")
+
     @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.2'])
     def test_blueprint_response_schema(self, app, openapi_version, schemas):
         """Check response schema is correctly documented.
