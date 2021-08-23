@@ -90,42 +90,63 @@ class Blueprint(
             self._prepare_etag_doc,
         ]
 
-    def route(self, rule, *, parameters=None, **options):
-        """Decorator to register url rule in application
+    def add_url_rule(
+        self,
+        rule,
+        endpoint=None,
+        view_func=None,
+        provide_automatic_options=None,
+        *,
+        parameters=None,
+        **options,
+    ):
+        """Register url rule in application
 
         Also stores doc info for later registration
 
-        Use this to decorate a :class:`MethodView <flask.views.MethodView>` or
+        Use this to register a :class:`MethodView <flask.views.MethodView>` or
         a resource function.
 
         :param str rule: URL rule as string.
         :param str endpoint: Endpoint for the registered URL rule (defaults
             to function name).
+        :param callable|MethodView view_func: View function or MethodView class
         :param list parameters: List of parameters relevant to all operations
             in this path, only used to document the resource.
         :param options: Options to be forwarded to the underlying
             :class:`werkzeug.routing.Rule <Rule>` object.
         """
+        if view_func is None:
+            raise TypeError("view_func must be provided")
+
+        if endpoint is None:
+            endpoint = view_func.__name__
+
+        # Ensure endpoint name is unique
+        # - to avoid a name clash when registering a MehtodView
+        # - to use it as a key internally in endpoint -> doc mapping
+        if endpoint in self._endpoints:
+            endpoint = '{}_{}'.format(endpoint, len(self._endpoints))
+        self._endpoints.append(endpoint)
+
+        if isinstance(view_func, MethodViewType):
+            func = view_func.as_view(endpoint)
+        else:
+            func = view_func
+
+        # Add URL rule in Flask and store endpoint documentation
+        super().add_url_rule(rule, endpoint, func, **options)
+        self._store_endpoint_docs(endpoint, view_func, parameters, **options)
+
+    def route(self, rule, *, parameters=None, **options):
+        """Decorator to register view function in application and documentation
+
+        Calls add_url_rule
+        """
         def decorator(func):
-
-            # By default, endpoint name is function name
-            endpoint = options.pop('endpoint', func.__name__)
-
-            # Prevent registering several times the same endpoint
-            # by silently renaming the endpoint in case of collision
-            if endpoint in self._endpoints:
-                endpoint = '{}_{}'.format(endpoint, len(self._endpoints))
-            self._endpoints.append(endpoint)
-
-            if isinstance(func, MethodViewType):
-                view_func = func.as_view(endpoint)
-            else:
-                view_func = func
-
-            # Add URL rule in Flask and store endpoint documentation
-            self.add_url_rule(rule, endpoint, view_func, **options)
-            self._store_endpoint_docs(endpoint, func, parameters, **options)
-
+            endpoint = options.pop("endpoint", None)
+            self.add_url_rule(
+                rule, endpoint, func, parameters=parameters, **options)
             return func
 
         return decorator

@@ -405,18 +405,38 @@ class TestBlueprint:
         assert http.HTTPStatus(error_code).name in get_responses(api.spec)
 
     @pytest.mark.parametrize('openapi_version', ('2.0', '3.0.2'))
-    def test_blueprint_route_parameters(self, app, openapi_version):
+    @pytest.mark.parametrize('decorate', (True, False))
+    def test_blueprint_route_add_url_rule_parameters(
+        self, app, openapi_version, decorate
+    ):
         """Check path parameters docs are merged with auto docs"""
         app.config['OPENAPI_VERSION'] = openapi_version
         api = Api(app)
         blp = Blueprint('test', __name__, url_prefix='/test')
 
-        @blp.route('/<int:item_id>', parameters=[
-            'TestParameter',
-            {'name': 'item_id', 'in': 'path', 'description': 'Item ID'},
-        ])
-        def get(item_id):
-            pass
+        if decorate:
+            @blp.route('/<int:item_id>', parameters=[
+                'TestParameter',
+                {'name': 'item_id', 'in': 'path', 'description': 'Item ID'},
+            ])
+            def get(item_id):
+                pass
+        else:
+            def get(item_id):
+                pass
+
+            blp.add_url_rule(
+                '/<int:item_id>',
+                view_func=get,
+                parameters=[
+                    'TestParameter',
+                    {
+                        'name': 'item_id',
+                        'in': 'path',
+                        'description': 'Item ID'
+                    },
+                ]
+            )
 
         api.register_blueprint(blp)
         spec = api.spec.to_dict()
@@ -1132,6 +1152,37 @@ class TestBlueprint:
 
         assert 'get' in paths['/test/route_1']
         assert 'get' in paths['/test/route_2']
+
+    @pytest.mark.parametrize('as_method_view', (True, False))
+    @pytest.mark.parametrize('endpoint', (None, "test"))
+    def test_blueprint_add_url_rule(self, app, as_method_view, endpoint):
+        api = Api(app)
+        blp = Blueprint('test', __name__, url_prefix='/test')
+
+        if as_method_view:
+            class Resource(MethodView):
+
+                def get(self):
+                    pass
+
+            blp.add_url_rule('/test', endpoint=endpoint, view_func=Resource)
+
+        else:
+            def func():
+                pass
+
+            blp.add_url_rule('/test', endpoint=endpoint, view_func=func)
+
+        api.register_blueprint(blp)
+        paths = api.spec.to_dict()['paths']
+
+        assert 'get' in paths['/test/test']
+        assert 'get' in paths['/test/test']
+
+    def test_blueprint_add_url_rule_without_view_func(self):
+        blp = Blueprint('test', __name__, url_prefix='/test')
+        with pytest.raises(TypeError, match="view_func must be provided"):
+            blp.add_url_rule('/test', 'dummy_endpoint')
 
     def test_blueprint_response_tuple(self, app):
         api = Api(app)
