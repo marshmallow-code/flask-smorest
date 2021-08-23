@@ -1339,18 +1339,14 @@ class TestBlueprint:
         operation = api.spec.to_dict()['paths']['/test/'][method.lower()]
         responses = operation.get('responses', {})
         response_headers = responses.get("204", {}).get("headers", {})
-        parameters = operation.get('parameters', {})
-
-        def find_header(name):
-            return [x for x in parameters
-                    if x.get('in') == 'header' and x.get('name') == name]
+        parameters = operation.get('parameters', [])
 
         if not decorate or etag_disabled:
             assert '304' not in responses
             assert '412' not in responses
             assert '428' not in responses
-            assert len(find_header('If-None-Match')) == 0
-            assert len(find_header('If-Match')) == 0
+            assert "IF_NONE_MATCH" not in parameters
+            assert "IF_MATCH" not in parameters
             assert 'ETag' not in response_headers
         else:
             assert ('304' in responses) == (method in ['GET', 'HEAD'])
@@ -1358,9 +1354,13 @@ class TestBlueprint:
                 method in ['PUT', 'PATCH', 'DELETE'])
             assert ('428' in responses) == (
                 method in ['PUT', 'PATCH', 'DELETE'])
-            assert (len(find_header('If-None-Match')) == 1) == (
-                method in ['GET', 'HEAD'])
-            assert (len(find_header('If-Match')) == 1) == (
-                method in ['PUT', 'PATCH', 'DELETE'])
-            assert not has_response or ('ETag' in response_headers) == (
-                method in ['GET', 'HEAD', 'POST', 'PUT', 'PATCH'])
+            assert (
+                build_ref(api.spec, 'parameter', 'IF_NONE_MATCH') in parameters
+            ) == (method in ['GET', 'HEAD'])
+            assert (
+                build_ref(api.spec, 'parameter', 'IF_MATCH') in parameters
+            ) == (method in ['PUT', 'PATCH', 'DELETE'])
+            assert not has_response or (
+                response_headers.get("ETag") ==
+                build_ref(api.spec, 'header', "ETAG")
+            ) == (method in ['GET', 'HEAD', 'POST', 'PUT', 'PATCH'])

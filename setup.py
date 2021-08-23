@@ -49,6 +49,6 @@ setup(
         'flask>=2.0,<3',
         'marshmallow>=3.13.0,<4',
         'webargs>=8.0.0,<9',
-        'apispec>=5.0.0,<6',
+        'apispec>=5.1.0,<6',
     ],
 )

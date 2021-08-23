@@ -120,11 +120,11 @@ class TestPagination:
 
     @pytest.mark.parametrize('header_name', ('X-Dummy-Name', None))
     def test_pagination_custom_header_field_name(self, app, header_name):
-        """Test PAGINATION_HEADER_FIELD_NAME overriding"""
+        """Test PAGINATION_HEADER_NAME overriding"""
         api = Api(app)
 
         class CustomBlueprint(Blueprint):
-            PAGINATION_HEADER_FIELD_NAME = header_name
+            PAGINATION_HEADER_NAME = header_name
 
         blp = CustomBlueprint('test', __name__, url_prefix='/test')
 
@@ -148,12 +148,14 @@ class TestPagination:
             # Also check there is only one pagination header
             assert len(response.headers.getlist(header_name)) == 1
 
-    def test_pagination_header_documentation(self, app):
+    @pytest.mark.parametrize('openapi_version', ('2.0', '3.0.2'))
+    def test_pagination_header_documentation(self, app, openapi_version):
         """Test pagination header is documented"""
+        app.config['OPENAPI_VERSION'] = openapi_version
         api = Api(app)
 
         class CustomBlueprint(Blueprint):
-            PAGINATION_HEADER_FIELD_NAME = 'X-Custom-Pagination-Header'
+            PAGINATION_HEADER_NAME = 'X-Custom-Pagination-Header'
 
         blp = CustomBlueprint('test', __name__, url_prefix='/test')
 
@@ -167,12 +169,19 @@ class TestPagination:
         spec = api.spec.to_dict()
         get = spec['paths']['/test/']['get']
         assert 'PaginationMetadata' in get_schemas(api.spec)
-        assert get['responses']['200']['headers'] == {
-            'X-Custom-Pagination-Header': {
-                'description': 'Pagination metadata',
-                'schema': {'$ref': '#/components/schemas/PaginationMetadata'},
+        if openapi_version == "2.0":
+            assert get['responses']['200']['headers'] == {
+                'X-Custom-Pagination-Header': {
+                    'description': 'Pagination metadata',
+                    'schema': {'$ref': '#/definitions/PaginationMetadata'},
+                }
             }
-        }
+        else:
+            assert get['responses']['200']['headers'] == {
+                'X-Custom-Pagination-Header': {
+                    '$ref': '#/components/headers/PAGINATION'
+                }
+            }
 
     @pytest.mark.parametrize('header_name', ('X-Pagination', None))
     def test_pagination_item_count_missing(self, app, header_name):
@@ -180,7 +189,7 @@ class TestPagination:
         api = Api(app)
 
         class CustomBlueprint(Blueprint):
-            PAGINATION_HEADER_FIELD_NAME = header_name
+            PAGINATION_HEADER_NAME = header_name
 
         blp = CustomBlueprint('test', __name__, url_prefix='/test')
 

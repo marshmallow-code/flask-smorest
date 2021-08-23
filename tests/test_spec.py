@@ -1,13 +1,15 @@
 """Test Api class"""
-
 from collections import OrderedDict
 import json
+import http
 
 import pytest
 
-from flask_smorest import Api
+from flask_smorest import Api, Blueprint
+from flask_smorest import etag as fs_etag
 
 from .conftest import AppConfig
+from .utils import get_responses, get_headers, get_parameters, build_ref
 
 
 class TestAPISpec:
@@ -25,6 +27,129 @@ class TestAPISpec:
         else:
             assert 'produces' not in spec
             assert 'consumes' not in spec
+
+    @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.2'])
+    def test_api_lazy_registers_error_responses(self, app, openapi_version):
+        """Test error responses are registered"""
+        app.config['OPENAPI_VERSION'] = openapi_version
+        api = Api(app)
+
+        # Declare a dummy response to ensure get_response doesn't fail
+        response_1 = {"description": "Reponse 1"}
+        api.spec.components.response("Response_1", response_1)
+
+        # No route registered -> default errors not registered
+        responses = get_responses(api.spec)
+        for status in http.HTTPStatus:
+            assert status.name not in responses
+
+        # Register routes with all error responses
+        blp = Blueprint('test', 'test', url_prefix='/test')
+
+        for status in http.HTTPStatus:
+
+            @blp.route(f"/{status.name}")
+            @blp.alt_response(400, status.name)
+            def test(val):
+                pass
+
+        api.register_blueprint(blp)
+
+        # Errors are now registered
+        for status in http.HTTPStatus:
+            if openapi_version == '2.0':
+                assert responses[status.name] == {
+                    'description': status.phrase,
+                    'schema': build_ref(api.spec, 'schema', 'Error'),
+                }
+            else:
+                assert responses[status.name] == {
+                    'description': status.phrase,
+                    'content': {
+                        'application/json': {
+                            'schema': build_ref(api.spec, 'schema', 'Error')
+                        }
+                    }
+                }
+
+    @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.2'])
+    def test_api_lazy_registers_etag_headers(self, app, openapi_version):
+        """Test etag headers are registered"""
+        app.config['OPENAPI_VERSION'] = openapi_version
+        api = Api(app)
+
+        # Declare dummy components to ensure get_* don't fail
+        if openapi_version == "3.0.2":
+            header_1 = {"description": "Header 1"}
+            api.spec.components.header("Header_1", header_1)
+        parameter_1 = {"description": "Parameter 1"}
+        api.spec.components.parameter("Parameter_1", "header", parameter_1)
+
+        # No route registered -> etag headers not registered
+        if openapi_version == "3.0.2":
+            headers = get_headers(api.spec)
+            assert headers == {"Header_1": header_1}
+        parameters = get_parameters(api.spec)
+        assert parameters == {
+            "Parameter_1": {
+                **parameter_1,
+                "in": "header",
+                "name": "Parameter_1"
+            }
+        }
+
+        # Register routes with etag
+        blp = Blueprint('test', 'test', url_prefix='/test')
+
+        @blp.route("/etag_get", methods=["GET"])
+        @blp.etag
+        @blp.response(200)
+        def test_get(val):
+            pass
+
+        @blp.route("/etag_pet", methods=["PUT"])
+        @blp.etag
+        @blp.response(200)
+        def test_put(val):
+            pass
+
+        api.register_blueprint(blp)
+
+        if openapi_version == "3.0.2":
+            headers = get_headers(api.spec)
+            assert headers["ETAG"] == fs_etag.ETAG_HEADER
+        parameters = get_parameters(api.spec)
+        assert parameters["IF_NONE_MATCH"] == fs_etag.IF_NONE_MATCH_HEADER
+        assert parameters["IF_MATCH"] == fs_etag.IF_MATCH_HEADER
+
+    def test_api_lazy_registers_pagination_header(self, app):
+        """Test pagination header is registered"""
+        api = Api(app)
+
+        # Declare dummy header to ensure get_headers doesn't fail
+        header_1 = {"description": "Header 1"}
+        api.spec.components.header("Header_1", header_1)
+
+        # No route registered -> parameter header not registered
+        headers = get_headers(api.spec)
+        assert headers == {"Header_1": header_1}
+
+        # Register routes with pagination
+        blp = Blueprint('test', 'test', url_prefix='/test')
+
+        @blp.route("/")
+        @blp.response(200)
+        @blp.paginate()
+        def test_get(val):
+            pass
+
+        api.register_blueprint(blp)
+
+        headers = get_headers(api.spec)
+        assert headers["PAGINATION"] == {
+            'description': 'Pagination metadata',
+            'schema': {'$ref': '#/components/schemas/PaginationMetadata'},
+        }
 
     def test_apispec_print_openapi_doc(self, app):
         api = Api(app)

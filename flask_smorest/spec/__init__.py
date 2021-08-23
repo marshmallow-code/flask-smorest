@@ -1,5 +1,6 @@
 """API specification using OpenAPI"""
 import json
+import http
 
 import flask
 from flask import current_app
@@ -8,7 +9,10 @@ import apispec
 from apispec.ext.marshmallow import MarshmallowPlugin
 
 from flask_smorest.exceptions import MissingAPIParameterError
-from .plugins import FlaskPlugin, ResponseReferencesPlugin
+from flask_smorest.utils import prepare_response
+from flask_smorest import etag as fs_etag
+from flask_smorest import pagination as fs_pagination
+from .plugins import FlaskPlugin
 from .field_converters import uploadfield2properties
 from .constants import (
     DEFAULT_REQUEST_BODY_CONTENT_TYPE, DEFAULT_RESPONSE_CONTENT_TYPE,
@@ -139,7 +143,6 @@ class APISpecMixin(DocBlueprintMixin):
             *,
             flask_plugin=None,
             marshmallow_plugin=None,
-            response_plugin=None,
             extra_plugins=None,
             title=None,
             version=None,
@@ -149,10 +152,7 @@ class APISpecMixin(DocBlueprintMixin):
         # Plugins
         self.flask_plugin = flask_plugin or FlaskPlugin()
         self.ma_plugin = marshmallow_plugin or MarshmallowPlugin()
-        self.resp_plugin = (
-            response_plugin or ResponseReferencesPlugin(self.ERROR_SCHEMA)
-        )
-        plugins = [self.flask_plugin, self.ma_plugin, self.resp_plugin]
+        plugins = [self.flask_plugin, self.ma_plugin]
         plugins.extend(extra_plugins or ())
 
         # APISpec options
@@ -196,6 +196,15 @@ class APISpecMixin(DocBlueprintMixin):
             self._register_converter(*args)
         # Register Upload field properties function
         self.ma_plugin.converter.add_attribute_function(uploadfield2properties)
+
+        # Lazy register default responses
+        self._register_responses()
+
+        # Lazy register ETag headers
+        self._register_etag_headers()
+
+        # Lazy register pagination header
+        self._register_pagination_header()
 
         # Register OpenAPI command group
         self._app.cli.add_command(openapi_cli)
@@ -276,6 +285,39 @@ class APISpecMixin(DocBlueprintMixin):
 
     def _register_field(self, field, *args):
         self.ma_plugin.map_to_openapi_type(*args)(field)
+
+    def _register_responses(self):
+        """Lazyly register default responses for all status codes"""
+        # Lazy register a response for each status code
+        for status in http.HTTPStatus:
+            response = {
+                'description': status.phrase,
+                'schema': self.ERROR_SCHEMA,
+            }
+            prepare_response(
+                response, self.spec, DEFAULT_RESPONSE_CONTENT_TYPE)
+            self.spec.components.response(status.name, response, lazy=True)
+
+        # Also lazy register a default error response
+        response = {
+            'description': 'Default error response',
+            'schema': self.ERROR_SCHEMA,
+        }
+        prepare_response(response, self.spec, DEFAULT_RESPONSE_CONTENT_TYPE)
+        self.spec.components.response('DEFAULT_ERROR', response, lazy=True)
+
+    def _register_etag_headers(self):
+        self.spec.components.parameter(
+            "IF_NONE_MATCH", "header", fs_etag.IF_NONE_MATCH_HEADER, lazy=True)
+        self.spec.components.parameter(
+            "IF_MATCH", "header", fs_etag.IF_MATCH_HEADER, lazy=True)
+        if self.spec.openapi_version.major >= 3:
+            self.spec.components.header("ETAG", fs_etag.ETAG_HEADER, lazy=True)
+
+    def _register_pagination_header(self):
+        if self.spec.openapi_version.major >= 3:
+            self.spec.components.header(
+                "PAGINATION", fs_pagination.PAGINATION_HEADER, lazy=True)
 
 
 openapi_cli = flask.cli.AppGroup('openapi', help='OpenAPI commands.')
