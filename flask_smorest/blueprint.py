@@ -172,12 +172,15 @@ class Blueprint(
         if isinstance(obj, MethodViewType):
             for method in self.HTTP_METHODS:
                 if method in obj.methods:
-                    func = getattr(obj, method.lower())
-                    store_method_docs(method, func)
+                    if (
+                        "methods" not in options or
+                        method in options['methods']
+                    ):
+                        func = getattr(obj, method.lower())
+                        store_method_docs(method, func)
         # Function
         else:
-            methods = options.pop('methods', None) or ['GET']
-            for method in methods:
+            for method in options.get('methods', ('GET', )):
                 store_method_docs(method, obj)
 
         # Store parameters doc info from route decorator
