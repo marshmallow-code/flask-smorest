@@ -1,6 +1,22 @@
 Changelog
 ---------
 
+0.33.0 (2021-08-23)
++++++++++++++++++++
+
+Features:
+
+- *Backwards-incompatible*: Lazy-register components (default responses, ETag
+  and pagination headers) so that they only appear in the spec if they are
+  used. Remove ``ResponseReferencesPlugin``. Rename
+  ``PAGINATION_HEADER_FIELD_NAME`` to ``PAGINATION_HEADER_NAME``. (:pr:`268`)
+- Override ``Blueprint.add_url_rule`` to allow the use of ``add_url_rule``,
+  not only the ``route`` decorated form (:pr:`272`).
+
+Other changes:
+
+- *Backwards-incompatible*: Drop apispec < 5.1.0 (:pr:`265`)
+
 0.32.0 (2021-07-29)
 +++++++++++++++++++
 
@@ -68,8 +84,7 @@ Other changes:
 Features:
 
 - *Backwards-incompatible*: In ``@response`` decorator, rename ``code``
-  argument into ``status_code`` and make it positional
-  (:pr:`193` and :pr:`159`).
+  argument to ``status_code`` and make it positional (:pr:`193` and :pr:`159`).
 - Add ``Blueprint.alt_response`` decorator to document alternative responses
   (:pr:`159`).
 
@@ -178,7 +193,7 @@ Features:
   Before this change, the version would default to ``"1"`` and the title would
   be ``app.name``. Those two parameters can be passed at init or as application
   configuration parameters ``TITLE`` and ``API_VERSION``. Also rename
-  ``OpenAPIVersionNotSpecified`` as ``MissingAPIParameterError``. (:pr:`169`).
+  ``OpenAPIVersionNotSpecified`` to ``MissingAPIParameterError``. (:pr:`169`).
   Thanks :user:`playpauseandstop` for the help on this.
 
 - *Backwards-incompatible*: Rework pagination documentation to allow more
@@ -449,7 +464,7 @@ Other changes:
 Features:
 
 - Official Python 3.7 support (:pr:`45`).
-- Rename ``Api.definition`` as ``Api.schema``. Keep ``Api.definition`` as an
+- Rename ``Api.definition`` to ``Api.schema``. Keep ``Api.definition`` as an
   alias to ``Api.schema`` for backward compatibility (:pr:`53`).
 
 Bug fixes:
@@ -497,8 +512,7 @@ Features:
 
 - Add ``flask_plugin`` and ``marshmallow_plugin`` spec kwargs to allow
   overriding base plugins.
-- *Backwards-incompatible*: Rename ``plugins`` spec kwarg into
-  ``extra_plugins``.
+- *Backwards-incompatible*: Rename ``plugins`` spec kwarg to ``extra_plugins``.
 - *Backwards-incompatible*: Don't default to OpenAPI version 2.0. The version
   must now be specified, either as ``OPENAPI_VERSION`` app parameter or as
   ``openapi_version`` spec kwarg.
@@ -631,7 +645,7 @@ Features:
   ``PAGINATION_HEADER_FIELD_NAME`` class attribute of ``Blueprint``. If set to
   ``None``, no pagination header is added to the response.
 - *Backwards-incompatible*: The ``paginate`` decorator doesn't use
-  ``NestedQueryFlaskParser`` by default. It is renamed as
+  ``NestedQueryFlaskParser`` by default. It is renamed to
   ``NestedQueryArgsParser`` and it can be used by overriding
   ``Blueprint.ARGUMENTS_PARSER``.
 - Default error handler is registered for generic ``HTTPException``. Other
