@@ -99,6 +99,7 @@ class Blueprint(
         *,
         parameters=None,
         tags=None,
+        hide_from_doc=False,
         **options,
     ):
         """Register url rule in application
@@ -116,6 +117,8 @@ class Blueprint(
             in this path, only used to document the resource.
         :param list tags: List of tags for the resource.
             If None, ``Blueprint`` name is used.
+        :param boolean hide_from_doc: Hide documentation in swagger UI.
+            Default False.
         :param options: Options to be forwarded to the underlying
             :class:`werkzeug.routing.Rule <Rule>` object.
         """
@@ -139,36 +142,24 @@ class Blueprint(
 
         # Add URL rule in Flask and store endpoint documentation
         super().add_url_rule(rule, endpoint, func, **options)
-        self._store_endpoint_docs(
-            endpoint, view_func, parameters, tags, **options)
+        if not hide_from_doc:
+            self._store_endpoint_docs(
+                endpoint, view_func, parameters, tags, **options)
 
-    def route(self, rule, *, parameters=None, render=True, tags=None, **options):
+    def route(self, rule, *, parameters=None, tags=None, **options):
+        """Decorator to register view function in application and documentation
+        Calls :meth:`add_url_rule <Blueprint.add_url_rule>`.
+        """
         def decorator(func):
-            """Decorator to register view function in application and documentation"""
-            # By default, endpoint name is function name
-            endpoint = options.pop('endpoint', func.__name__)
-
-            # Prevent registering several times the same endpoint
-            # by silently renaming the endpoint in case of collision
-            if endpoint in self._endpoints:
-                endpoint = '{}_{}'.format(endpoint, len(self._endpoints))
-            self._endpoints.append(endpoint)
-
-            if isinstance(func, MethodViewType):
-                view_func = func.as_view(endpoint)
-            else:
-                view_func = func
-
-            # Add URL rule in Flask and store endpoint documentation
-            self.add_url_rule(rule, endpoint, view_func, **options)
-
-            # Hide documentation
-            if render:
-                self._store_endpoint_docs(endpoint, func, parameters, **options)
-
-            return func
-
-        return decorator
+            endpoint = options.pop("endpoint", None)
+            self.add_url_rule(
+                rule,
+                endpoint,
+                func,
+                parameters=parameters,
+                tags=tags,
+                **options
+            )
 
     def _store_endpoint_docs(self, endpoint, obj, parameters, tags, **options):
         """Store view or function doc info"""
