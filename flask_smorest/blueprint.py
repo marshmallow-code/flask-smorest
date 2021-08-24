@@ -98,6 +98,7 @@ class Blueprint(
         provide_automatic_options=None,
         *,
         parameters=None,
+        tags=None,
         **options,
     ):
         """Register url rule in application
@@ -113,6 +114,8 @@ class Blueprint(
         :param callable|MethodView view_func: View function or MethodView class
         :param list parameters: List of parameters relevant to all operations
             in this path, only used to document the resource.
+        :param list tags: List of tags for the resource.
+            If None, ``Blueprint`` name is used.
         :param options: Options to be forwarded to the underlying
             :class:`werkzeug.routing.Rule <Rule>` object.
         """
@@ -136,22 +139,29 @@ class Blueprint(
 
         # Add URL rule in Flask and store endpoint documentation
         super().add_url_rule(rule, endpoint, func, **options)
-        self._store_endpoint_docs(endpoint, view_func, parameters, **options)
+        self._store_endpoint_docs(
+            endpoint, view_func, parameters, tags, **options)
 
-    def route(self, rule, *, parameters=None, **options):
+    def route(self, rule, *, parameters=None, tags=None, **options):
         """Decorator to register view function in application and documentation
 
-        Calls add_url_rule
+        Calls :meth:`add_url_rule <Blueprint.add_url_rule>`.
         """
         def decorator(func):
             endpoint = options.pop("endpoint", None)
             self.add_url_rule(
-                rule, endpoint, func, parameters=parameters, **options)
+                rule,
+                endpoint,
+                func,
+                parameters=parameters,
+                tags=tags,
+                **options
+            )
             return func
 
         return decorator
 
-    def _store_endpoint_docs(self, endpoint, obj, parameters, **options):
+    def _store_endpoint_docs(self, endpoint, obj, parameters, tags, **options):
         """Store view or function doc info"""
 
         endpoint_doc_info = self._docs.setdefault(endpoint, OrderedDict())
@@ -165,6 +175,8 @@ class Blueprint(
             # Get summary/description from docstring
             doc['docstring'] = load_info_from_docstring(
                 function.__doc__, delimiter=self.DOCSTRING_INFO_DELIMITER)
+            # Tags for this resource
+            doc["tags"] = tags
             # Store function doc infos for later processing/registration
             endpoint_doc_info[method.lower()] = doc
 
@@ -205,6 +217,7 @@ class Blueprint(
             doc = OrderedDict()
             # Use doc info stored by decorators to generate doc
             for method_l, operation_doc_info in endpoint_doc_info.items():
+                tags = operation_doc_info.pop('tags')
                 operation_doc = {}
                 for func in self._prepare_doc_cbks:
                     operation_doc = func(
@@ -216,8 +229,8 @@ class Blueprint(
                         method=method_l
                     )
                 operation_doc.update(operation_doc_info['docstring'])
-                # Tag all operations with Blueprint name
-                operation_doc['tags'] = [name]
+                # Tag all operations with Blueprint name unless tags specified
+                operation_doc['tags'] = tags if tags is not None else [name, ]
                 # Complete doc with manual doc info
                 manual_doc = operation_doc_info.get('manual_doc', {})
                 doc[method_l] = deepupdate(operation_doc, manual_doc)
