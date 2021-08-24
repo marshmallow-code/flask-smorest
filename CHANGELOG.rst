@@ -1,8 +1,13 @@
 Changelog
 ---------
 
-0.33.1 (unreleased)
+0.34.0 (2021-08-24)
 +++++++++++++++++++
+
+Features:
+
+- Add ``tags`` parameter to ``Blueprint.route`` and ``Blueprint.add_url_rule``
+  (:pr:`275`).
 
 Bug fixes:
 
