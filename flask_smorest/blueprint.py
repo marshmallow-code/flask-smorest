@@ -161,6 +161,9 @@ class Blueprint(
                 hide_from_doc=hide_from_doc,
                 **options
             )
+            return func
+
+        return decorator
 
     def _store_endpoint_docs(self, endpoint, obj, parameters, tags, **options):
         """Store view or function doc info"""
