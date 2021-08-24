@@ -143,32 +143,32 @@ class Blueprint(
             endpoint, view_func, parameters, tags, **options)
 
     def route(self, rule, *, parameters=None, render=True, tags=None, **options):
-            def decorator(func):
+        def decorator(func):
+            """Decorator to register view function in application and documentation"""
+            # By default, endpoint name is function name
+            endpoint = options.pop('endpoint', func.__name__)
 
-                # By default, endpoint name is function name
-                endpoint = options.pop('endpoint', func.__name__)
+            # Prevent registering several times the same endpoint
+            # by silently renaming the endpoint in case of collision
+            if endpoint in self._endpoints:
+                endpoint = '{}_{}'.format(endpoint, len(self._endpoints))
+            self._endpoints.append(endpoint)
 
-                # Prevent registering several times the same endpoint
-                # by silently renaming the endpoint in case of collision
-                if endpoint in self._endpoints:
-                    endpoint = '{}_{}'.format(endpoint, len(self._endpoints))
-                self._endpoints.append(endpoint)
+            if isinstance(func, MethodViewType):
+                view_func = func.as_view(endpoint)
+            else:
+                view_func = func
 
-                if isinstance(func, MethodViewType):
-                    view_func = func.as_view(endpoint)
-                else:
-                    view_func = func
+            # Add URL rule in Flask and store endpoint documentation
+            self.add_url_rule(rule, endpoint, view_func, **options)
 
-                # Add URL rule in Flask and store endpoint documentation
-                self.add_url_rule(rule, endpoint, view_func, **options)
+            # Hide documentation
+            if render:
+                self._store_endpoint_docs(endpoint, func, parameters, **options)
 
-                # Hide documentation
-                if render:
-                    self._store_endpoint_docs(endpoint, func, parameters, **options)
+            return func
 
-                return func
-
-            return decorator
+        return decorator
 
     def _store_endpoint_docs(self, endpoint, obj, parameters, tags, **options):
         """Store view or function doc info"""
