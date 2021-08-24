@@ -146,7 +146,15 @@ class Blueprint(
             self._store_endpoint_docs(
                 endpoint, view_func, parameters, tags, **options)
 
-    def route(self, rule, *, parameters=None, tags=None, hide_from_doc=False, **options):
+    def route(
+            self, 
+            rule, 
+            *, 
+            parameters=None, 
+            tags=None, 
+            hide_from_doc=False, 
+            **options
+        ):
         """Decorator to register view function in application and documentation
         Calls :meth:`add_url_rule <Blueprint.add_url_rule>`.
         """
