@@ -570,8 +570,8 @@ class TestBlueprint:
         )
         assert spec["paths"]["/test/test_2/"]["get"]["tags"] == ["test", ]
 
-    def test_blueprint_route_tags(self, app):
-        """Check passing tags to route"""
+    def test_blueprint_route_hidden_from_api_spec(self, app):
+        """Check passing hidden_from_api_spec to route"""
         blp = Blueprint('test', __name__, url_prefix='/test')
 
         @blp.route('/test_1/', hidden_from_api_spec=True)
