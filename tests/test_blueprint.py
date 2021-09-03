@@ -570,6 +570,23 @@ class TestBlueprint:
         )
         assert spec["paths"]["/test/test_2/"]["get"]["tags"] == ["test", ]
 
+    def test_blueprint_route_tags(self, app):
+        """Check passing tags to route"""
+        blp = Blueprint('test', __name__, url_prefix='/test')
+
+        @blp.route('/test_1/', hidden_from_api_spec=True)
+        def test_1():
+            pass
+
+        @blp.route('/test_2/')
+        def test_2():
+            pass
+
+        api = Api(app)
+        api.register_blueprint(blp)
+        spec = api.spec.to_dict()
+        assert (len(spec["paths"]) == 1)
+
     @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.2'])
     def test_blueprint_response_schema(self, app, openapi_version, schemas):
         """Check response schema is correctly documented.

@@ -99,7 +99,7 @@ class Blueprint(
         *,
         parameters=None,
         tags=None,
-        hide_from_doc=False,
+        hidden_from_api_spec=False,
         **options,
     ):
         """Register url rule in application
@@ -117,7 +117,7 @@ class Blueprint(
             in this path, only used to document the resource.
         :param list tags: List of tags for the resource.
             If None, ``Blueprint`` name is used.
-        :param boolean hide_from_doc: Hide documentation in swagger UI.
+        :param boolean hidden_from_api_spec: Hide documentation in swagger UI.
             Default False.
         :param options: Options to be forwarded to the underlying
             :class:`werkzeug.routing.Rule <Rule>` object.
@@ -142,7 +142,7 @@ class Blueprint(
 
         # Add URL rule in Flask and store endpoint documentation
         super().add_url_rule(rule, endpoint, func, **options)
-        if not hide_from_doc:
+        if not hidden_from_api_spec:
             self._store_endpoint_docs(
                 endpoint, view_func, parameters, tags, **options)
 
@@ -152,7 +152,7 @@ class Blueprint(
             *,
             parameters=None,
             tags=None,
-            hide_from_doc=False,
+            hidden_from_api_spec=False,
             **options
             ):
         """Decorator to register view function in application and documentation
@@ -166,7 +166,7 @@ class Blueprint(
                 func,
                 parameters=parameters,
                 tags=tags,
-                hide_from_doc=hide_from_doc,
+                hidden_from_api_spec=hidden_from_api_spec,
                 **options
             )
             return func
