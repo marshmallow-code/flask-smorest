@@ -516,9 +516,7 @@ class TestBlueprint:
                     schema_ref
                 )
 
-    def test_blueprint_route_method_view_method_specify_methods(
-            self, app, schemas
-    ):
+    def test_blueprint_route_method_view_specify_methods(self, app):
         """Test calling route on MethodView specifying methods
 
         Checks only registered methods appear in the doc
