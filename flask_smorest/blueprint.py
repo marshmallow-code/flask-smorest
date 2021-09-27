@@ -192,8 +192,9 @@ class Blueprint(
                         store_method_docs(method, func)
         # Function
         else:
-            for method in options.get('methods', ('GET', )):
-                store_method_docs(method, obj)
+            for method in self.HTTP_METHODS:
+                if method in options.get('methods', ('GET', )):
+                    store_method_docs(method, obj)
 
         # Store parameters doc info from route decorator
         endpoint_doc_info['parameters'] = parameters
