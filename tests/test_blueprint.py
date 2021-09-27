@@ -1143,7 +1143,9 @@ class TestBlueprint:
         ['OPTIONS', 'HEAD', 'GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
         ['PUT', 'PATCH', 'DELETE', 'OPTIONS', 'HEAD', 'GET', 'POST'],
     ))
-    def test_blueprint_enforce_method_order(self, app, http_methods):
+    def test_blueprint_route_enforces_method_order_for_methodviews(
+        self, app, http_methods
+    ):
         api = Api(app)
 
         class MyBlueprint(Blueprint):
@@ -1178,6 +1180,30 @@ class TestBlueprint:
         api.register_blueprint(blp)
         methods = list(api.spec.to_dict()['paths']['/test/'].keys())
         assert methods == [m.lower() for m in http_methods]
+
+    @pytest.mark.parametrize('http_methods', (
+        ['OPTIONS', 'HEAD', 'GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+        ['PUT', 'PATCH', 'DELETE', 'OPTIONS', 'HEAD', 'GET', 'POST'],
+    ))
+    def test_blueprint_route_enforces_method_order_for_view_functions(
+        self, app, http_methods
+    ):
+        api = Api(app)
+
+        class MyBlueprint(Blueprint):
+            HTTP_METHODS = http_methods
+
+        blp = MyBlueprint('test', __name__, url_prefix='/test')
+
+        @blp.route('/', methods=('GET', 'PUT'))
+        def func(self):
+            pass
+
+        api.register_blueprint(blp)
+        methods = list(api.spec.to_dict()['paths']['/test/'].keys())
+        assert methods == [
+            m.lower() for m in http_methods if m in ('GET', 'PUT')
+        ]
 
     @pytest.mark.parametrize('as_method_view', (True, False))
     def test_blueprint_multiple_routes_per_view(self, app, as_method_view):
