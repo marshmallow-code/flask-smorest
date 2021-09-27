@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+0.34.1 (2021-09-27)
++++++++++++++++++++
+
+Bug fixes:
+
+- Fix method order in spec for view functions (:pr:`281`).
+
 0.34.0 (2021-08-24)
 +++++++++++++++++++
 
