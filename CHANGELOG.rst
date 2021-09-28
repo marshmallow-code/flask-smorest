@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+0.35.0 (unreleased)
++++++++++++++++++++
+
+Other changes:
+
+- Format code using black with pre-commit (:pr:`282`).
+
 0.34.1 (2021-09-27)
 +++++++++++++++++++
 
