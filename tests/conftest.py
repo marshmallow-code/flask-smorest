@@ -14,16 +14,17 @@ class AppConfig:
 
     Overload this to add config parameters
     """
-    API_TITLE = 'API Test'
-    API_VERSION = '1'
-    OPENAPI_VERSION = '3.0.2'
+
+    API_TITLE = "API Test"
+    API_VERSION = "1"
+    OPENAPI_VERSION = "3.0.2"
 
 
 @pytest.fixture(params=[0])
 def collection(request):
     _collection = DatabaseMock()
     for idx in range(request.param):
-        _collection.post({'db_field': idx})
+        _collection.post({"db_field": idx})
     return _collection
 
 
@@ -61,18 +62,18 @@ class CounterSchema(ma.Schema):
 
 @pytest.fixture
 def schemas():
-
     class DocSchema(CounterSchema):
         item_id = ma.fields.Int(dump_only=True)
-        field = ma.fields.Int(attribute='db_field')
+        field = ma.fields.Int(attribute="db_field")
 
     class DocEtagSchema(CounterSchema):
-        field = ma.fields.Int(attribute='db_field')
+        field = ma.fields.Int(attribute="db_field")
 
     class QueryArgsSchema(ma.Schema):
         class Meta:
             ordered = True
             unknown = ma.EXCLUDE
+
         arg1 = ma.fields.String()
         arg2 = ma.fields.Integer()
 
@@ -81,6 +82,5 @@ def schemas():
         text = ma.fields.Str()
 
     return namedtuple(
-        'Model',
-        ('DocSchema', 'DocEtagSchema', 'QueryArgsSchema', 'ClientErrorSchema')
+        "Model", ("DocSchema", "DocEtagSchema", "QueryArgsSchema", "ClientErrorSchema")
     )(DocSchema, DocEtagSchema, QueryArgsSchema, ClientErrorSchema)

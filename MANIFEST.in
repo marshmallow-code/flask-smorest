@@ -6,6 +6,6 @@ graft docs
 prune docs/_build
 
 graft tests
-include dev-requirements.txt tox.ini
+include tox.ini
 
 global-exclude *.py[co]

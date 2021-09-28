@@ -40,9 +40,9 @@ First instantiate an :class:`Api <Api>` with a :class:`Flask <flask.Flask>` appl
     from .model import Pet
 
     app = Flask(__name__)
-    app.config['API_TITLE'] = 'My API'
-    app.config['API_VERSION'] = 'v1'
-    app.config['OPENAPI_VERSION'] = '3.0.2'
+    app.config["API_TITLE"] = "My API"
+    app.config["API_VERSION"] = "v1"
+    app.config["OPENAPI_VERSION"] = "3.0.2"
     api = Api(app)
 
 Define a marshmallow :class:`Schema <marshmallow.Schema>` to expose the model.
@@ -67,10 +67,7 @@ Instantiate a :class:`Blueprint <Blueprint>`.
 
 .. code-block:: python
 
-    blp = Blueprint(
-        'pets', 'pets', url_prefix='/pets',
-        description='Operations on pets'
-    )
+    blp = Blueprint("pets", "pets", url_prefix="/pets", description="Operations on pets")
 
 Use :class:`MethodView <flask.views.MethodView>` classes to organize resources,
 and decorate view methods with :meth:`Blueprint.arguments <Blueprint.arguments>`
@@ -83,10 +80,9 @@ the error response.
 
 .. code-block:: python
 
-    @blp.route('/')
+    @blp.route("/")
     class Pets(MethodView):
-
-        @blp.arguments(PetQueryArgsSchema, location='query')
+        @blp.arguments(PetQueryArgsSchema, location="query")
         @blp.response(200, PetSchema(many=True))
         def get(self, args):
             """List pets"""
@@ -100,16 +96,15 @@ the error response.
             return item
 
 
-    @blp.route('/<pet_id>')
+    @blp.route("/<pet_id>")
     class PetsById(MethodView):
-
         @blp.response(200, PetSchema)
         def get(self, pet_id):
             """Get pet by ID"""
             try:
                 item = Pet.get_by_id(pet_id)
             except ItemNotFoundError:
-                abort(404, message='Item not found.')
+                abort(404, message="Item not found.")
             return item
 
         @blp.arguments(PetSchema)
@@ -119,7 +114,7 @@ the error response.
             try:
                 item = Pet.get_by_id(pet_id)
             except ItemNotFoundError:
-                abort(404, message='Item not found.')
+                abort(404, message="Item not found.")
             item.update(update_data)
             item.commit()
             return item
@@ -130,7 +125,7 @@ the error response.
             try:
                 Pet.delete(pet_id)
             except ItemNotFoundError:
-                abort(404, message='Item not found.')
+                abort(404, message="Item not found.")
 
 
 Finally, register the :class:`Blueprint <Blueprint>` in the :class:`Api <Api>`.

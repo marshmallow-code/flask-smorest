@@ -54,7 +54,7 @@ Add Summary and Description
 
 .. code-block:: python
 
-    def get(...):
+    def get(pet_id):
         """Find pets by ID
 
         Return pets based on ID.
@@ -73,9 +73,9 @@ The example above produces the following documentation attributes:
 .. code-block:: python
 
     {
-        'get': {
-            'summary': 'Find pets by ID',
-            'description': 'Return pets based on ID',
+        "get": {
+            "summary": "Find pets by ID",
+            "description": "Return pets based on ID",
         }
     }
 
@@ -140,15 +140,15 @@ parameters.
 
 .. code-block:: python
 
-    app.config['API_SPEC_OPTIONS'] = {'x-internal-id': '2'}
+    app.config["API_SPEC_OPTIONS"] = {"x-internal-id": "2"}
 
-    api = Api(app, spec_kwargs={'host': 'example.com', 'x-internal-id': '1'})
+    api = Api(app, spec_kwargs={"host": "example.com", "x-internal-id": "1"})
 
 Note that ``app.config`` overrides ``spec_kwargs``. The example above produces
 
 .. code-block:: python
 
-    {'host': 'example.com', 'x-internal-id': '2', ...}
+    {"host": "example.com", "x-internal-id": "2"}
 
 Document Top-level Components
 -----------------------------
@@ -160,10 +160,8 @@ Documentation components can be passed by accessing the internal apispec
 
     api = Api(app)
     api.spec.components.parameter(
-      'Pet name',
-      'query',
-      {'description': 'Item ID', 'required': True}
-   )
+        "Pet name", "query", {"description": "Item ID", "required": True}
+    )
 
 Register Custom Fields
 ----------------------
@@ -177,10 +175,10 @@ or by specifying a parent field class, using :meth:`Api.register_field`:
 .. code-block:: python
 
     # Map to ('string', 'ObjectId') passing type and format
-    api.register_field(ObjectId, 'string', 'ObjectId')
+    api.register_field(ObjectId, "string", "ObjectId")
 
     # Map to ('string', ) passing type
-    api.register_field(CustomString, 'string', None)
+    api.register_field(CustomString, "string", None)
 
     # Map to ('string, 'date-time') passing a marshmallow Field
     api.register_field(CustomDateTime, ma.fields.DateTime)
@@ -197,20 +195,20 @@ The :meth:`Api.register_converter` allows to register a converter in the
 .. code-block:: python
 
    # Register MongoDB's ObjectId converter in Flask application
-   app.url_map.converters['objectid'] = ObjectIdConverter
+   app.url_map.converters["objectid"] = ObjectIdConverter
 
    # Define custom converter to schema function
    def objectidconverter2paramschema(converter):
-       return {'type': 'string', 'format': 'ObjectID'}
+       return {"type": "string", "format": "ObjectID"}
+
 
    # Register converter in Api
-   api.register_converter(
-       ObjectIdConverter,
-       objectidconverter2paramschema
-   )
+   api.register_converter(ObjectIdConverter, objectidconverter2paramschema)
 
-   @blp.route('/pets/{objectid:pet_id}')
-       ...
+
+   @blp.route("/pets/{objectid:pet_id}")
+   def get_pet(pet_id):
+       """Get pet by ID"""
 
 
 Enforce Order in OpenAPI Specification File
@@ -238,6 +236,7 @@ This is typically done in a base class:
     class MyBaseSchema(ma.Schema):
         class Meta:
             ordered = True
+
 
     class User(MyBaseSchema):
         name = ma.fields.String()
@@ -355,7 +354,9 @@ Here's an example application configuration using all available UIs:
        OPENAPI_JSON_PATH = "api-spec.json"
        OPENAPI_URL_PREFIX = "/"
        OPENAPI_REDOC_PATH = "/redoc"
-       OPENAPI_REDOC_URL = "https://cdn.jsdelivr.net/npm/redoc@next/bundles/redoc.standalone.js"
+       OPENAPI_REDOC_URL = (
+           "https://cdn.jsdelivr.net/npm/redoc@next/bundles/redoc.standalone.js"
+       )
        OPENAPI_SWAGGER_UI_PATH = "/swagger-ui"
        OPENAPI_SWAGGER_UI_URL = "https://cdn.jsdelivr.net/npm/swagger-ui-dist/"
        OPENAPI_RAPIDOC_PATH = "/rapidoc"

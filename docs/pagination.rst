@@ -27,18 +27,18 @@ The view function must also specify the total number of elements by setting it
 as ``item_count`` attribute of the `PaginationParameters` object.
 
 .. code-block:: python
-    :emphasize-lines: 5,6,7,9,10
+    :emphasize-lines: 4,5,6,8,9
 
-    @blp.route('/')
+    @blp.route("/")
     class Pets(MethodView):
-
         @blp.response(200, PetSchema(many=True))
         @blp.paginate()
         def get(self, pagination_parameters):
             pagination_parameters.item_count = Pet.size
             return Pet.get_elements(
                 first_item=pagination_parameters.first_item,
-                last_item=pagination_parameters.last_item)
+                last_item=pagination_parameters.last_item,
+            )
 
 
 Post-Pagination
@@ -74,14 +74,15 @@ Mongoengine's :class:`QuerySet <mongoengine.queryset.QuerySet>`,...
 
     from flask_smorest import Page
 
+
     class CursorPage(Page):
         @property
         def item_count(self):
             return self.collection.count()
 
-    @blp.route('/')
-    class Pets(MethodView):
 
+    @blp.route("/")
+    class Pets(MethodView):
         @blp.response(200, PetSchema(many=True))
         @blp.paginate(CursorPage)
         def get(self):
@@ -105,8 +106,7 @@ Those default values are defined as
 
 .. code-block:: python
 
-    DEFAULT_PAGINATION_PARAMETERS = {
-        'page': 1, 'page_size': 10, 'max_page_size': 100}
+    DEFAULT_PAGINATION_PARAMETERS = {"page": 1, "page_size": 10, "max_page_size": 100}
 
 They can be modified globally by overriding ``DEFAULT_PAGINATION_PARAMETERS``
 class attribute of the :class:`Blueprint <Blueprint>` class or overridden in
@@ -122,7 +122,7 @@ It contains the pagination information.
 
 .. code-block:: python
 
-    print(headers['X-Pagination'])
+    print(headers["X-Pagination"])
     # {
     #     'total': 1000, 'total_pages': 200,
     #     'page': 2, 'first_page': 1, 'last_page': 200,

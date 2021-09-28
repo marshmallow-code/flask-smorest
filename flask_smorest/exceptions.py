@@ -16,15 +16,16 @@ class NotModified(wexc.HTTPException, FlaskSmorestError):
 
     Exception created to compensate for a lack in Werkzeug (and Flask)
     """
+
     code = 304
-    description = 'Resource not modified since last request.'
+    description = "Resource not modified since last request."
 
 
 class PreconditionRequired(wexc.PreconditionRequired, FlaskSmorestError):
     """Etag required but missing"""
+
     # Overriding description as we don't provide If-Unmodified-Since
-    description = (
-        'This request is required to be conditional; try using "If-Match".')
+    description = 'This request is required to be conditional; try using "If-Match".'
 
 
 class PreconditionFailed(wexc.PreconditionFailed, FlaskSmorestError):

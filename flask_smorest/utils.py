@@ -34,7 +34,7 @@ def get_appcontext():
 
     # http://flask.pocoo.org/docs/latest/extensiondev/#the-extension-code
     ctx = _app_ctx_stack.top
-    if not hasattr(ctx, 'flask_smorest'):
+    if not hasattr(ctx, "flask_smorest"):
         ctx.flask_smorest = {}
     return ctx.flask_smorest
 
@@ -46,7 +46,7 @@ def load_info_from_docstring(docstring, *, delimiter="---"):
     If a line starts with this string, this line and the lines after are
     ignored. Defaults to "---".
     """
-    split_lines = trim_docstring(docstring).split('\n')
+    split_lines = trim_docstring(docstring).split("\n")
 
     if delimiter is not None:
         # Info is separated from rest of docstring by a `delimiter` line
@@ -60,9 +60,9 @@ def load_info_from_docstring(docstring, *, delimiter="---"):
 
     # Description is separated from summary by an empty line
     for index, line in enumerate(split_lines):
-        if line.strip() == '':
+        if line.strip() == "":
             summary_lines = split_lines[:index]
-            description_lines = split_lines[index + 1:]
+            description_lines = split_lines[index + 1 :]
             break
     else:
         summary_lines = split_lines
@@ -70,9 +70,9 @@ def load_info_from_docstring(docstring, *, delimiter="---"):
 
     info = {}
     if summary_lines:
-        info['summary'] = dedent('\n'.join(summary_lines))
+        info["summary"] = dedent("\n".join(summary_lines))
     if description_lines:
-        info['description'] = dedent('\n'.join(description_lines))
+        info["description"] = dedent("\n".join(description_lines))
     return info
 
 
@@ -100,9 +100,9 @@ def unpack_tuple_response(rv):
         # other sized tuples are not allowed
         else:
             raise TypeError(
-                'The view function did not return a valid response tuple.'
-                ' The tuple must have the form (body, status, headers),'
-                ' (body, status), or (body, headers).'
+                "The view function did not return a valid response tuple."
+                " The tuple must have the form (body, status, headers),"
+                " (body, status), or (body, headers)."
             )
 
     return rv, status, headers
@@ -124,17 +124,16 @@ def prepare_response(response, spec, default_response_content_type):
     if isinstance(response, abc.Mapping):
         # OAS 2
         if spec.openapi_version.major < 3:
-            if 'example' in response:
-                response['examples'] = {
-                    default_response_content_type: response.pop('example')
+            if "example" in response:
+                response["examples"] = {
+                    default_response_content_type: response.pop("example")
                 }
         # OAS 3
         else:
-            for field in ('schema', 'example', 'examples'):
+            for field in ("schema", "example", "examples"):
                 if field in response:
                     (
-                        response
-                        .setdefault('content', {})
-                        .setdefault(default_response_content_type, {})
-                        [field]
+                        response.setdefault("content", {}).setdefault(
+                            default_response_content_type, {}
+                        )[field]
                     ) = response.pop(field)

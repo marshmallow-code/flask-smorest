@@ -9,6 +9,7 @@ class ErrorSchema(ma.Schema):
 
     Not actually used to dump payload, but only for documentation purposes
     """
+
     code = ma.fields.Integer(metadata={"description": "Error code"})
     status = ma.fields.String(metadata={"description": "Error name"})
     message = ma.fields.String(metadata={"description": "Error message"})
@@ -26,8 +27,7 @@ class ErrorHandlerMixin:
 
         This method registers a default error handler for ``HTTPException``.
         """
-        self._app.register_error_handler(
-            HTTPException, self.handle_http_exception)
+        self._app.register_error_handler(HTTPException, self.handle_http_exception)
 
     def handle_http_exception(self, error):
         """Return a JSON response containing a description of the error
@@ -53,24 +53,24 @@ class ErrorHandlerMixin:
         - `headers` (``dict``): additional headers
         """
         headers = {}
-        payload = {'code': error.code, 'status': error.name}
+        payload = {"code": error.code, "status": error.name}
 
         # Get additional info passed as kwargs when calling abort
         # data may not exist if HTTPException was raised without webargs abort
-        data = getattr(error, 'data', None)
+        data = getattr(error, "data", None)
         if data:
             # If we passed a custom message
-            if 'message' in data:
-                payload['message'] = data['message']
+            if "message" in data:
+                payload["message"] = data["message"]
             # If we passed "errors"
-            if 'errors' in data:
-                payload['errors'] = data['errors']
+            if "errors" in data:
+                payload["errors"] = data["errors"]
             # If webargs added validation errors as "messages"
             # (you should use 'errors' as it is more explicit)
-            elif 'messages' in data:
-                payload['errors'] = data['messages']
+            elif "messages" in data:
+                payload["errors"] = data["messages"]
             # If we passed additional headers
-            if 'headers' in data:
-                headers = data['headers']
+            if "headers" in data:
+                headers = data["headers"]
 
         return payload, error.code, headers

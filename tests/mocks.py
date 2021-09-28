@@ -27,19 +27,18 @@ class DatabaseMock:
 
     def get_by_id(self, item_id):
         try:
-            return next(
-                i for i in self.items if i['item_id'] == item_id)
+            return next(i for i in self.items if i["item_id"] == item_id)
         except StopIteration as exc:
             raise ItemNotFound from exc
 
     def post(self, new_item):
-        new_item['item_id'] = self._get_next_id()
+        new_item["item_id"] = self._get_next_id()
         self.items.append(new_item)
         return new_item
 
     def put(self, item_id, new_item):
         item = self.get_by_id(item_id)
-        new_item['item_id'] = item_id
+        new_item["item_id"] = item_id
         self.items[self.items.index(item)] = new_item
         return new_item
 
