@@ -7,7 +7,7 @@ from .blueprint import Blueprint  # noqa
 from .pagination import Page  # noqa
 from .error_handler import ErrorHandlerMixin
 
-__version__ = '0.34.1'
+__version__ = "0.34.1"
 
 
 class Api(APISpecMixin, ErrorHandlerMixin):
@@ -38,6 +38,7 @@ class Api(APISpecMixin, ErrorHandlerMixin):
     For more flexibility, additional spec kwargs can also be passed as app
     parameter `API_SPEC_OPTIONS`.
     """
+
     def __init__(self, app=None, *, spec_kwargs=None):
         self._app = app
         self._spec_kwargs = spec_kwargs or {}
@@ -57,9 +58,9 @@ class Api(APISpecMixin, ErrorHandlerMixin):
         self._app = app
 
         # Register flask-smorest in app extensions
-        app.extensions = getattr(app, 'extensions', {})
-        ext = app.extensions.setdefault('flask-smorest', {})
-        ext['ext_obj'] = self
+        app.extensions = getattr(app, "extensions", {})
+        ext = app.extensions.setdefault("flask-smorest", {})
+        ext["ext_obj"] = self
 
         # Initialize spec
         self._init_spec(**{**self._spec_kwargs, **(spec_kwargs or {})})
@@ -88,4 +89,4 @@ class Api(APISpecMixin, ErrorHandlerMixin):
         blp.register_views_in_doc(self, self._app, self.spec, name=blp_name)
 
         # Add tag relative to this resource to the global tag list
-        self.spec.tag({'name': blp_name, 'description': blp.description})
+        self.spec.tag({"name": blp_name, "description": blp.description})

@@ -14,10 +14,9 @@ injected in the view function.
 .. code-block:: python
     :emphasize-lines: 4,6,9,11
 
-    @blp.route('/')
+    @blp.route("/")
     class Pets(MethodView):
-
-        @blp.arguments(PetQueryArgsSchema, location='query')
+        @blp.arguments(PetQueryArgsSchema, location="query")
         @blp.response(200, PetSchema(many=True))
         def get(self, args):
             return Pet.get(filters=args)
@@ -52,13 +51,12 @@ as keyword arguments instead.
 .. code-block:: python
     :emphasize-lines: 4,6
 
-    @blp.route('/')
+    @blp.route("/")
     class Pets(MethodView):
-
-        @blp.arguments(PetQueryArgsSchema, location='query', as_kwargs=True)
+        @blp.arguments(PetQueryArgsSchema, location="query", as_kwargs=True)
         @blp.response(200, PetSchema(many=True))
         def get(self, **kwargs):
-            return Pet.get(filters=**kwargs)
+            return Pet.get(filters=kwargs)
 
 This decorator can be called several times on a resource function, for instance
 to accept both `body` and `query` parameters. The order of the decorator calls
@@ -68,11 +66,10 @@ view function.
 .. code-block:: python
     :emphasize-lines: 4,5,6
 
-    @blp.route('/')
+    @blp.route("/")
     class Pets(MethodView):
-
         @blp.arguments(PetSchema)
-        @blp.arguments(QueryArgsSchema, location='query')
+        @blp.arguments(QueryArgsSchema, location="query")
         def post(pet_data, query_args):
             return Pet.create(pet_data, **query_args)
 
@@ -120,11 +117,13 @@ It can also be achieved by subclassing the parser and setting
     from webargs.flaskparser import FlaskParser
     from flask_smorest import Blueprint
 
+
     class MyFlaskParser(FlaskParser):
         DEFAULT_UNKNOWN_BY_LOCATION = {
             "query": ma.RAISE,
             # ...
         }
+
 
     class MyBlueprint(Blueprint):
         ARGUMENTS_PARSER = MyFlaskParser()
@@ -162,9 +161,8 @@ arguments from multiple locations:
 .. code-block:: python
     :emphasize-lines: 4,5
 
-    @blp.route('/')
+    @blp.route("/")
     class Pets(MethodView):
-
         @blp.arguments(PetSchema)
         @blp.arguments(QueryArgsSchema, location="query")
         @blp.response(201, PetSchema)
@@ -191,6 +189,7 @@ location. The location / content type mapping can be customized by modifying
         "json": "application/json",
         "form": "application/x-www-form-urlencoded",
         "files": "multipart/form-data",
+    }
 
 It is also possible to override those defaults in a single resource by passing
 a string as ``content_type`` argument to :meth:`Blueprint.arguments
@@ -223,13 +222,15 @@ fields. The files are injected in the view function as a ``dict`` of werkzeug
     from werkzeug.utils import secure_filename
     from flask_smorest.fields import Upload
 
+
     class MultipartFileSchema(ma.Schema):
         file_1 = Upload()
 
-    @blp.route('/', methods=['POST'])
-    @blp.arguments(MultipartFileSchema, location='files')
+
+    @blp.route("/", methods=["POST"])
+    @blp.arguments(MultipartFileSchema, location="files")
     @blp.response(201)
     def func(files):
-        base_dir = '/path/to/storage/dir/'
-        file_1 = files['file_1']
+        base_dir = "/path/to/storage/dir/"
+        file_1 = files["file_1"]
         file_1.save(os.path.join(base_dir, secure_filename(file_1.filename)))

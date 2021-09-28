@@ -7,16 +7,16 @@ from apispec import BasePlugin
 
 
 # from flask-restplus
-RE_URL = re.compile(r'<(?:[^:<>]+:)?([^<>]+)>')
+RE_URL = re.compile(r"<(?:[^:<>]+:)?([^<>]+)>")
 
 
 def baseconverter2paramschema(converter):
-    schema = {'type': 'string'}
+    schema = {"type": "string"}
     return schema
 
 
 def unicodeconverter2paramschema(converter):
-    schema = {'type': 'string'}
+    schema = {"type": "string"}
     bounds = re.compile(r"{([^}]*)}").findall(converter.regex)[0].split(",")
     schema["minLength"] = int(bounds[0])
     if len(bounds) == 1:
@@ -27,38 +27,39 @@ def unicodeconverter2paramschema(converter):
 
 
 def integerconverter2paramschema(converter):
-    schema = {'type': 'integer'}
+    schema = {"type": "integer"}
     if converter.max is not None:
-        schema['maximum'] = converter.max
+        schema["maximum"] = converter.max
     if converter.min is not None:
-        schema['minimum'] = converter.min
+        schema["minimum"] = converter.min
     if not converter.signed:
-        schema['minimum'] = max(schema.get('minimum', 0), 0)
+        schema["minimum"] = max(schema.get("minimum", 0), 0)
     return schema
 
 
 def floatconverter2paramschema(converter):
-    schema = {'type': 'number'}
+    schema = {"type": "number"}
     if converter.max is not None:
-        schema['maximum'] = converter.max
+        schema["maximum"] = converter.max
     if converter.min is not None:
-        schema['minimum'] = converter.min
+        schema["minimum"] = converter.min
     if not converter.signed:
-        schema['minimum'] = max(schema.get('minimum', 0), 0)
+        schema["minimum"] = max(schema.get("minimum", 0), 0)
     return schema
 
 
 def anyconverter2paramschema(converter):
-    schema = {'type': 'string'}
-    schema['enum'] = [
+    schema = {"type": "string"}
+    schema["enum"] = [
         # https://stackoverflow.com/questions/43662474/
-        re.sub(r'\\(.)', r'\1', s) for s in converter.regex[3:-1].split('|')
+        re.sub(r"\\(.)", r"\1", s)
+        for s in converter.regex[3:-1].split("|")
     ]
     return schema
 
 
 def uuidconverter2paramschema(converter):
-    schema = {'type': 'string', 'format': 'uuid'}
+    schema = {"type": "string", "format": "uuid"}
     return schema
 
 
@@ -77,6 +78,7 @@ class FlaskPlugin(BasePlugin):
 
     Heavily copied from apispec.
     """
+
     def __init__(self):
         super().__init__()
         self.converter_mapping = dict(DEFAULT_CONVERTER_MAPPING)
@@ -93,7 +95,7 @@ class FlaskPlugin(BasePlugin):
 
         :param str path: Flask path template.
         """
-        return RE_URL.sub(r'{\1}', path)
+        return RE_URL.sub(r"{\1}", path)
 
     def register_converter(self, converter, func):
         """Register custom path parameter converter
@@ -110,9 +112,9 @@ class FlaskPlugin(BasePlugin):
         params = []
         for argument in [a for a in rule.arguments if a not in rule.defaults]:
             param = {
-                'in': 'path',
-                'name': argument,
-                'required': True,
+                "in": "path",
+                "name": argument,
+                "required": True,
             }
             converter = rule._converters[argument]
             # Inspired from apispec
@@ -124,7 +126,7 @@ class FlaskPlugin(BasePlugin):
             if self.openapi_version.major < 3:
                 param.update(schema)
             else:
-                param['schema'] = schema
+                param["schema"] = schema
             params.append(param)
         return params
 
@@ -136,14 +138,15 @@ class FlaskPlugin(BasePlugin):
             # documented, update. Otherwise, append as new parameter.
             p_doc = next(
                 (
-                    p for p in parameters
+                    p
+                    for p in parameters
                     if (
-                        isinstance(p, Mapping) and
-                        p['in'] == 'path' and
-                        p['name'] == path_p['name']
+                        isinstance(p, Mapping)
+                        and p["in"] == "path"
+                        and p["name"] == path_p["name"]
                     )
                 ),
-                None
+                None,
             )
             if p_doc is not None:
                 # If parameter already documented, mutate to update doc

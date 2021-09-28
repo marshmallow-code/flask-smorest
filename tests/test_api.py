@@ -15,7 +15,7 @@ from .utils import get_schemas, get_responses
 class TestApi:
     """Test Api class"""
 
-    @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.2'])
+    @pytest.mark.parametrize("openapi_version", ["2.0", "3.0.2"])
     @pytest.mark.parametrize(
         "params",
         [
@@ -23,33 +23,32 @@ class TestApi:
             ("(minlength=12)", {"minLength": 12}),
             ("(maxlength=12)", {"minLength": 1, "maxLength": 12}),
             ("(length=12)", {"minLength": 12, "maxLength": 12}),
-
-        ]
+        ],
     )
     def test_api_unicode_converter(self, app, params, openapi_version):
-        app.config['OPENAPI_VERSION'] = openapi_version
+        app.config["OPENAPI_VERSION"] = openapi_version
         api = Api(app)
-        blp = Blueprint('test', 'test', url_prefix='/test')
+        blp = Blueprint("test", "test", url_prefix="/test")
 
         param, output = params
 
-        @blp.route('/<string{}:val>'.format(param))
+        @blp.route(f"/<string{param}:val>")
         def test(val):
             pass
 
         api.register_blueprint(blp)
         spec = api.spec.to_dict()
 
-        schema = {'type': 'string'}
+        schema = {"type": "string"}
         schema.update(output)
-        parameter = {'in': 'path', 'name': 'val', 'required': True}
-        if openapi_version == '2.0':
+        parameter = {"in": "path", "name": "val", "required": True}
+        if openapi_version == "2.0":
             parameter.update(schema)
         else:
-            parameter['schema'] = schema
-        assert spec['paths']['/test/{val}']['parameters'] == [parameter]
+            parameter["schema"] = schema
+        assert spec["paths"]["/test/{val}"]["parameters"] == [parameter]
 
-    @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.2'])
+    @pytest.mark.parametrize("openapi_version", ["2.0", "3.0.2"])
     @pytest.mark.parametrize(
         "params",
         [
@@ -57,20 +56,17 @@ class TestApi:
             ("(min=12)", {"minimum": 12}),
             ("(max=12)", {"minimum": 0, "maximum": 12}),
             ("(signed=True)", {}),
-
-        ]
+        ],
     )
-    @pytest.mark.parametrize('nb_type', ('int', 'float'))
-    def test_api_int_float_converter(
-            self, app, params, nb_type, openapi_version
-    ):
-        app.config['OPENAPI_VERSION'] = openapi_version
+    @pytest.mark.parametrize("nb_type", ("int", "float"))
+    def test_api_int_float_converter(self, app, params, nb_type, openapi_version):
+        app.config["OPENAPI_VERSION"] = openapi_version
         api = Api(app)
-        blp = Blueprint('test', 'test', url_prefix='/test')
+        blp = Blueprint("test", "test", url_prefix="/test")
 
         param, output = params
 
-        @blp.route('/<{}{}:val>'.format(nb_type, param))
+        @blp.route(f"/<{nb_type}{param}:val>")
         def test(val):
             pass
 
@@ -78,43 +74,43 @@ class TestApi:
         spec = api.spec.to_dict()
 
         schema = {
-            'int': {'type': 'integer'},
-            'float': {'type': 'number'},
+            "int": {"type": "integer"},
+            "float": {"type": "number"},
         }[nb_type]
         schema.update(output)
-        parameter = {'in': 'path', 'name': 'val', 'required': True}
-        if openapi_version == '2.0':
+        parameter = {"in": "path", "name": "val", "required": True}
+        if openapi_version == "2.0":
             parameter.update(schema)
         else:
-            parameter['schema'] = schema
-        assert spec['paths']['/test/{val}']['parameters'] == [parameter]
+            parameter["schema"] = schema
+        assert spec["paths"]["/test/{val}"]["parameters"] == [parameter]
 
-    @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.2'])
+    @pytest.mark.parametrize("openapi_version", ["2.0", "3.0.2"])
     def test_api_uuid_converter(self, app, openapi_version):
-        app.config['OPENAPI_VERSION'] = openapi_version
+        app.config["OPENAPI_VERSION"] = openapi_version
         api = Api(app)
-        blp = Blueprint('test', 'test', url_prefix='/test')
+        blp = Blueprint("test", "test", url_prefix="/test")
 
-        @blp.route('/<uuid:val>')
+        @blp.route("/<uuid:val>")
         def test(val):
             pass
 
         api.register_blueprint(blp)
         spec = api.spec.to_dict()
 
-        schema = {'type': 'string', 'format': 'uuid'}
-        parameter = {'in': 'path', 'name': 'val', 'required': True}
-        if openapi_version == '2.0':
+        schema = {"type": "string", "format": "uuid"}
+        parameter = {"in": "path", "name": "val", "required": True}
+        if openapi_version == "2.0":
             parameter.update(schema)
         else:
-            parameter['schema'] = schema
-        assert spec['paths']['/test/{val}']['parameters'] == [parameter]
+            parameter["schema"] = schema
+        assert spec["paths"]["/test/{val}"]["parameters"] == [parameter]
 
-    @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.2'])
+    @pytest.mark.parametrize("openapi_version", ["2.0", "3.0.2"])
     def test_api_any_converter(self, app, openapi_version):
-        app.config['OPENAPI_VERSION'] = openapi_version
+        app.config["OPENAPI_VERSION"] = openapi_version
         api = Api(app)
-        blp = Blueprint('test', 'test', url_prefix='/test')
+        blp = Blueprint("test", "test", url_prefix="/test")
 
         @blp.route('/<any(foo, bar, "foo+bar"):val>')
         def test(val):
@@ -123,40 +119,41 @@ class TestApi:
         api.register_blueprint(blp)
         spec = api.spec.to_dict()
 
-        schema = {'type': 'string', 'enum': ['foo', 'bar', 'foo+bar']}
-        parameter = {'in': 'path', 'name': 'val', 'required': True}
-        if openapi_version == '2.0':
+        schema = {"type": "string", "enum": ["foo", "bar", "foo+bar"]}
+        parameter = {"in": "path", "name": "val", "required": True}
+        if openapi_version == "2.0":
             parameter.update(schema)
         else:
-            parameter['schema'] = schema
-        assert spec['paths']['/test/{val}']['parameters'] == [parameter]
+            parameter["schema"] = schema
+        assert spec["paths"]["/test/{val}"]["parameters"] == [parameter]
 
-    @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.2'])
-    @pytest.mark.parametrize('register', (True, False))
-    @pytest.mark.parametrize('view_type', ['function', 'method'])
-    def test_api_register_converter(
-            self, app, view_type, register, openapi_version
-    ):
-        app.config['OPENAPI_VERSION'] = openapi_version
+    @pytest.mark.parametrize("openapi_version", ["2.0", "3.0.2"])
+    @pytest.mark.parametrize("register", (True, False))
+    @pytest.mark.parametrize("view_type", ["function", "method"])
+    def test_api_register_converter(self, app, view_type, register, openapi_version):
+        app.config["OPENAPI_VERSION"] = openapi_version
         api = Api(app)
-        blp = Blueprint('test', 'test', url_prefix='/test')
+        blp = Blueprint("test", "test", url_prefix="/test")
 
         class CustomConverter(BaseConverter):
             pass
 
         def converter2paramschema(converter):
-            return {'type': 'custom string', 'format': 'custom format'}
+            return {"type": "custom string", "format": "custom format"}
 
-        app.url_map.converters['custom_str'] = CustomConverter
+        app.url_map.converters["custom_str"] = CustomConverter
         if register:
             api.register_converter(CustomConverter, converter2paramschema)
 
-        if view_type == 'function':
-            @blp.route('/<custom_str:val>')
+        if view_type == "function":
+
+            @blp.route("/<custom_str:val>")
             def test_func(val):
                 pass
+
         else:
-            @blp.route('/<custom_str:val>')
+
+            @blp.route("/<custom_str:val>")
             class TestMethod(MethodView):
                 def get(self, val):
                     pass
@@ -165,23 +162,21 @@ class TestApi:
         spec = api.spec.to_dict()
 
         if register:
-            schema = {'type': 'custom string', 'format': 'custom format'}
+            schema = {"type": "custom string", "format": "custom format"}
         else:
-            schema = {'type': 'string'}
-        parameter = {'in': 'path', 'name': 'val', 'required': True}
-        if openapi_version == '2.0':
+            schema = {"type": "string"}
+        parameter = {"in": "path", "name": "val", "required": True}
+        if openapi_version == "2.0":
             parameter.update(schema)
         else:
-            parameter['schema'] = schema
-        assert spec['paths']['/test/{val}']['parameters'] == [parameter]
+            parameter["schema"] = schema
+        assert spec["paths"]["/test/{val}"]["parameters"] == [parameter]
 
-    @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.2'])
-    def test_api_register_converter_before_or_after_init(
-            self, app, openapi_version
-    ):
-        app.config['OPENAPI_VERSION'] = openapi_version
+    @pytest.mark.parametrize("openapi_version", ["2.0", "3.0.2"])
+    def test_api_register_converter_before_or_after_init(self, app, openapi_version):
+        app.config["OPENAPI_VERSION"] = openapi_version
         api = Api()
-        blp = Blueprint('test', 'test', url_prefix='/test')
+        blp = Blueprint("test", "test", url_prefix="/test")
 
         class CustomConverter_1(BaseConverter):
             pass
@@ -190,41 +185,44 @@ class TestApi:
             pass
 
         def converter12paramschema(converter):
-            return {'type': 'custom string 1'}
+            return {"type": "custom string 1"}
 
         def converter22paramschema(converter):
-            return {'type': 'custom string 2'}
+            return {"type": "custom string 2"}
 
-        app.url_map.converters['custom_str_1'] = CustomConverter_1
-        app.url_map.converters['custom_str_2'] = CustomConverter_2
+        app.url_map.converters["custom_str_1"] = CustomConverter_1
+        app.url_map.converters["custom_str_2"] = CustomConverter_2
         api.register_converter(CustomConverter_1, converter12paramschema)
         api.init_app(app)
         api.register_converter(CustomConverter_2, converter22paramschema)
 
-        @blp.route('/1/<custom_str_1:val>')
+        @blp.route("/1/<custom_str_1:val>")
         def test_func_1(val):
             pass
 
-        @blp.route('/2/<custom_str_2:val>')
+        @blp.route("/2/<custom_str_2:val>")
         def test_func_2(val):
             pass
 
         api.register_blueprint(blp)
         spec = api.spec.to_dict()
-        parameter_1 = spec['paths']['/test/1/{val}']['parameters'][0]
-        parameter_2 = spec['paths']['/test/2/{val}']['parameters'][0]
-        if openapi_version == '2.0':
-            assert parameter_1['type'] == 'custom string 1'
-            assert parameter_2['type'] == 'custom string 2'
+        parameter_1 = spec["paths"]["/test/1/{val}"]["parameters"][0]
+        parameter_2 = spec["paths"]["/test/2/{val}"]["parameters"][0]
+        if openapi_version == "2.0":
+            assert parameter_1["type"] == "custom string 1"
+            assert parameter_2["type"] == "custom string 2"
         else:
-            assert parameter_1['schema']['type'] == 'custom string 1'
-            assert parameter_2['schema']['type'] == 'custom string 2'
+            assert parameter_1["schema"]["type"] == "custom string 1"
+            assert parameter_2["schema"]["type"] == "custom string 2"
 
-    @pytest.mark.parametrize('mapping', [
-        ('custom string', 'custom'),
-        ('custom string', None),
-        (ma.fields.Integer, ),
-    ])
+    @pytest.mark.parametrize(
+        "mapping",
+        [
+            ("custom string", "custom"),
+            ("custom string", None),
+            (ma.fields.Integer,),
+        ],
+    )
     def test_api_register_field_parameters(self, app, mapping):
         api = Api(app)
 
@@ -236,24 +234,24 @@ class TestApi:
         class Document(ma.Schema):
             field = CustomField()
 
-        api.spec.components.schema('Document', schema=Document)
+        api.spec.components.schema("Document", schema=Document)
 
         if len(mapping) == 2:
-            properties = {'field': {'type': 'custom string'}}
+            properties = {"field": {"type": "custom string"}}
             # If mapping format is None, it does not appear in the spec
             if mapping[1] is not None:
-                properties['field']['format'] = mapping[1]
+                properties["field"]["format"] = mapping[1]
         else:
-            properties = {'field': {'type': 'integer'}}
+            properties = {"field": {"type": "integer"}}
 
-        assert get_schemas(api.spec)['Document'] == {
-            'properties': properties, 'type': 'object'}
+        assert get_schemas(api.spec)["Document"] == {
+            "properties": properties,
+            "type": "object",
+        }
 
-    @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.2'])
-    def test_api_register_field_before_and_after_init(
-            self, app, openapi_version
-    ):
-        app.config['OPENAPI_VERSION'] = openapi_version
+    @pytest.mark.parametrize("openapi_version", ["2.0", "3.0.2"])
+    def test_api_register_field_before_and_after_init(self, app, openapi_version):
+        app.config["OPENAPI_VERSION"] = openapi_version
         api = Api()
 
         class CustomField_1(ma.fields.Field):
@@ -262,9 +260,9 @@ class TestApi:
         class CustomField_2(ma.fields.Field):
             pass
 
-        api.register_field(CustomField_1, 'custom string', 'custom')
+        api.register_field(CustomField_1, "custom string", "custom")
         api.init_app(app)
-        api.register_field(CustomField_2, 'custom string', 'custom')
+        api.register_field(CustomField_2, "custom string", "custom")
 
         class Schema_1(ma.Schema):
             int_1 = ma.fields.Int()
@@ -274,84 +272,84 @@ class TestApi:
             int_2 = ma.fields.Int()
             custom_2 = CustomField_2()
 
-        api.spec.components.schema('Schema_1', schema=Schema_1)
-        api.spec.components.schema('Schema_2', schema=Schema_2)
+        api.spec.components.schema("Schema_1", schema=Schema_1)
+        api.spec.components.schema("Schema_2", schema=Schema_2)
 
         schema_defs = get_schemas(api.spec)
-        assert schema_defs['Schema_1']['properties']['custom_1'] == {
-            'type': 'custom string', 'format': 'custom'}
-        assert schema_defs['Schema_2']['properties']['custom_2'] == {
-            'type': 'custom string', 'format': 'custom'}
+        assert schema_defs["Schema_1"]["properties"]["custom_1"] == {
+            "type": "custom string",
+            "format": "custom",
+        }
+        assert schema_defs["Schema_2"]["properties"]["custom_2"] == {
+            "type": "custom string",
+            "format": "custom",
+        }
 
-    @pytest.mark.parametrize('step', ('at_once', 'init', 'init_app'))
+    @pytest.mark.parametrize("step", ("at_once", "init", "init_app"))
     def test_api_extra_spec_kwargs(self, app, step):
         """Test APISpec kwargs can be passed in Api init or app config"""
-        app.config['API_SPEC_OPTIONS'] = {'basePath': '/v2'}
-        if step == 'at_once':
-            api = Api(
-                app, spec_kwargs={'basePath': '/v1', 'host': 'example.com'}
-            )
-        elif step == 'init':
-            api = Api(spec_kwargs={'basePath': '/v1', 'host': 'example.com'})
+        app.config["API_SPEC_OPTIONS"] = {"basePath": "/v2"}
+        if step == "at_once":
+            api = Api(app, spec_kwargs={"basePath": "/v1", "host": "example.com"})
+        elif step == "init":
+            api = Api(spec_kwargs={"basePath": "/v1", "host": "example.com"})
             api.init_app(app)
-        elif step == 'init_app':
+        elif step == "init_app":
             api = Api()
-            api.init_app(
-                app, spec_kwargs={'basePath': '/v1', 'host': 'example.com'}
-            )
+            api.init_app(app, spec_kwargs={"basePath": "/v1", "host": "example.com"})
         spec = api.spec.to_dict()
-        assert spec['host'] == 'example.com'
+        assert spec["host"] == "example.com"
         # app config overrides Api spec_kwargs parameters
-        assert spec['basePath'] == '/v2'
+        assert spec["basePath"] == "/v2"
 
     def test_api_extra_spec_kwargs_init_app_update_init(self, app):
         """Test empty APISpec kwargs passed in init_app update init kwargs"""
-        api = Api(spec_kwargs={'basePath': '/v1', 'host': 'example.com'})
-        api.init_app(app, spec_kwargs={'basePath': '/v2'})
+        api = Api(spec_kwargs={"basePath": "/v1", "host": "example.com"})
+        api.init_app(app, spec_kwargs={"basePath": "/v2"})
         spec = api.spec.to_dict()
-        assert spec['host'] == 'example.com'
-        assert spec['basePath'] == '/v2'
+        assert spec["host"] == "example.com"
+        assert spec["basePath"] == "/v2"
 
-    @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.2'])
+    @pytest.mark.parametrize("openapi_version", ["2.0", "3.0.2"])
     def test_api_extra_spec_plugins(self, app, schemas, openapi_version):
         """Test extra plugins can be passed to internal APISpec instance"""
-        app.config['OPENAPI_VERSION'] = openapi_version
+        app.config["OPENAPI_VERSION"] = openapi_version
 
         class MyPlugin(apispec.BasePlugin):
             def schema_helper(self, name, definition, **kwargs):
-                return {'dummy': 'whatever'}
+                return {"dummy": "whatever"}
 
-        api = Api(app, spec_kwargs={'extra_plugins': (MyPlugin(), )})
-        api.spec.components.schema('Pet', schema=schemas.DocSchema)
-        assert get_schemas(api.spec)['Pet']['dummy'] == 'whatever'
+        api = Api(app, spec_kwargs={"extra_plugins": (MyPlugin(),)})
+        api.spec.components.schema("Pet", schema=schemas.DocSchema)
+        assert get_schemas(api.spec)["Pet"]["dummy"] == "whatever"
 
     def test_api_register_blueprint_options(self, app):
         api = Api(app)
-        blp = Blueprint('test', 'test', url_prefix='/test1')
+        blp = Blueprint("test", "test", url_prefix="/test1")
 
-        @blp.route('/')
+        @blp.route("/")
         def test_func():
-            return {'response': 'OK'}
+            return {"response": "OK"}
 
-        api.register_blueprint(blp, url_prefix='/test2')
+        api.register_blueprint(blp, url_prefix="/test2")
 
         spec = api.spec.to_dict()
-        assert '/test1/' not in spec['paths']
-        assert '/test2/' in spec['paths']
+        assert "/test1/" not in spec["paths"]
+        assert "/test2/" in spec["paths"]
 
         client = app.test_client()
-        response = client.get('/test1/')
+        response = client.get("/test1/")
         assert response.status_code == 404
-        response = client.get('/test2/')
+        response = client.get("/test2/")
         assert response.status_code == 200
-        assert response.json == {'response': 'OK'}
+        assert response.json == {"response": "OK"}
 
     @pytest.mark.parametrize(
-        'parameter',
+        "parameter",
         [
-            ('title', 'API_TITLE', 'Test', 'title'),
-            ('version', 'API_VERSION', '2', 'version'),
-        ]
+            ("title", "API_TITLE", "Test", "title"),
+            ("version", "API_VERSION", "2", "version"),
+        ],
     )
     def test_api_api_parameters(self, app, parameter):
         """Test API parameters must be passed, as app param or spec kwarg"""
@@ -360,44 +358,40 @@ class TestApi:
 
         app.config[config_param] = param_value
         api = Api(app)
-        assert api.spec.to_dict()['info'][oas_name] == param_value
+        assert api.spec.to_dict()["info"][oas_name] == param_value
 
         del app.config[config_param]
         api = Api(app, spec_kwargs={param_name: param_value})
-        assert api.spec.to_dict()['info'][oas_name] == param_value
+        assert api.spec.to_dict()["info"][oas_name] == param_value
 
         with pytest.raises(
-                MissingAPIParameterError,
-                match='must be specified either as'
+            MissingAPIParameterError, match="must be specified either as"
         ):
             Api(app)
 
-    @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.2'])
+    @pytest.mark.parametrize("openapi_version", ["2.0", "3.0.2"])
     def test_api_openapi_version_parameter(self, app, openapi_version):
         """Test OpenAPI version must be passed, as app param or spec kwarg"""
 
-        key = {'2.0': 'swagger', '3.0.2': 'openapi'}[openapi_version]
+        key = {"2.0": "swagger", "3.0.2": "openapi"}[openapi_version]
 
-        app.config['OPENAPI_VERSION'] = openapi_version
+        app.config["OPENAPI_VERSION"] = openapi_version
         api = Api(app)
         assert api.spec.to_dict()[key] == openapi_version
 
-        del app.config['OPENAPI_VERSION']
-        api = Api(app, spec_kwargs={'openapi_version': openapi_version})
+        del app.config["OPENAPI_VERSION"]
+        api = Api(app, spec_kwargs={"openapi_version": openapi_version})
         assert api.spec.to_dict()[key] == openapi_version
 
         with pytest.raises(
-                MissingAPIParameterError,
-                match='OpenAPI version must be specified'
+            MissingAPIParameterError, match="OpenAPI version must be specified"
         ):
             Api(app)
 
-    @pytest.mark.parametrize('openapi_version', ['2.0', '3.0.2'])
-    def test_api_lazy_registers_default_error_response(
-            self, app, openapi_version
-    ):
+    @pytest.mark.parametrize("openapi_version", ["2.0", "3.0.2"])
+    def test_api_lazy_registers_default_error_response(self, app, openapi_version):
         """Test default error response is registered"""
-        app.config['OPENAPI_VERSION'] = openapi_version
+        app.config["OPENAPI_VERSION"] = openapi_version
         api = Api(app)
 
         # Declare a dummy response to ensure get_response doesn't fail
@@ -408,9 +402,9 @@ class TestApi:
         assert "DEFAULT_ERROR" not in get_responses(api.spec)
 
         # Register a route
-        blp = Blueprint('test', 'test', url_prefix='/test')
+        blp = Blueprint("test", "test", url_prefix="/test")
 
-        @blp.route('/test')
+        @blp.route("/test")
         def test(val):
             pass
 

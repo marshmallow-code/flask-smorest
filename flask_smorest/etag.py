@@ -10,51 +10,50 @@ import hashlib
 from marshmallow import Schema
 from flask import request, current_app, json
 
-from .exceptions import (
-    PreconditionRequired, PreconditionFailed, NotModified)
+from .exceptions import PreconditionRequired, PreconditionFailed, NotModified
 from .utils import deepupdate, get_appcontext
 
 
 IF_NONE_MATCH_HEADER = {
-    'name': 'If-None-Match',
-    'in': 'header',
-    'description': 'Tag to check against',
-    'schema': {'type': 'string'},
+    "name": "If-None-Match",
+    "in": "header",
+    "description": "Tag to check against",
+    "schema": {"type": "string"},
 }
 
 IF_MATCH_HEADER = {
-    'name': 'If-Match',
-    'in': 'header',
-    'required': True,
-    'description': 'Tag to check against',
-    'schema': {'type': 'string'}
+    "name": "If-Match",
+    "in": "header",
+    "required": True,
+    "description": "Tag to check against",
+    "schema": {"type": "string"},
 }
 
 ETAG_HEADER = {
-    'description': 'Tag for the returned entry',
-    'schema': {'type': 'string'}
+    "description": "Tag for the returned entry",
+    "schema": {"type": "string"},
 }
 
 
 def _is_etag_enabled():
     """Return True if ETag feature enabled application-wise"""
-    return not current_app.config.get('ETAG_DISABLED', False)
+    return not current_app.config.get("ETAG_DISABLED", False)
 
 
 def _get_etag_ctx():
     """Get ETag section of AppContext"""
-    return get_appcontext().setdefault('etag', {})
+    return get_appcontext().setdefault("etag", {})
 
 
 class EtagMixin:
     """Extend Blueprint to add ETag handling"""
 
-    METHODS_CHECKING_NOT_MODIFIED = ['GET', 'HEAD']
-    METHODS_NEEDING_CHECK_ETAG = ['PUT', 'PATCH', 'DELETE']
-    METHODS_ALLOWING_SET_ETAG = ['GET', 'HEAD', 'POST', 'PUT', 'PATCH']
+    METHODS_CHECKING_NOT_MODIFIED = ["GET", "HEAD"]
+    METHODS_NEEDING_CHECK_ETAG = ["PUT", "PATCH", "DELETE"]
+    METHODS_ALLOWING_SET_ETAG = ["GET", "HEAD", "POST", "PUT", "PATCH"]
 
     # Headers to include in ETag computation
-    ETAG_INCLUDE_HEADERS = ['X-Pagination']
+    ETAG_INCLUDE_HEADERS = ["X-Pagination"]
 
     def etag(self, etag_schema=None):
         """Decorator generating an endpoint response
@@ -90,7 +89,6 @@ class EtagMixin:
             view_func, etag_schema = etag_schema, None
 
         def decorator(func):
-
             @wraps(func)
             def wrapper(*args, **kwargs):
 
@@ -100,7 +98,7 @@ class EtagMixin:
                     # Check etag precondition
                     self._check_precondition()
                     # Store etag_schema in AppContext
-                    _get_etag_ctx()['etag_schema'] = etag_schema
+                    _get_etag_ctx()["etag_schema"] = etag_schema
 
                 # Execute decorated function
                 resp = func(*args, **kwargs)
@@ -115,8 +113,8 @@ class EtagMixin:
 
             # Note function is decorated by etag in doc info
             # The deepcopy avoids modifying the wrapped function doc
-            wrapper._apidoc = deepcopy(getattr(wrapper, '_apidoc', {}))
-            wrapper._apidoc['etag'] = True
+            wrapper._apidoc = deepcopy(getattr(wrapper, "_apidoc", {}))
+            wrapper._apidoc["etag"] = True
 
             return wrapper
 
@@ -146,7 +144,7 @@ class EtagMixin:
         # flask's json.dumps is needed here
         # as vanilla json.dumps chokes on lazy_strings
         data = json.dumps(raw_data, sort_keys=True)
-        return hashlib.sha1(bytes(data, 'utf-8')).hexdigest()
+        return hashlib.sha1(bytes(data, "utf-8")).hexdigest()
 
     def _check_precondition(self):
         """Check If-Match header is there
@@ -157,10 +155,7 @@ class EtagMixin:
         """
         # TODO: other methods?
         # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-Match
-        if (
-                request.method in self.METHODS_NEEDING_CHECK_ETAG and
-                not request.if_match
-        ):
+        if request.method in self.METHODS_NEEDING_CHECK_ETAG and not request.if_match:
             raise PreconditionRequired
 
     def check_etag(self, etag_data, etag_schema=None):
@@ -178,13 +173,11 @@ class EtagMixin:
         DELETE.
         """
         if request.method not in self.METHODS_NEEDING_CHECK_ETAG:
-            warnings.warn(
-                'ETag cannot be checked on {} request.'.format(request.method)
-            )
+            warnings.warn(f"ETag cannot be checked on {request.method} request.")
         if _is_etag_enabled():
-            etag_schema = etag_schema or _get_etag_ctx().get('etag_schema')
+            etag_schema = etag_schema or _get_etag_ctx().get("etag_schema")
             new_etag = self._generate_etag(etag_data, etag_schema)
-            _get_etag_ctx()['etag_checked'] = True
+            _get_etag_ctx()["etag_checked"] = True
             if new_etag not in request.if_match:
                 raise PreconditionFailed
 
@@ -198,10 +191,11 @@ class EtagMixin:
         an issue in his ETag management.
         """
         if request.method in self.METHODS_NEEDING_CHECK_ETAG:
-            if not _get_etag_ctx().get('etag_checked'):
+            if not _get_etag_ctx().get("etag_checked"):
                 warnings.warn(
-                    'ETag not checked in endpoint {} on {} request.'
-                    .format(request.endpoint, request.method)
+                    "ETag not checked in endpoint {} on {} request.".format(
+                        request.endpoint, request.method
+                    )
                 )
 
     def _check_not_modified(self, etag):
@@ -210,8 +204,8 @@ class EtagMixin:
         Only applies to methods returning a 304 (Not Modified) code
         """
         if (
-                request.method in self.METHODS_CHECKING_NOT_MODIFIED and
-                etag in request.if_none_match
+            request.method in self.METHODS_CHECKING_NOT_MODIFIED
+            and etag in request.if_none_match
         ):
             raise NotModified
 
@@ -228,15 +222,13 @@ class EtagMixin:
         or PATCH.
         """
         if request.method not in self.METHODS_ALLOWING_SET_ETAG:
-            warnings.warn(
-                'ETag cannot be set on {} request.'.format(request.method)
-            )
+            warnings.warn(f"ETag cannot be set on {request.method} request.")
         if _is_etag_enabled():
-            etag_schema = etag_schema or _get_etag_ctx().get('etag_schema')
+            etag_schema = etag_schema or _get_etag_ctx().get("etag_schema")
             new_etag = self._generate_etag(etag_data, etag_schema)
             self._check_not_modified(new_etag)
             # Store ETag in AppContext to add it to response headers later on
-            _get_etag_ctx()['etag'] = new_etag
+            _get_etag_ctx()["etag"] = new_etag
 
     def _set_etag_in_response(self, response, etag_schema):
         """Set ETag in response object
@@ -247,26 +239,25 @@ class EtagMixin:
         response data.
         """
         if request.method in self.METHODS_ALLOWING_SET_ETAG:
-            new_etag = _get_etag_ctx().get('etag')
+            new_etag = _get_etag_ctx().get("etag")
             # If no ETag data was manually provided, use response content
             if new_etag is None:
                 # If etag_schema is provided, use raw result rather than
                 # the dump, as the dump needs to be done using etag_schema
                 etag_data = get_appcontext()[
-                    'result_dump' if etag_schema is None else 'result_raw'
+                    "result_dump" if etag_schema is None else "result_raw"
                 ]
-                extra_data = tuple((k, v) for k, v in response.headers
-                                   if k in self.ETAG_INCLUDE_HEADERS)
-                new_etag = self._generate_etag(
-                    etag_data, etag_schema, extra_data)
+                extra_data = tuple(
+                    (k, v)
+                    for k, v in response.headers
+                    if k in self.ETAG_INCLUDE_HEADERS
+                )
+                new_etag = self._generate_etag(etag_data, etag_schema, extra_data)
                 self._check_not_modified(new_etag)
             response.set_etag(new_etag)
 
     def _prepare_etag_doc(self, doc, doc_info, *, app, spec, method, **kwargs):
-        if (
-                doc_info.get('etag', False) and
-                not app.config.get('ETAG_DISABLED', False)
-        ):
+        if doc_info.get("etag", False) and not app.config.get("ETAG_DISABLED", False):
             responses = {}
             method_u = method.upper()
             if method_u in self.METHODS_CHECKING_NOT_MODIFIED:
@@ -277,14 +268,12 @@ class EtagMixin:
                 responses[428] = http.HTTPStatus(428).name
                 doc.setdefault("parameters", []).append("IF_MATCH")
             if method_u in self.METHODS_ALLOWING_SET_ETAG:
-                success_status_code = doc_info.get('success_status_code')
+                success_status_code = doc_info.get("success_status_code")
                 if success_status_code is not None:
-                    doc['responses'][success_status_code].setdefault(
-                        'headers', {})['ETag'] = (
-                            ETAG_HEADER if spec.openapi_version.major < 3
-                            else "ETAG"
-                        )
+                    doc["responses"][success_status_code].setdefault("headers", {})[
+                        "ETag"
+                    ] = (ETAG_HEADER if spec.openapi_version.major < 3 else "ETAG")
 
             if responses:
-                doc = deepupdate(doc, {'responses': responses})
+                doc = deepupdate(doc, {"responses": responses})
         return doc
