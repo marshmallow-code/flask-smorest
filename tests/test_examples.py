@@ -518,27 +518,30 @@ class TestCustomExamples:
             def _prepare_response_doc(doc, doc_info, spec, **kwargs):
                 operation = doc_info.get("response", {})
                 if operation:
-                    success_code = doc_info["success_status_code"]
-                    response = operation.get("responses", {}).get(success_code)
-                    if response is not None:
-                        if "schema" in response:
-                            schema = response["schema"]
-                            response["schema"] = type(
-                                "Wrap" + schema.__class__.__name__,
-                                (ma.Schema,),
-                                {"data": ma.fields.Nested(schema)},
-                            )
-                            if "pagination" in doc_info:
+                    success_status_codes = doc_info.get("success_status_codes", [])
+                    for success_status_code in success_status_codes:
+                        response = operation.get("responses", {}).get(
+                            success_status_code
+                        )
+                        if response is not None:
+                            if "schema" in response:
                                 schema = response["schema"]
                                 response["schema"] = type(
-                                    "Pagination" + schema.__name__,
-                                    (schema,),
-                                    {
-                                        "pagination": ma.fields.Nested(
-                                            PaginationMetadataSchema
-                                        )
-                                    },
+                                    "Wrap" + schema.__class__.__name__,
+                                    (ma.Schema,),
+                                    {"data": ma.fields.Nested(schema)},
                                 )
+                                if "pagination" in doc_info:
+                                    schema = response["schema"]
+                                    response["schema"] = type(
+                                        "Pagination" + schema.__name__,
+                                        (schema,),
+                                        {
+                                            "pagination": ma.fields.Nested(
+                                                PaginationMetadataSchema
+                                            )
+                                        },
+                                    )
                 return super(WrapperBlueprint, WrapperBlueprint)._prepare_response_doc(
                     doc, doc_info, spec=spec, **kwargs
                 )

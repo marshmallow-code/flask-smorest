@@ -268,8 +268,8 @@ class EtagMixin:
                 responses[428] = http.HTTPStatus(428).name
                 doc.setdefault("parameters", []).append("IF_MATCH")
             if method_u in self.METHODS_ALLOWING_SET_ETAG:
-                success_status_code = doc_info.get("success_status_code")
-                if success_status_code is not None:
+                success_status_codes = doc_info.get("success_status_codes", [])
+                for success_status_code in success_status_codes:
                     doc["responses"][success_status_code].setdefault("headers", {})[
                         "ETag"
                     ] = (ETAG_HEADER if spec.openapi_version.major < 3 else "ETAG")

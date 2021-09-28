@@ -116,9 +116,9 @@ class ResponseMixin:
             wrapper._apidoc.setdefault("response", {}).setdefault("responses", {})[
                 status_code
             ] = resp_doc
-            # Indicate which code is the success status code
-            # Helps other decorators documenting success response
-            wrapper._apidoc["success_status_code"] = status_code
+            # Indicate this code is a success status code
+            # Helps other decorators documenting success responses
+            wrapper._apidoc.setdefault("success_status_codes", []).append(status_code)
 
             return wrapper
 
