@@ -29,7 +29,7 @@ class ResponseMixin:
         description=None,
         example=None,
         examples=None,
-        headers=None
+        headers=None,
     ):
         """Decorator generating an endpoint response
 
@@ -133,7 +133,8 @@ class ResponseMixin:
         description=None,
         example=None,
         examples=None,
-        headers=None
+        headers=None,
+        success=False,
     ):
         """Decorator documenting an alternative response
 
@@ -188,7 +189,12 @@ class ResponseMixin:
             wrapper._apidoc.setdefault("response", {}).setdefault("responses", {})[
                 status_code
             ] = resp_doc
-
+            if success:
+                # Indicate this code is a success status code
+                # Helps other decorators documenting success responses
+                wrapper._apidoc.setdefault("success_status_codes", []).append(
+                    status_code
+                )
             return wrapper
 
         return decorator

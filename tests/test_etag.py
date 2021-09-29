@@ -447,18 +447,23 @@ class TestEtag:
         blp = Blueprint("test", __name__, url_prefix="/test")
         client = app.test_client()
 
-        @blp.route("/")
+        @blp.route("/<code>")
         @blp.etag
         @blp.response(200)
-        def func_response_etag():
+        @blp.alt_response(201, success=True)
+        def func_response_etag(code):
             # When the view function returns a Response object,
             # the ETag must be specified manually
+            # This is always the case when using alt_response
             blp.set_etag("test")
-            return jsonify({})
+            return jsonify({}), code
 
         api.register_blueprint(blp)
 
-        response = client.get("/test/")
+        response = client.get("/test/200")
+        assert response.json == {}
+        assert response.get_etag() == (blp._generate_etag("test"), False)
+        response = client.get("/test/201")
         assert response.json == {}
         assert response.get_etag() == (blp._generate_etag("test"), False)
 
