@@ -127,8 +127,9 @@ class ResponseMixin:
     def alt_response(
         self,
         status_code,
-        schema_or_ref,
+        response=None,
         *,
+        schema=None,
         description=None,
         example=None,
         examples=None,
@@ -137,20 +138,28 @@ class ResponseMixin:
         """Decorator documenting an alternative response
 
         :param int|str|HTTPStatus status_code: HTTP status code.
-        :param schema_or_ref: Either a :class:`Schema <marshmallow.Schema>`
-            class or instance or a string error reference.
-            When passing a reference, arguments below are ignored.
+        :param str response: Reponse reference.
+        :param schema schema|str: :class:`Schema <marshmallow.Schema>`
+            class or instance or reference.
         :param str description: Description of the response (default: None).
         :param dict example: Example of response message.
         :param dict examples: Examples of response message.
         :param dict headers: Headers returned by the response.
+
+        This decorator allows the user to document an alternative response.
+        This can be an error managed with `abort` or any response that is not
+        the primary flow of the function documented by
+        :meth:`Blueprint.reponse <Blueprint.response>`.
+
+        When a response reference is passed as `response`, it is used as
+        description and the keyword arguments are ignored. Otherwise, a
+        description is built from the keyword arguments.
         """
-        # If a ref is passed
-        if isinstance(schema_or_ref, str):
-            resp_doc = schema_or_ref
-        # If a schema is passed
+        # Response ref is passed
+        if response is not None:
+            resp_doc = response
+        # Otherwise, build response description
         else:
-            schema = schema_or_ref
             if isinstance(schema, type):
                 schema = schema()
 
