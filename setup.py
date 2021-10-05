@@ -50,7 +50,8 @@ setup(
         "swagger",
         "flask",
         "marshmallow",
-        "apispec" "webargs",
+        "apispec",
+        "webargs",
     ],
     packages=find_packages(exclude=["tests*"]),
     include_package_data=True,
@@ -63,7 +64,7 @@ setup(
         "flask>=2.0,<3",
         "marshmallow>=3.13.0,<4",
         "webargs>=8.0.0,<9",
-        "apispec>=5.1.0,<6",
+        "apispec[marshmallow]>=5.1.0,<6",
     ],
     extras_require=EXTRAS_REQUIRE,
 )
