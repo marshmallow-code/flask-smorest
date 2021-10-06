@@ -7,7 +7,7 @@ Changelog
 Other changes:
 
 - Format code using black with pre-commit (:pr:`282`).
-- Use dependabot to update dependencies (:pr:`286`).
+- Use dependabot to update dependencies (:pr:`286` and :pr:`288`).
 - Specify `apispec[marshmallow]` rather than `apispec` in `install_requires`
   in setup.py (:pr:`287`).
 
