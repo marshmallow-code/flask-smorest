@@ -4,14 +4,19 @@ from setuptools import setup, find_packages
 
 EXTRAS_REQUIRE = {
     "tests": [
-        "pytest>=4.4.4",
-        "pytest-cov>=2.12.1",
-        "coverage>=5.3.0",
+        "pytest==6.2.5",
+        "pytest-cov==3.0.0",
+        "coverage==6.0.0",
+        "werkzeug==2.0.2",
+        "flask==2.0.2",
+        "marshmallow==3.13.0",
+        "webargs==8.0.1",
+        "apispec==5.1.1",
     ],
     "lint": [
-        "flake8>=3.9.2",
-        "flake8-bugbear>=21.4.3",
-        "pre-commit>=2.15",
+        "flake8==3.9.2",
+        "flake8-bugbear==21.9.2",
+        "pre-commit==2.15.0",
     ],
 }
 EXTRAS_REQUIRE["dev"] = EXTRAS_REQUIRE["tests"] + EXTRAS_REQUIRE["lint"]
