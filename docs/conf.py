@@ -44,13 +44,13 @@ extensions = [
 ]
 
 intersphinx_mapping = {
-    "marshmallow": ("http://marshmallow.readthedocs.io/en/latest/", None),
-    "apispec": ("http://apispec.readthedocs.io/en/latest/", None),
-    "webargs": ("http://webargs.readthedocs.io/en/latest/", None),
-    "werkzeug": ("http://werkzeug.palletsprojects.com/", None),
-    "flask": ("http://flask.palletsprojects.com/", None),
-    "sqlalchemy": ("http://docs.sqlalchemy.org/en/latest/", None),
-    "mongoengine": ("http://docs.mongoengine.org/", None),
+    "marshmallow": ("https://marshmallow.readthedocs.io/en/latest/", None),
+    "apispec": ("https://apispec.readthedocs.io/en/latest/", None),
+    "webargs": ("https://webargs.readthedocs.io/en/latest/", None),
+    "werkzeug": ("https://werkzeug.palletsprojects.com/", None),
+    "flask": ("https://flask.palletsprojects.com/", None),
+    "sqlalchemy": ("https://docs.sqlalchemy.org/en/latest/", None),
+    "mongoengine": ("https://docs.mongoengine.org/", None),
 }
 
 issues_github_path = "marshmallow-code/flask-smorest"
