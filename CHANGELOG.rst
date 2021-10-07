@@ -1,8 +1,17 @@
 Changelog
 ---------
 
-0.35.0 (unreleased)
+0.35.0 (2021-10-07)
 +++++++++++++++++++
+
+Features:
+
+- *Backwards-incompatible*: Modify ``alt_response`` signature. The second
+  positional is now a response reference as string. If none is provided, then
+  the response dic is built using keyword arguments. The schema is optional and
+  can be a reference as string. (:pr:`283`)
+- Allow ``alt_response`` to define a success response, so that other
+  processings applying to this response are correctly documented (:pr:`284`).
 
 Other changes:
 
@@ -123,8 +132,8 @@ Features:
 
 Features:
 
-* Pass ``Api`` instance to _prepare_*_doc callbacks (:pr:`222`).
-* Allow the user to opt-out of the feature adding a default error to each
+- Pass ``Api`` instance to _prepare_*_doc callbacks (:pr:`222`).
+- Allow the user to opt-out of the feature adding a default error to each
   response and allow customization of the default error name (:pr:`222`).
 - *Backwards-incompatible*: Only add referenced default responses to the spec,
   using ``ResponseReferencesPlugin``. (:pr:`208`)
