@@ -740,7 +740,10 @@ class TestBlueprint:
             )
 
     @pytest.mark.parametrize("openapi_version", ["2.0", "3.0.2"])
-    def test_blueprint_alt_response_schema(self, app, openapi_version, schemas):
+    @pytest.mark.parametrize("schema_type", ["object", "ref"])
+    def test_blueprint_alt_response_schema(
+        self, app, openapi_version, schemas, schema_type
+    ):
         """Check alternate response schema is correctly documented"""
         app.config["OPENAPI_VERSION"] = openapi_version
         api = Api(app)
@@ -758,30 +761,35 @@ class TestBlueprint:
             }
         }
 
+        if schema_type == "object":
+            schema = schemas.ClientErrorSchema
+        else:
+            schema = "ClientError"
+
         @blp.route("/")
-        @blp.alt_response(400, schemas.ClientErrorSchema)
+        @blp.alt_response(400, schema=schema)
         def func():
             pass
 
         @blp.route("/description")
-        @blp.alt_response(400, schemas.ClientErrorSchema, description="Client error")
+        @blp.alt_response(400, schema=schema, description="Client error")
         def func_with_description():
             pass
 
         @blp.route("/example")
-        @blp.alt_response(400, schemas.ClientErrorSchema, example=example)
+        @blp.alt_response(400, schema=schema, example=example)
         def func_with_example():
             pass
 
         if openapi_version == "3.0.2":
 
             @blp.route("/examples")
-            @blp.alt_response(400, schemas.ClientErrorSchema, examples=examples)
+            @blp.alt_response(400, schema=schema, examples=examples)
             def func_with_examples():
                 pass
 
         @blp.route("/headers")
-        @blp.alt_response(400, schemas.ClientErrorSchema, headers=headers)
+        @blp.alt_response(400, schema=schema, headers=headers)
         def func_with_headers():
             pass
 
@@ -844,7 +852,7 @@ class TestBlueprint:
         blp = Blueprint("test", "test", url_prefix="/test")
 
         @blp.route("/")
-        @blp.alt_response(400, schemas.ClientErrorSchema)
+        @blp.alt_response(400, schema=schemas.ClientErrorSchema)
         @blp.alt_response(404, "NotFoundErrorResponse")
         def func():
             pass
@@ -875,7 +883,7 @@ class TestBlueprint:
         client = app.test_client()
 
         @blp.route("/")
-        @blp.response(200, schemas.DocSchema)
+        @blp.response(200, schema=schemas.DocSchema)
         @blp.alt_response(400, "ClientErrorResponse")
         def func():
             return {"item_id": 12}

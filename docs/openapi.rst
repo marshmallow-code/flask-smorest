@@ -150,6 +150,8 @@ Note that ``app.config`` overrides ``spec_kwargs``. The example above produces
 
     {"host": "example.com", "x-internal-id": "2"}
 
+.. _document-top-level-components:
+
 Document Top-level Components
 -----------------------------
 
