@@ -899,6 +899,44 @@ class TestBlueprint:
         resp = client.get("test/")
         assert resp.json == {"item_id": 12}
 
+    @pytest.mark.parametrize("openapi_version", ["2.0", "3.0.2"])
+    @pytest.mark.parametrize("success", (True, False))
+    def test_blueprint_alt_response_success_response(
+        self, app, schemas, openapi_version, success
+    ):
+        """Check alt_response documenting a success response"""
+        app.config["OPENAPI_VERSION"] = openapi_version
+        api = Api(app)
+
+        blp = Blueprint("test", "test", url_prefix="/test")
+
+        @blp.route("/")
+        @blp.etag
+        @blp.paginate()
+        # response vs. alt_response order doesn't matter
+        @blp.alt_response(201, success=success)
+        @blp.response(200)
+        @blp.alt_response(202, success=success)
+        def func():
+            pass
+
+        api.register_blueprint(blp)
+
+        paths = api.spec.to_dict()["paths"]
+        responses = paths["/test/"]["get"]["responses"]
+
+        response = responses["200"]
+        assert "X-Pagination" in response["headers"]
+        assert "ETag" in response["headers"]
+
+        for response in (responses["201"], responses["202"]):
+            if success:
+                assert "X-Pagination" in response["headers"]
+                assert "ETag" in response["headers"]
+            else:
+                assert "X-Pagination" not in response.get("headers", [])
+                assert "ETag" not in response.get("headers", [])
+
     @pytest.mark.parametrize("openapi_version", ("2.0", "3.0.2"))
     def test_blueprint_pagination(self, app, schemas, openapi_version):
         app.config["OPENAPI_VERSION"] = openapi_version

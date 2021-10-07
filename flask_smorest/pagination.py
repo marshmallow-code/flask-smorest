@@ -288,8 +288,8 @@ class PaginationMixin:
         if operation:
             doc.setdefault("parameters", []).append(operation["parameters"])
             doc.setdefault("responses", {}).update(operation["response"])
-            success_status_code = doc_info.get("success_status_code")
-            if success_status_code is not None:
+            success_status_codes = doc_info.get("success_status_codes", [])
+            for success_status_code in success_status_codes:
                 self._document_pagination_metadata(
                     spec, doc["responses"][success_status_code]
                 )
