@@ -59,6 +59,8 @@ If a view function returns a list of objects, the :class:`Schema
    Doing this is generally a bad idea because the response status code won't
    match the code in the API documentation.
 
+.. _document-alternative-responses:
+
 Documenting Alternative Responses
 =================================
 
@@ -73,6 +75,12 @@ Those alternative responses can be documented using the
 can be passed a reference to a registered response component
 (see :ref:`document-top-level-components`) or elements to build the response
 documentation like :meth:`Blueprint.response <Blueprint.response>` does.
+
+The ``success`` argument (default: ``False``) indicates whether the response is
+part of the normal flow of the program or an aborted response. In the former
+case, processing from other decorators such as pagination or ETag apply and are
+documented for the status code of the response. The default case is typically
+used for error conditions that trigger an exception aborting the function.
 
 A view function may only be decorated once with ``response`` but can be
 decorated multiple times with nested ``alt_response``.

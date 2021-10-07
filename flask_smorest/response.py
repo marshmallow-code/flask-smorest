@@ -146,15 +146,19 @@ class ResponseMixin:
         :param dict example: Example of response message.
         :param dict examples: Examples of response message.
         :param dict headers: Headers returned by the response.
+        :param bool success: ``True`` if this response is part of the normal
+            flow of the function. Default: ``False``.
 
         This decorator allows the user to document an alternative response.
-        This can be an error managed with `abort` or any response that is not
-        the primary flow of the function documented by
+        This can be an error managed with :func:`abort <abort>` or any response
+        that is not the primary flow of the function documented by
         :meth:`Blueprint.reponse <Blueprint.response>`.
 
-        When a response reference is passed as `response`, it is used as
+        When a response reference is passed as ``response``, it is used as
         description and the keyword arguments are ignored. Otherwise, a
         description is built from the keyword arguments.
+
+        See :ref:`document-alternative-responses`.
         """
         # Response ref is passed
         if response is not None:
