@@ -72,11 +72,18 @@ class Blueprint(
 
         super().__init__(*args, **kwargs)
 
-        # _[manual|auto]_docs are ordered dicts storing endpoints documentation
+        # _docs stores information used at init time to produce documentation.
+        # For each endpoint, for each method, each feature stores info in there
+        # to be is used by a dedicated _prepare_*_doc callback. An extra
+        # "parameters" entry is added to store common route parameters doc.
         # {
         #     endpoint: {
-        #         'get': documentation,
-        #         'post': documentation,
+        #         'parameters: [list of common route parameters],
+        #         'get': {
+        #             'response': { info used by response decorator to produce doc},
+        #             'argument': { info used by arguments decorator to produce doc},
+        #             ...
+        #         'post': ...,
         #         ...
         #     },
         #     ...
