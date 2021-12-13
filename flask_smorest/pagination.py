@@ -9,7 +9,6 @@ Two pagination modes are supported:
   a pager is provided to paginate the data and get the total number of items.
 """
 from copy import deepcopy
-from collections import OrderedDict
 from functools import wraps
 import http
 import json
@@ -237,7 +236,7 @@ class PaginationMixin:
 
         Override this to use another pagination metadata structure
         """
-        page_metadata = OrderedDict()
+        page_metadata = {}
         page_metadata["total"] = item_count
         if item_count == 0:
             page_metadata["total_pages"] = 0

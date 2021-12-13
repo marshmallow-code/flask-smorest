@@ -1,5 +1,4 @@
 """Test Api class"""
-from collections import OrderedDict
 import json
 import http
 
@@ -401,7 +400,7 @@ class TestAPISpecServeDocs:
         client = app.test_client()
 
         # Add ordered stuff. This is invalid, but it will do for the test.
-        paths = OrderedDict([(f"/path_{i}", str(i)) for i in range(20)])
+        paths = {f"/path_{i}": str(i) for i in range(20)}
         api.spec._paths = paths
 
         response_json_docs = client.get("/api-docs/openapi.json")

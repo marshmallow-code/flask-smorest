@@ -36,7 +36,6 @@ Documentation process works in several steps:
   - Endpoints documentation is registered in the APISpec object.
 """
 
-from collections import OrderedDict
 from functools import wraps
 from copy import deepcopy
 
@@ -88,7 +87,7 @@ class Blueprint(
         #     },
         #     ...
         # }
-        self._docs = OrderedDict()
+        self._docs = {}
         self._endpoints = []
         self._prepare_doc_cbks = [
             self._prepare_arguments_doc,
@@ -166,7 +165,7 @@ class Blueprint(
     def _store_endpoint_docs(self, endpoint, obj, parameters, tags, **options):
         """Store view or function doc info"""
 
-        endpoint_doc_info = self._docs.setdefault(endpoint, OrderedDict())
+        endpoint_doc_info = self._docs.setdefault(endpoint, {})
 
         def store_method_docs(method, function):
             """Add auto and manual doc to table for later registration"""
@@ -215,7 +214,7 @@ class Blueprint(
         # multiple times (e.g. when creating multiple apps during tests).
         for endpoint, endpoint_doc_info in deepcopy(self._docs).items():
             parameters = endpoint_doc_info.pop("parameters")
-            doc = OrderedDict()
+            doc = {}
             # Use doc info stored by decorators to generate doc
             for method_l, operation_doc_info in endpoint_doc_info.items():
                 tags = operation_doc_info.pop("tags")
