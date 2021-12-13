@@ -1,6 +1,5 @@
 """Test ETag feature"""
 
-from collections import OrderedDict
 import json
 import hashlib
 
@@ -128,56 +127,6 @@ def app_with_etag(request, collection, schemas, app):
 
 
 class TestEtag:
-    def test_etag_is_deterministic(self):
-        """Check etag computation is deterministic
-
-        _generate_etag should return the same value everytime the same
-        dictionary is passed. This is not obvious since dictionaries
-        are unordered by design. We check this by feeding it different
-        OrderedDict instances that are equivalent to the same dictionary.
-        """
-
-        blp = Blueprint("test", __name__)
-
-        data = OrderedDict(
-            [("a", 1), ("b", 2), ("c", OrderedDict([("a", 1), ("b", 2)]))]
-        )
-        etag = blp._generate_etag(data)
-
-        data_copies = [
-            OrderedDict(
-                [
-                    ("b", 2),
-                    ("a", 1),
-                    ("c", OrderedDict([("a", 1), ("b", 2)])),
-                ]
-            ),
-            OrderedDict(
-                [
-                    ("a", 1),
-                    ("b", 2),
-                    ("c", OrderedDict([("b", 2), ("a", 1)])),
-                ]
-            ),
-            OrderedDict(
-                [
-                    ("a", 1),
-                    ("c", OrderedDict([("a", 1), ("b", 2)])),
-                    ("b", 2),
-                ]
-            ),
-            OrderedDict(
-                [
-                    ("c", OrderedDict([("a", 1), ("b", 2)])),
-                    ("b", 2),
-                    ("a", 1),
-                ]
-            ),
-        ]
-
-        data_copies_etag = [blp._generate_etag(d) for d in data_copies]
-        assert all(e == etag for e in data_copies_etag)
-
     @pytest.mark.parametrize("extra_data", [None, {}, {"answer": 42}])
     def test_etag_generate_etag(self, schemas, extra_data):
         blp = Blueprint("test", __name__)
