@@ -11,6 +11,8 @@ Features:
 
 Other changes:
 
+- Official Python 3.10 support (:pr:`308`).
+- Drop support for Python 3.6 (:pr:`306`).
 - Drop PyPy from CI tests (:pr:`307`).
 
 0.35.0 (2021-10-07)
