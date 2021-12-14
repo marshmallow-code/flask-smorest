@@ -4,6 +4,11 @@ Changelog
 0.36.0 (unreleased)
 +++++++++++++++++++
 
+Features:
+
+- Don't force ``sort_keys=True`` in ``_generate_etag`` to respect
+  ``JSON_SORT_KEYS`` app setting (:pr:`305`).
+
 Other changes:
 
 - Drop PyPy from CI tests (:pr:`307`).
