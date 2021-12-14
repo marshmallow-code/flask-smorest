@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+0.36.0 (unreleased)
++++++++++++++++++++
+
+Other changes:
+
+- Drop PyPy from CI tests (:pr:`307`).
+
 0.35.0 (2021-10-07)
 +++++++++++++++++++
 
