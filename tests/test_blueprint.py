@@ -482,6 +482,37 @@ class TestBlueprint:
         assert "parameters" not in paths["/test/"]
         assert paths["/test/{user_id}"]["parameters"][0]["name"] == "user_id"
 
+    @pytest.mark.parametrize("as_method_view", (True, False))
+    def test_blueprint_url_prefix_path_parameter(self, app, as_method_view):
+        """Test registering a blueprint with path parameter in url_prefix
+
+        Checks path parameters in url_prefix are correctly documented, even
+        if registering the same Blueprint multiple time with a different url_prefix.
+        """
+        api = Api(app)
+        blp = Blueprint("test", __name__, url_prefix="/<int:user_id>")
+
+        if as_method_view:
+
+            @blp.route("/")
+            class Resource(MethodView):
+                def get(self, user_id):
+                    pass
+
+        else:
+
+            @blp.route("/")
+            def func(user_id):
+                pass
+
+        api.register_blueprint(blp)
+        api.register_blueprint(blp, url_prefix="/<int:team_id>", name="team")
+
+        paths = api.spec.to_dict()["paths"]
+
+        assert paths["/{user_id}/"]["parameters"][0]["name"] == "user_id"
+        assert paths["/{team_id}/"]["parameters"][0]["name"] == "team_id"
+
     @pytest.mark.parametrize("openapi_version", ("2.0", "3.0.2"))
     def test_blueprint_route_multiple_methods(self, app, schemas, openapi_version):
         """Test calling route with multiple methods
