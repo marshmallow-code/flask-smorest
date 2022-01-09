@@ -487,7 +487,7 @@ class TestBlueprint:
         """Test registering a blueprint with path parameter in url_prefix
 
         Checks path parameters in url_prefix are correctly documented, even
-        if registering the same Blueprint multiple time with a different url_prefix.
+        if registering the same Blueprint multiple times with a different url_prefix.
         """
         api = Api(app)
         blp = Blueprint("test", __name__, url_prefix="/<int:user_id>")
@@ -512,6 +512,35 @@ class TestBlueprint:
 
         assert paths["/{user_id}/"]["parameters"][0]["name"] == "user_id"
         assert paths["/{team_id}/"]["parameters"][0]["name"] == "team_id"
+
+    @pytest.mark.parametrize("openapi_version", ("2.0", "3.0.2"))
+    def test_blueprint_url_prefix_register_blueprint_parameters(
+        self, app, openapi_version
+    ):
+        """Check url_prefix path parameters docs are merged with auto docs"""
+        app.config["OPENAPI_VERSION"] = openapi_version
+        api = Api(app)
+        blp = Blueprint("test", __name__, url_prefix="/<int:item_id>/")
+
+        parameters = [
+            "TestParameter",
+            {"name": "item_id", "in": "path", "description": "Item ID"},
+        ]
+
+        @blp.route("/")
+        def get(item_id):
+            pass
+
+        api.register_blueprint(blp, parameters=parameters)
+        spec = api.spec.to_dict()
+        params = spec["paths"]["/{item_id}/"]["parameters"]
+        assert len(params) == 2
+        assert params[0] == build_ref(api.spec, "parameter", "TestParameter")
+        assert params[1]["description"] == "Item ID"
+        if openapi_version == "2.0":
+            assert params[1]["type"] == "integer"
+        else:
+            assert params[1]["schema"]["type"] == "integer"
 
     @pytest.mark.parametrize("openapi_version", ("2.0", "3.0.2"))
     def test_blueprint_route_multiple_methods(self, app, schemas, openapi_version):

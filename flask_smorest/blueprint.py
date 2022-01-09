@@ -118,8 +118,8 @@ class Blueprint(
         :param str endpoint: Endpoint for the registered URL rule (defaults
             to function name).
         :param callable|MethodView view_func: View function or MethodView class
-        :param list parameters: List of parameters relevant to all operations
-            in this path, only used to document the resource.
+        :param list parameters: List of parameter descriptions relevant to all
+            operations in this path. Only used to document the resource.
         :param list tags: List of tags for the resource.
             If None, ``Blueprint`` name is used.
         :param options: Options to be forwarded to the underlying
@@ -132,7 +132,7 @@ class Blueprint(
             endpoint = view_func.__name__
 
         # Ensure endpoint name is unique
-        # - to avoid a name clash when registering a MehtodView
+        # - to avoid a name clash when registering a MethodView
         # - to use it as a key internally in endpoint -> doc mapping
         if endpoint in self._endpoints:
             endpoint = f"{endpoint}_{len(self._endpoints)}"
@@ -198,7 +198,7 @@ class Blueprint(
         # Store parameters doc info from route decorator
         endpoint_doc_info["parameters"] = parameters
 
-    def register_views_in_doc(self, api, app, spec, *, name):
+    def register_views_in_doc(self, api, app, spec, *, name, parameters):
         """Register views information in documentation
 
         If a schema in a parameter or a response appears in the spec
@@ -207,13 +207,16 @@ class Blueprint(
 
         "schema":{"$ref": "#/components/schemas/MySchema"}
         """
+        url_prefix_parameters = parameters or []
+
         # This method uses the documentation information associated with each
         # endpoint in self._docs to provide documentation for corresponding
         # route to the spec object.
         # Deepcopy to avoid mutating the source. Allows registering blueprint
         # multiple times (e.g. when creating multiple apps during tests).
         for endpoint, endpoint_doc_info in deepcopy(self._docs).items():
-            parameters = endpoint_doc_info.pop("parameters")
+            endpoint_route_parameters = endpoint_doc_info.pop("parameters") or []
+            endpoint_parameters = url_prefix_parameters + endpoint_route_parameters
             doc = {}
             # Use doc info stored by decorators to generate doc
             for method_l, operation_doc_info in endpoint_doc_info.items():
@@ -244,7 +247,7 @@ class Blueprint(
             # Thanks to self.route, there can only be one rule per endpoint
             full_endpoint = ".".join((name, endpoint))
             rule = next(app.url_map.iter_rules(full_endpoint))
-            spec.path(rule=rule, operations=doc, parameters=parameters)
+            spec.path(rule=rule, operations=doc, parameters=endpoint_parameters)
 
     @staticmethod
     def doc(**kwargs):
