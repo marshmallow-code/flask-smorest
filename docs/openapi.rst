@@ -117,6 +117,10 @@ argument to pass documentation for parameters that are shared by all operations
 of a path. It can be used to pass extra documentation, such as examples, for
 path parameters.
 
+Likewise, path parameters in ``url_prefix`` are also automatically documented,
+and their automatic documentation can be completed by passing a ``parameters``
+argument to the :meth:`Api.register_blueprint` method.
+
 Pass Extra Documentation Information
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
