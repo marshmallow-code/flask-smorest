@@ -10,7 +10,7 @@ EXTRAS_REQUIRE = {
         "werkzeug==2.0.2",
         "flask==2.0.2",
         "marshmallow==3.14.1",
-        "webargs==8.0.1",
+        "webargs==8.1.0",
         "apispec==5.1.1",
     ],
     "lint": [
