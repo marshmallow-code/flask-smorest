@@ -307,8 +307,9 @@ class APISpecMixin(DocBlueprintMixin):
         for status in http.HTTPStatus:
             response = {
                 "description": status.phrase,
-                "schema": self.ERROR_SCHEMA,
             }
+            if not (100 <= status < 200) and status not in (204, 304):
+                response["schema"] = self.ERROR_SCHEMA
             prepare_response(response, self.spec, DEFAULT_RESPONSE_CONTENT_TYPE)
             self.spec.components.response(status.name, response, lazy=True)
 
