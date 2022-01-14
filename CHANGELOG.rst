@@ -1,13 +1,20 @@
 Changelog
 ---------
 
-0.36.0 (unreleased)
+0.36.0 (2022-01-14)
 +++++++++++++++++++
 
 Features:
 
+- Add ``parameter`` argument to ``register_blueprint`` to document path
+  parameters in url_prefix (:pr:`313`).
 - Don't force ``sort_keys=True`` in ``_generate_etag`` to respect
   ``JSON_SORT_KEYS`` app setting (:pr:`305`).
+
+Bug fixes:
+
+- Fix automatic documentation of responses with a status code implying an empty
+  body responses to reflect that the body is empty (:pr:`318`).
 
 Other changes:
 
