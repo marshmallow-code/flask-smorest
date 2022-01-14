@@ -60,20 +60,23 @@ class TestAPISpec:
 
         # Errors are now registered
         for status in http.HTTPStatus:
+            response = responses[status.name]
+            assert response["description"] == status.phrase
+            empty_body = (100 <= status < 200) or status in (204, 304)
             if openapi_version == "2.0":
-                assert responses[status.name] == {
-                    "description": status.phrase,
-                    "schema": build_ref(api.spec, "schema", "Error"),
-                }
+                if empty_body:
+                    assert "schema" not in response
+                else:
+                    assert response["schema"] == build_ref(api.spec, "schema", "Error")
             else:
-                assert responses[status.name] == {
-                    "description": status.phrase,
-                    "content": {
+                if empty_body:
+                    assert "content" not in response
+                else:
+                    assert response["content"] == {
                         "application/json": {
                             "schema": build_ref(api.spec, "schema", "Error")
                         }
-                    },
-                }
+                    }
 
     @pytest.mark.parametrize("openapi_version", ["2.0", "3.0.2"])
     def test_api_lazy_registers_etag_headers(self, app, openapi_version):
