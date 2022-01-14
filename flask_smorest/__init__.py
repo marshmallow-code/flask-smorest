@@ -71,22 +71,31 @@ class Api(APISpecMixin, ErrorHandlerMixin):
         # Register error handlers
         self._register_error_handlers()
 
-    def register_blueprint(self, blp, **options):
+    def register_blueprint(self, blp, *, parameters=None, **options):
         """Register a blueprint in the application
 
         Also registers documentation for the blueprint/resource
 
         :param Blueprint blp: Blueprint to register
-        :param options: Keyword arguments overriding Blueprint defaults
+        :param list parameters: List of parameter descriptions for the path parameters
+            in the ``url_prefix`` of the Blueprint. Only used to document the resource.
+        :param options: Keyword arguments overriding
+            :class:`Blueprint <flask.Blueprint>` defaults
 
         Must be called after app is initialized.
         """
-        blp_name = blp.name if "name" not in options else options["name"]
+        blp_name = options.get("name", blp.name)
 
         self._app.register_blueprint(blp, **options)
 
         # Register views in API documentation for this resource
-        blp.register_views_in_doc(self, self._app, self.spec, name=blp_name)
+        blp.register_views_in_doc(
+            self,
+            self._app,
+            self.spec,
+            name=blp_name,
+            parameters=parameters,
+        )
 
         # Add tag relative to this resource to the global tag list
         self.spec.tag({"name": blp_name, "description": blp.description})
