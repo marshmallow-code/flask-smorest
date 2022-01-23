@@ -127,37 +127,15 @@ def app_with_etag(request, collection, schemas, app):
 
 class TestEtag:
     @pytest.mark.parametrize("extra_data", [None, {}, {"answer": 42}])
-    def test_etag_generate_etag(self, schemas, extra_data):
+    def test_etag_generate_etag(self, extra_data):
         blp = Blueprint("test", __name__)
-        schema = schemas.DocSchema
         item = {"item_id": 1, "db_field": 0}
-        item_schema_dump = schema().dump(item)
-        if extra_data is None or extra_data == {}:
-            data = item
-            data_dump = item_schema_dump
-        else:
-            data = (item, extra_data)
-            data_dump = (item_schema_dump, extra_data)
+        data = (item, extra_data) if extra_data else item
 
-        etag = blp._generate_etag(item, extra_data=extra_data)
         assert (
-            etag
+            blp._generate_etag(item, extra_data=extra_data)
             == hashlib.sha1(
                 bytes(json.dumps(data, sort_keys=True), "utf-8")
-            ).hexdigest()
-        )
-        etag = blp._generate_etag(item, schema, extra_data=extra_data)
-        assert (
-            etag
-            == hashlib.sha1(
-                bytes(json.dumps(data_dump, sort_keys=True), "utf-8")
-            ).hexdigest()
-        )
-        etag = blp._generate_etag(item, schema(), extra_data=extra_data)
-        assert (
-            etag
-            == hashlib.sha1(
-                bytes(json.dumps(data_dump, sort_keys=True), "utf-8")
             ).hexdigest()
         )
 
@@ -187,7 +165,7 @@ class TestEtag:
         old_item = {"item_id": 1, "db_field": 0}
         new_item = {"item_id": 1, "db_field": 1}
         old_etag = blp._generate_etag(old_item)
-        old_etag_with_schema = blp._generate_etag(old_item, schema)
+        old_etag_with_schema = blp._generate_etag(schema().dump(old_item))
 
         with app.test_request_context(
             "/",
@@ -274,7 +252,7 @@ class TestEtag:
         schema = schemas.DocSchema
         item = {"item_id": 1, "db_field": 0}
         etag = blp._generate_etag(item)
-        etag_with_schema = blp._generate_etag(item, schema)
+        etag_with_schema = blp._generate_etag(schema().dump(item))
 
         with app.test_request_context("/", method=method):
             blp.set_etag(item)

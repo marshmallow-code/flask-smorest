@@ -96,25 +96,18 @@ class EtagMixin:
         return decorator(view_func)
 
     @staticmethod
-    def _generate_etag(etag_data, etag_schema=None, extra_data=None):
+    def _generate_etag(etag_data, extra_data=None):
         """Generate an ETag from data
 
         etag_data: Data to use to compute ETag (must be json serializable)
-        etag_schema: Schema to dump data with before hashing
         extra_data: Extra data to add before hashing
 
         Typically, extra_data is used to add pagination metadata to the hash.
         It is not dumped through the Schema.
         """
-        if etag_schema is None:
-            raw_data = etag_data
-        else:
-            if isinstance(etag_schema, type):
-                etag_schema = etag_schema()
-            raw_data = etag_schema.dump(etag_data)
         if extra_data:
-            raw_data = (raw_data, extra_data)
-        data = json.dumps(raw_data, sort_keys=True)
+            etag_data = (etag_data, extra_data)
+        data = json.dumps(etag_data, sort_keys=True)
         return hashlib.sha1(bytes(data, "utf-8")).hexdigest()
 
     def _check_precondition(self):
@@ -146,7 +139,11 @@ class EtagMixin:
         if request.method not in self.METHODS_NEEDING_CHECK_ETAG:
             warnings.warn(f"ETag cannot be checked on {request.method} request.")
         if _is_etag_enabled():
-            new_etag = self._generate_etag(etag_data, etag_schema)
+            if etag_schema is not None:
+                if isinstance(etag_schema, type):
+                    etag_schema = etag_schema()
+                etag_data = etag_schema.dump(etag_data)
+            new_etag = self._generate_etag(etag_data)
             _get_etag_ctx()["etag_checked"] = True
             if new_etag not in request.if_match:
                 raise PreconditionFailed
@@ -194,7 +191,11 @@ class EtagMixin:
         if request.method not in self.METHODS_ALLOWING_SET_ETAG:
             warnings.warn(f"ETag cannot be set on {request.method} request.")
         if _is_etag_enabled():
-            new_etag = self._generate_etag(etag_data, etag_schema)
+            if etag_schema is not None:
+                if isinstance(etag_schema, type):
+                    etag_schema = etag_schema()
+                etag_data = etag_schema.dump(etag_data)
+            new_etag = self._generate_etag(etag_data)
             self._check_not_modified(new_etag)
             # Store ETag in AppContext to add it to response headers later on
             _get_etag_ctx()["etag"] = new_etag
@@ -217,7 +218,7 @@ class EtagMixin:
                     for k, v in response.headers
                     if k in self.ETAG_INCLUDE_HEADERS
                 )
-                new_etag = self._generate_etag(etag_data, None, extra_data)
+                new_etag = self._generate_etag(etag_data, extra_data)
                 self._check_not_modified(new_etag)
             response.set_etag(new_etag)
 
