@@ -105,7 +105,6 @@ class ResponseMixin:
 
                 # Store result in appcontext (may be used for ETag computation)
                 appcontext = get_appcontext()
-                appcontext["result_raw"] = result_raw
                 appcontext["result_dump"] = result_dump
 
                 # Build response
