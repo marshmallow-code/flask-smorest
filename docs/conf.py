@@ -20,7 +20,7 @@
 import flask_smorest
 
 project = "flask-smorest"
-copyright = "2021, Nobatek/INEF4 and contributors"
+copyright = "2022, Nobatek/INEF4 and contributors"
 
 version = release = flask_smorest.__version__
 
