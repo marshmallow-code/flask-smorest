@@ -129,9 +129,9 @@ class TestEtag:
     @pytest.mark.parametrize("extra_data", [None, {}, {"answer": 42}])
     def test_etag_generate_etag(self, schemas, extra_data):
         blp = Blueprint("test", __name__)
-        etag_schema = schemas.DocEtagSchema
+        schema = schemas.DocSchema
         item = {"item_id": 1, "db_field": 0}
-        item_schema_dump = etag_schema().dump(item)
+        item_schema_dump = schema().dump(item)
         if extra_data is None or extra_data == {}:
             data = item
             data_dump = item_schema_dump
@@ -146,14 +146,14 @@ class TestEtag:
                 bytes(json.dumps(data, sort_keys=True), "utf-8")
             ).hexdigest()
         )
-        etag = blp._generate_etag(item, etag_schema, extra_data=extra_data)
+        etag = blp._generate_etag(item, schema, extra_data=extra_data)
         assert (
             etag
             == hashlib.sha1(
                 bytes(json.dumps(data_dump, sort_keys=True), "utf-8")
             ).hexdigest()
         )
-        etag = blp._generate_etag(item, etag_schema(), extra_data=extra_data)
+        etag = blp._generate_etag(item, schema(), extra_data=extra_data)
         assert (
             etag
             == hashlib.sha1(
@@ -183,11 +183,11 @@ class TestEtag:
     def test_etag_check_etag(self, app, schemas, method, etag_disabled):
         app.config["ETAG_DISABLED"] = etag_disabled
         blp = Blueprint("test", __name__)
-        etag_schema = schemas.DocEtagSchema
+        schema = schemas.DocSchema
         old_item = {"item_id": 1, "db_field": 0}
         new_item = {"item_id": 1, "db_field": 1}
         old_etag = blp._generate_etag(old_item)
-        old_etag_with_schema = blp._generate_etag(old_item, etag_schema)
+        old_etag_with_schema = blp._generate_etag(old_item, schema)
 
         with app.test_request_context(
             "/",
@@ -205,10 +205,10 @@ class TestEtag:
             method=method,
             headers={"If-Match": old_etag_with_schema},
         ):
-            blp.check_etag(old_item, etag_schema)
+            blp.check_etag(old_item, schema)
             if not etag_disabled:
                 with pytest.raises(PreconditionFailed):
-                    blp.check_etag(new_item, etag_schema)
+                    blp.check_etag(new_item, schema)
             else:
                 blp.check_etag(new_item)
 
@@ -271,10 +271,10 @@ class TestEtag:
     def test_etag_set_etag(self, app, schemas, method, etag_disabled):
         app.config["ETAG_DISABLED"] = etag_disabled
         blp = Blueprint("test", __name__)
-        etag_schema = schemas.DocEtagSchema
+        schema = schemas.DocSchema
         item = {"item_id": 1, "db_field": 0}
         etag = blp._generate_etag(item)
-        etag_with_schema = blp._generate_etag(item, etag_schema)
+        etag_with_schema = blp._generate_etag(item, schema)
 
         with app.test_request_context("/", method=method):
             blp.set_etag(item)
@@ -303,9 +303,9 @@ class TestEtag:
             if not etag_disabled:
                 if method in ["GET", "HEAD"]:
                     with pytest.raises(NotModified):
-                        blp.set_etag(item, etag_schema)
+                        blp.set_etag(item, schema)
             else:
-                blp.set_etag(item, etag_schema)
+                blp.set_etag(item, schema)
                 assert "etag" not in _get_etag_ctx()
         with app.test_request_context(
             "/",
@@ -316,13 +316,13 @@ class TestEtag:
                 blp.set_etag(item)
                 assert _get_etag_ctx()["etag"] == etag
                 del _get_etag_ctx()["etag"]
-                blp.set_etag(item, etag_schema)
+                blp.set_etag(item, schema)
                 assert _get_etag_ctx()["etag"] == etag_with_schema
                 del _get_etag_ctx()["etag"]
             else:
                 blp.set_etag(item)
                 assert "etag" not in _get_etag_ctx()
-                blp.set_etag(item, etag_schema)
+                blp.set_etag(item, schema)
                 assert "etag" not in _get_etag_ctx()
 
     @pytest.mark.parametrize("etag_disabled", (True, False))
