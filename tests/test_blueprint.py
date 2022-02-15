@@ -770,6 +770,39 @@ class TestBlueprint:
         get = api.spec.to_dict()["paths"]["/test/"]["get"]
         assert get["responses"]["200"]["headers"] == headers
 
+    @pytest.mark.parametrize("openapi_version", ("2.0", "3.0.2"))
+    @pytest.mark.parametrize("content_type", ("application/x-custom", None))
+    def test_blueprint_reponse_content_type(
+        self, app, schemas, openapi_version, content_type
+    ):
+        app.config["OPENAPI_VERSION"] = openapi_version
+        api = Api(app)
+        blp = Blueprint("test", "test", url_prefix="/test")
+
+        @blp.route("/")
+        @blp.response(200, schemas.DocSchema, content_type=content_type)
+        def func():
+            pass
+
+        api.register_blueprint(blp)
+
+        get = api.spec.to_dict()["paths"]["/test/"]["get"]
+
+        if openapi_version == "2.0":
+            if content_type is not None:
+                assert set(get["produces"]) == {
+                    "application/json",
+                    "application/x-custom",
+                }
+            else:
+                assert "produces" not in get
+        else:
+            assert "produces" not in get
+            assert get["responses"]["200"]["content"] == {
+                content_type
+                or "application/json": {"schema": build_ref(api.spec, "schema", "Doc")}
+            }
+
     @pytest.mark.parametrize("default_error", ("default", "override", "None"))
     def test_blueprint_documents_default_error_response(self, app, default_error):
         class MyApi(Api):
@@ -801,10 +834,8 @@ class TestBlueprint:
 
     @pytest.mark.parametrize("openapi_version", ["2.0", "3.0.2"])
     @pytest.mark.parametrize("schema_type", ["object", "ref"])
-    def test_blueprint_alt_response_schema(
-        self, app, openapi_version, schemas, schema_type
-    ):
-        """Check alternate response schema is correctly documented"""
+    def test_blueprint_alt_response(self, app, openapi_version, schemas, schema_type):
+        """Check alternate response is correctly documented"""
         app.config["OPENAPI_VERSION"] = openapi_version
         api = Api(app)
         blp = Blueprint("test", "test", url_prefix="/test")
@@ -853,6 +884,11 @@ class TestBlueprint:
         def func_with_headers():
             pass
 
+        @blp.route("/content_type")
+        @blp.alt_response(400, schema=schema, content_type="application/x-custom")
+        def func_with_content_type():
+            pass
+
         api.register_blueprint(blp)
 
         paths = api.spec.to_dict()["paths"]
@@ -881,6 +917,16 @@ class TestBlueprint:
 
         response = paths["/test/headers"]["get"]["responses"]["400"]
         assert response["headers"] == headers
+
+        get = paths["/test/content_type"]["get"]
+        if openapi_version == "2.0":
+            assert set(get["produces"]) == {"application/json", "application/x-custom"}
+        else:
+            assert "produces" not in get
+        if openapi_version == "3.0.2":
+            assert get["responses"]["400"]["content"] == {
+                "application/x-custom": {"schema": schema_ref}
+            }
 
     @pytest.mark.parametrize("openapi_version", ["2.0", "3.0.2"])
     def test_blueprint_alt_response_ref(self, app, openapi_version):
