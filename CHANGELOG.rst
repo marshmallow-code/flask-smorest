@@ -23,7 +23,7 @@ Features:
 Bug fixes:
 
 - Fix automatic documentation of responses with a status code implying an empty
-  body responses to reflect that the body is empty (:pr:`318`).
+  body response to reflect that the body is empty (:pr:`318`).
 
 Other changes:
 
