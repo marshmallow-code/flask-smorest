@@ -37,7 +37,8 @@ class ResponseMixin:
 
         :param int|str|HTTPStatus status_code: HTTP status code.
             Used if none is returned from the view function.
-        :param schema: :class:`Schema <marshmallow.Schema>` class or instance.
+        :param schema schema|str|dict: :class:`Schema <marshmallow.Schema>`
+            class or instance or reference or dict.
             If not None, will be used to serialize response data.
         :param str content_type: Content type of the response.
         :param str description: Description of the response (default: None).
@@ -52,6 +53,8 @@ class ResponseMixin:
 
         If the decorated function returns a ``Response`` object, the ``schema``
         and ``status_code`` parameters are only used to document the resource.
+        Only in this case, ``schema`` may be a reference as string or a schema
+        definition as dict.
 
         The `example` and `examples` parameters are mutually exclusive. The
         latter should only be used with OpenAPI 3.
@@ -147,8 +150,8 @@ class ResponseMixin:
 
         :param int|str|HTTPStatus status_code: HTTP status code.
         :param str response: Reponse reference.
-        :param schema schema|str: :class:`Schema <marshmallow.Schema>`
-            class or instance or reference.
+        :param schema schema|str|dict: :class:`Schema <marshmallow.Schema>`
+            class or instance or reference or dict.
         :param str description: Description of the response (default: None).
         :param dict example: Example of response message.
         :param dict examples: Examples of response message.

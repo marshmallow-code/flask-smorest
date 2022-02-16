@@ -62,7 +62,7 @@ If a view function returns a list of objects, the :class:`Schema
 .. _document-alternative-responses:
 
 Documenting Alternative Responses
-=================================
+---------------------------------
 
 The :meth:`Blueprint.response <Blueprint.response>` decorator is meant to
 generate and document the response corresponding to the "normal" flow of the
@@ -84,3 +84,33 @@ used for error conditions that trigger an exception aborting the function.
 
 A view function may only be decorated once with ``response`` but can be
 decorated multiple times with nested ``alt_response``.
+
+Content Type
+------------
+
+The content type of all responses is documented by default as ``application/json``.
+
+This value can be overridden in each resource by passing another content type
+as ``content_type`` argument in :meth:`Blueprint.response <Blueprint.response>`
+and :meth:`Blueprint.response <Blueprint.alt_response>`.
+
+.. note:: The content type is only used for documentation purpose and has no
+   impact on response serialization.
+
+File Response
+-------------
+
+A file response can be documented by passing the documentation schema in its
+dict representation to :meth:`Blueprint.response <Blueprint.response>`:
+
+.. code-block:: python
+
+    @blp.route("/")
+    @blp.response(
+        200, {"format": "binary", "type": "string"}, content_type="application/csv"
+    )
+    def func():
+        csv_str = ...
+        response = Response(csv_str, mimetype="text/csv")
+        response.headers.set("Content-Disposition", "attachment", filename="file.csv")
+        return response
