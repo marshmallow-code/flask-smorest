@@ -1,6 +1,15 @@
 Changelog
 ---------
 
+0.37.0 (2022-02-16)
++++++++++++++++++++
+
+Features:
+
+- Add ``content_type`` argument to ``response`` and ``alt_response``, to
+  document a response content type that differs from the default one. It can be
+  used to document a file response. (:pr:`330`).
+
 0.36.0 (2022-01-14)
 +++++++++++++++++++
 
