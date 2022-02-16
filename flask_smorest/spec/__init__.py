@@ -14,10 +14,6 @@ from flask_smorest import etag as fs_etag
 from flask_smorest import pagination as fs_pagination
 from .plugins import FlaskPlugin
 from .field_converters import uploadfield2properties
-from .constants import (
-    DEFAULT_REQUEST_BODY_CONTENT_TYPE,
-    DEFAULT_RESPONSE_CONTENT_TYPE,
-)
 
 
 def _add_leading_slash(string):
@@ -142,6 +138,9 @@ class APISpecMixin(DocBlueprintMixin):
 
     DEFAULT_ERROR_RESPONSE_NAME = "DEFAULT_ERROR"
 
+    DEFAULT_REQUEST_BODY_CONTENT_TYPE = "application/json"
+    DEFAULT_RESPONSE_CONTENT_TYPE = "application/json"
+
     def _init_spec(
         self,
         *,
@@ -183,13 +182,13 @@ class APISpecMixin(DocBlueprintMixin):
             options.setdefault(
                 "produces",
                 [
-                    DEFAULT_RESPONSE_CONTENT_TYPE,
+                    self.DEFAULT_RESPONSE_CONTENT_TYPE,
                 ],
             )
             options.setdefault(
                 "consumes",
                 [
-                    DEFAULT_REQUEST_BODY_CONTENT_TYPE,
+                    self.DEFAULT_REQUEST_BODY_CONTENT_TYPE,
                 ],
             )
         options.update(self._app.config.get("API_SPEC_OPTIONS", {}))
@@ -310,7 +309,7 @@ class APISpecMixin(DocBlueprintMixin):
             }
             if not (100 <= status < 200) and status not in (204, 304):
                 response["schema"] = self.ERROR_SCHEMA
-            prepare_response(response, self.spec, DEFAULT_RESPONSE_CONTENT_TYPE)
+            prepare_response(response, self.spec, self.DEFAULT_RESPONSE_CONTENT_TYPE)
             self.spec.components.response(status.name, response, lazy=True)
 
         # Also lazy register a default error response
@@ -318,7 +317,7 @@ class APISpecMixin(DocBlueprintMixin):
             "description": "Default error response",
             "schema": self.ERROR_SCHEMA,
         }
-        prepare_response(response, self.spec, DEFAULT_RESPONSE_CONTENT_TYPE)
+        prepare_response(response, self.spec, self.DEFAULT_RESPONSE_CONTENT_TYPE)
         self.spec.components.response("DEFAULT_ERROR", response, lazy=True)
 
     def _register_etag_headers(self):

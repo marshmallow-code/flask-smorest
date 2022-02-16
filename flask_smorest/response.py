@@ -1,5 +1,6 @@
 """Response processor"""
 
+from collections import abc
 from copy import deepcopy
 from functools import wraps
 import http
@@ -15,7 +16,6 @@ from .utils import (
     unpack_tuple_response,
     set_status_and_headers_in_response,
 )
-from .spec import DEFAULT_RESPONSE_CONTENT_TYPE
 
 
 class ResponseMixin:
@@ -26,6 +26,7 @@ class ResponseMixin:
         status_code,
         schema=None,
         *,
+        content_type=None,
         description=None,
         example=None,
         examples=None,
@@ -35,8 +36,10 @@ class ResponseMixin:
 
         :param int|str|HTTPStatus status_code: HTTP status code.
             Used if none is returned from the view function.
-        :param schema: :class:`Schema <marshmallow.Schema>` class or instance.
+        :param schema schema|str|dict: :class:`Schema <marshmallow.Schema>`
+            class or instance or reference or dict.
             If not None, will be used to serialize response data.
+        :param str content_type: Content type of the response.
         :param str description: Description of the response (default: None).
         :param dict example: Example of response message.
         :param dict examples: Examples of response message.
@@ -49,6 +52,8 @@ class ResponseMixin:
 
         If the decorated function returns a ``Response`` object, the ``schema``
         and ``status_code`` parameters are only used to document the resource.
+        Only in this case, ``schema`` may be a reference as string or a schema
+        definition as dict.
 
         The `example` and `examples` parameters are mutually exclusive. The
         latter should only be used with OpenAPI 3.
@@ -74,6 +79,7 @@ class ResponseMixin:
                 "headers": headers,
             }
         )
+        resp_doc["content_type"] = content_type
 
         def decorator(func):
             @wraps(func)
@@ -130,6 +136,7 @@ class ResponseMixin:
         response=None,
         *,
         schema=None,
+        content_type=None,
         description=None,
         example=None,
         examples=None,
@@ -140,8 +147,8 @@ class ResponseMixin:
 
         :param int|str|HTTPStatus status_code: HTTP status code.
         :param str response: Reponse reference.
-        :param schema schema|str: :class:`Schema <marshmallow.Schema>`
-            class or instance or reference.
+        :param schema schema|str|dict: :class:`Schema <marshmallow.Schema>`
+            class or instance or reference or dict.
         :param str description: Description of the response (default: None).
         :param dict example: Example of response message.
         :param dict examples: Examples of response message.
@@ -181,6 +188,7 @@ class ResponseMixin:
                     "headers": headers,
                 }
             )
+            resp_doc["content_type"] = content_type
 
         def decorator(func):
             @wraps(func)
@@ -248,7 +256,32 @@ class ResponseMixin:
                 "default"
             ] = api.DEFAULT_ERROR_RESPONSE_NAME
         if operation:
+            # OAS 2: set "produces"
+            # TODO: The list of content types should contain those used by other
+            # decorators (error responses, mainly). In the general case, those
+            # responses use DEFAULT_RESPONSE_CONTENT_TYPE which appears in the list
+            # if used in response, alt_response or if DEFAULT_ERROR_RESPONSE_NAME
+            # is set, so it will only be slightly incomplete in corner cases.
+            if spec.openapi_version.major < 3:
+                content_types = set()
+                for response in operation["responses"].values():
+                    if isinstance(response, abc.Mapping):
+                        content_type = (
+                            response["content_type"]
+                            or api.DEFAULT_RESPONSE_CONTENT_TYPE
+                        )
+                    else:
+                        content_type = api.DEFAULT_RESPONSE_CONTENT_TYPE
+                    content_types.add(content_type)
+                if content_types != {api.DEFAULT_RESPONSE_CONTENT_TYPE}:
+                    operation["produces"] = list(content_types)
+            # OAS2 / OAS 3: adapt response to OAS version
             for response in operation["responses"].values():
-                prepare_response(response, spec, DEFAULT_RESPONSE_CONTENT_TYPE)
+                if isinstance(response, abc.Mapping):
+                    content_type = (
+                        response.pop("content_type")
+                        or api.DEFAULT_RESPONSE_CONTENT_TYPE
+                    )
+                    prepare_response(response, spec, content_type)
             doc = deepupdate(doc, operation)
         return doc
