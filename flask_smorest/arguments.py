@@ -7,7 +7,6 @@ import http
 from webargs.flaskparser import FlaskParser
 
 from .utils import deepupdate
-from .spec import DEFAULT_REQUEST_BODY_CONTENT_TYPE
 
 
 class ArgumentsMixin:
@@ -98,7 +97,7 @@ class ArgumentsMixin:
 
         return decorator
 
-    def _prepare_arguments_doc(self, doc, doc_info, *, spec, **kwargs):
+    def _prepare_arguments_doc(self, doc, doc_info, *, api, spec, **kwargs):
         # This callback should run first as it overrides existing parameters
         # in doc. Following callbacks should append to parameters list.
         operation = doc_info.get("arguments")
@@ -114,7 +113,7 @@ class ArgumentsMixin:
                             param.pop("content_type", None)
                             or self.DEFAULT_LOCATION_CONTENT_TYPE_MAPPING[param["in"]]
                         )
-                        if content_type != DEFAULT_REQUEST_BODY_CONTENT_TYPE:
+                        if content_type != api.DEFAULT_REQUEST_BODY_CONTENT_TYPE:
                             operation["consumes"] = [
                                 content_type,
                             ]

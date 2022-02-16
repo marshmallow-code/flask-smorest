@@ -16,7 +16,6 @@ from .utils import (
     unpack_tuple_response,
     set_status_and_headers_in_response,
 )
-from .spec import DEFAULT_RESPONSE_CONTENT_TYPE
 
 
 class ResponseMixin:
@@ -69,20 +68,18 @@ class ResponseMixin:
 
         # Document response (schema, description,...) in the API doc
         doc_schema = self._make_doc_response_schema(schema)
-        if content_type is None:
-            content_type = DEFAULT_RESPONSE_CONTENT_TYPE
         if description is None:
             description = http.HTTPStatus(int(status_code)).phrase
         resp_doc = remove_none(
             {
                 "schema": doc_schema,
-                "content_type": content_type,
                 "description": description,
                 "example": example,
                 "examples": examples,
                 "headers": headers,
             }
         )
+        resp_doc["content_type"] = content_type
 
         def decorator(func):
             @wraps(func)
@@ -180,20 +177,18 @@ class ResponseMixin:
 
             # Document response (schema, description,...) in the API doc
             doc_schema = self._make_doc_response_schema(schema)
-            if content_type is None:
-                content_type = DEFAULT_RESPONSE_CONTENT_TYPE
             if description is None:
                 description = http.HTTPStatus(int(status_code)).phrase
             resp_doc = remove_none(
                 {
                     "schema": doc_schema,
-                    "content_type": content_type,
                     "description": description,
                     "example": example,
                     "examples": examples,
                     "headers": headers,
                 }
             )
+            resp_doc["content_type"] = content_type
 
         def decorator(func):
             @wraps(func)
@@ -271,15 +266,22 @@ class ResponseMixin:
                 content_types = set()
                 for response in operation["responses"].values():
                     if isinstance(response, abc.Mapping):
-                        content_type = response["content_type"]
+                        content_type = (
+                            response["content_type"]
+                            or api.DEFAULT_RESPONSE_CONTENT_TYPE
+                        )
                     else:
-                        content_type = DEFAULT_RESPONSE_CONTENT_TYPE
+                        content_type = api.DEFAULT_RESPONSE_CONTENT_TYPE
                     content_types.add(content_type)
-                if content_types != {DEFAULT_RESPONSE_CONTENT_TYPE}:
+                if content_types != {api.DEFAULT_RESPONSE_CONTENT_TYPE}:
                     operation["produces"] = list(content_types)
             # OAS2 / OAS 3: adapt response to OAS version
             for response in operation["responses"].values():
                 if isinstance(response, abc.Mapping):
-                    prepare_response(response, spec, response.pop("content_type"))
+                    content_type = (
+                        response.pop("content_type")
+                        or api.DEFAULT_RESPONSE_CONTENT_TYPE
+                    )
+                    prepare_response(response, spec, content_type)
             doc = deepupdate(doc, operation)
         return doc
