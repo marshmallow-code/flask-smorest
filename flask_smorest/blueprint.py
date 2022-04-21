@@ -27,8 +27,8 @@ Documentation process works in several steps:
   - Schema instances are replaced by their reference in the `schemas` section
     of the spec components.
 
-  - The ``register_blueprint`` method merges nested blueprint documentation into
-    the parent blueprint documentation.
+  - The ``Blueprint.register_blueprint`` method merges nested blueprint
+    documentation into the parent blueprint documentation.
 
   - Documentation is finalized using the information stored in
     ``Blueprint._docs``, with adaptations to parameters only known at init
@@ -168,11 +168,11 @@ class Blueprint(
     def register_blueprint(self, blueprint, **options):
         """Register a nested blueprint in application
 
-        Also stores doc info from the nested bluepint for later registration
+        Also stores doc info from the nested bluepint for later registration.
 
         Use this to register a nested :class:`Blueprint <Blueprint>`.
 
-        :param Blueprint blueprint: blueprint to register under this blueprint
+        :param Blueprint blueprint: Blueprint to register under this blueprint.
         :param options: Options to be forwarded to the underlying
             :meth:`flask.Blueprint.register_blueprint` method.
 

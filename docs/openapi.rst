@@ -178,8 +178,7 @@ Register Nested Blueprints
 `flask nested blueprints`_.
 Endpoints from nested blueprints are automatically documented, but only the top
 level blueprints generate new "tag" entries in the OpenAPI spec.
-The tag name and description are taken from the top level blueprints. The nested blueprint
-metadata is ignored.
+The tag name and description are taken from the top level blueprints.
 
 Register Custom Fields
 ----------------------
