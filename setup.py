@@ -11,7 +11,7 @@ EXTRAS_REQUIRE = {
         "flask==2.1.2",
         "marshmallow==3.15.0",
         "webargs==8.1.0",
-        "apispec==5.2.1",
+        "apispec==5.2.2",
     ],
     "lint": [
         "flake8==4.0.1",
