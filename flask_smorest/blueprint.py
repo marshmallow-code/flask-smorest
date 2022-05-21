@@ -187,7 +187,6 @@ class Blueprint(
                 for endpoint_name, doc in blueprint._docs.items()
             }
         )
-        self._endpoints.extend(blueprint._endpoints)
 
         return super().register_blueprint(blueprint, **options)
 
