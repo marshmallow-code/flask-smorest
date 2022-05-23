@@ -22,3 +22,4 @@ Contributors (chronological)
 - Stephen Rosen `@sirosen <https://github.com/sirosen>`_
 - Grey Li `@greyli <https://github.com/greyli>`_
 - Tim Diekmann `@TimDiekmann <https://github.com/TimDiekmann>`_
+- Choudhury Noor `@Cnoor0171 <https://github.com/Cnoor0171>`_

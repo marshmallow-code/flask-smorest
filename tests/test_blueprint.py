@@ -1657,3 +1657,68 @@ class TestBlueprint:
             assert not has_response or (
                 response_headers.get("ETag") == build_ref(api.spec, "header", "ETAG")
             ) == (method in ["GET", "HEAD", "POST", "PUT", "PATCH"])
+
+    def test_blueprint_nested_blueprint(
+        self,
+        app: flask.Flask,
+    ):
+        api = Api(app)
+        par_blp = Blueprint(
+            "parent", "parent", url_prefix="/parent", description="Parent decription"
+        )
+        child_1_blp = Blueprint(
+            "child_1_blp",
+            "child_1_blp",
+            url_prefix="/child-1",
+            description="Child 1 decription",
+        )
+        child_2_blp = Blueprint(
+            "child_2_blp",
+            "child_2_blp",
+            url_prefix="/child-2",
+            description="Child 2 decription",
+        )
+
+        @par_blp.route("/")
+        def par_view():
+            """Dummy parent view func"""
+            pass
+
+        @child_1_blp.route("/")
+        def child_1_view():
+            """Dummy child 1 view func"""
+            pass
+
+        @child_2_blp.route("/")
+        def child_2_view():
+            """Dummy child 2 view func"""
+            pass
+
+        par_blp.register_blueprint(child_1_blp)
+        par_blp.register_blueprint(child_2_blp)
+        api.register_blueprint(par_blp)
+        spec = api.spec.to_dict()
+
+        # All endpoints documented
+        assert list(spec["paths"].keys()) == [
+            "/parent/",
+            "/parent/child-1/",
+            "/parent/child-2/",
+        ]
+        assert spec["paths"]["/parent/"]["get"]["summary"] == "Dummy parent view func"
+        assert (
+            spec["paths"]["/parent/child-1/"]["get"]["summary"]
+            == "Dummy child 1 view func"
+        )
+        assert (
+            spec["paths"]["/parent/child-2/"]["get"]["summary"]
+            == "Dummy child 2 view func"
+        )
+        # Only top level blueprints create new "tags"
+        assert (
+            spec["paths"]["/parent/"]["get"]["tags"]
+            == spec["paths"]["/parent/child-1/"]["get"]["tags"]
+            == spec["paths"]["/parent/child-2/"]["get"]["tags"]
+            == ["parent"]
+        )
+        assert spec["tags"] == [{"name": "parent", "description": "Parent decription"}]

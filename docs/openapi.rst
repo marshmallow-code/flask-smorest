@@ -169,6 +169,17 @@ Documentation components can be passed by accessing the internal apispec
         "Pet name", "query", {"description": "Item ID", "required": True}
     )
 
+.. _register-nested-blueprints:
+
+Register Nested Blueprints
+--------------------------
+
+:class:`Blueprint <Blueprint>` objects can be nested just like standard
+`flask nested blueprints`_.
+Endpoints from nested blueprints are automatically documented, but only the top
+level blueprints generate new "tag" entries in the OpenAPI spec.
+The tag name and description are taken from the top level blueprints.
+
 Register Custom Fields
 ----------------------
 
@@ -373,6 +384,7 @@ Here's an example application configuration using all available UIs:
 .. _Swagger UI Configuration: https://swagger.io/docs/open-source-tools/swagger-ui/usage/configuration/
 .. _RapiDoc: https://mrin9.github.io/RapiDoc/
 .. _RapiDoc API: https://mrin9.github.io/RapiDoc/api.html
+.. _flask nested blueprints: https://flask.palletsprojects.com/en/2.0.x/blueprints/#nesting-blueprints
 
 Write OpenAPI Documentation File
 --------------------------------
