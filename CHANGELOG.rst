@@ -1,6 +1,14 @@
 Changelog
 ---------
 
+0.38.0 (2022-05-23)
++++++++++++++++++++
+
+Features:
+
+- Support nested blueprints documentation (:pr:`341`).
+  Thanks :user:`Cnoor0171` for the PR.
+
 0.37.0 (2022-02-16)
 +++++++++++++++++++
 
