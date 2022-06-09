@@ -8,6 +8,13 @@ import click
 import apispec
 from apispec.ext.marshmallow import MarshmallowPlugin
 
+try:
+    import yaml
+
+    HAS_PYYAML = True
+except ImportError:
+    HAS_PYYAML = False
+
 from flask_smorest.exceptions import MissingAPIParameterError
 from flask_smorest.utils import prepare_response
 from flask_smorest import etag as fs_etag
@@ -346,12 +353,20 @@ def _get_api():
 
 @openapi_cli.command("print")
 def print_openapi_doc():
-    """Print OpenAPI document."""
+    """Print OpenAPI JSON document."""
     click.echo(json.dumps(_get_api().spec.to_dict(), indent=2))
 
 
 @openapi_cli.command("write")
 @click.argument("output_file", type=click.File(mode="w"))
 def write_openapi_doc(output_file):
-    """Write OpenAPI document to a file."""
+    """Write OpenAPI JSON document to a file."""
     click.echo(json.dumps(_get_api().spec.to_dict(), indent=2), file=output_file)
+
+
+if HAS_PYYAML:
+
+    @openapi_cli.command("print_yaml")
+    def print_openapi_doc_yaml():
+        """Print OpenAPI YAML document."""
+        click.echo(yaml.dump(_get_api().spec.to_dict()))
