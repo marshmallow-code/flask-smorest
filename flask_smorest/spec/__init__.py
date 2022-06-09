@@ -370,3 +370,9 @@ if HAS_PYYAML:
     def print_openapi_doc_yaml():
         """Print OpenAPI YAML document."""
         click.echo(yaml.dump(_get_api().spec.to_dict()))
+
+    @openapi_cli.command("write_yaml")
+    @click.argument("output_file", type=click.File(mode="w"))
+    def write_openapi_doc_yaml(output_file):
+        """Write OpenAPI YAML document to a file."""
+        click.echo(yaml.dump(_get_api().spec.to_dict(), output_file))

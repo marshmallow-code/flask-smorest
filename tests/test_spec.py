@@ -445,3 +445,17 @@ class TestAPISpecFlaskCommands:
         result = flask_cli_runner.invoke(args=["openapi", "print_yaml"])
         assert result.exit_code == 0
         assert yaml.load(result.output, yaml.Loader) == api.spec.to_dict()
+
+    @pytest.mark.skipif(
+        not HAS_PYYAML,
+        reason="Command is present only if optional dependency pyyaml present",
+    )
+    def test_apispec_command_write_yaml(self, app, flask_cli_runner, tmp_path):
+        import yaml
+
+        api = Api(app)
+        file_path = str(tmp_path / "test_apispec_command_write")
+        result = flask_cli_runner.invoke(args=["openapi", "write_yaml", file_path])
+        assert result.exit_code == 0
+        with open(file_path) as spec_file:
+            assert yaml.load(spec_file, yaml.Loader) == api.spec.to_dict()
