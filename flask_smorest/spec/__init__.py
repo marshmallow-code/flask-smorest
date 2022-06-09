@@ -1,12 +1,20 @@
 """API specification using OpenAPI"""
 import json
 import http
+import sys
 
 import flask
 from flask import current_app
 import click
 import apispec
 from apispec.ext.marshmallow import MarshmallowPlugin
+
+try:  # pragma: no cover
+    import yaml
+
+    HAS_PYYAML = True
+except ImportError:  # pragma: no cover
+    HAS_PYYAML = False
 
 from flask_smorest.exceptions import MissingAPIParameterError
 from flask_smorest.utils import prepare_response
@@ -340,16 +348,36 @@ class APISpecMixin(DocBlueprintMixin):
 openapi_cli = flask.cli.AppGroup("openapi", help="OpenAPI commands.")
 
 
+def _get_spec_dict():
+    return current_app.extensions["flask-smorest"]["ext_obj"].spec.to_dict()
+
+
 @openapi_cli.command("print")
-def print_openapi_doc():
-    """Print OpenAPI document."""
-    api = current_app.extensions["flask-smorest"]["ext_obj"]
-    click.echo(json.dumps(api.spec.to_dict(), indent=2))
+@click.option("-f", "--format", type=click.Choice(["json", "yaml"]), default="json")
+def print_openapi_doc(format):
+    """Print OpenAPI JSON document."""
+    if format == "json":
+        click.echo(json.dumps(_get_spec_dict(), indent=2))
+    else:  # format == "yaml"
+        if HAS_PYYAML:
+            click.echo(yaml.dump(_get_spec_dict()))
+        else:
+            click.echo(
+                "To use yaml output format, please install PyYAML module", sys.stderr
+            )
 
 
 @openapi_cli.command("write")
+@click.option("-f", "--format", type=click.Choice(["json", "yaml"]), default="json")
 @click.argument("output_file", type=click.File(mode="w"))
-def write_openapi_doc(output_file):
-    """Write OpenAPI document to a file."""
-    api = current_app.extensions["flask-smorest"]["ext_obj"]
-    click.echo(json.dumps(api.spec.to_dict(), indent=2), file=output_file)
+def write_openapi_doc(format, output_file):
+    """Write OpenAPI JSON document to a file."""
+    if format == "json":
+        click.echo(json.dumps(_get_spec_dict(), indent=2), file=output_file)
+    else:  # format == "yaml"
+        if HAS_PYYAML:
+            yaml.dump(_get_spec_dict(), output_file)
+        else:
+            click.echo(
+                "To use yaml output format, please install PyYAML module", sys.stderr
+            )
