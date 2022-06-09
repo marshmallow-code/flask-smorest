@@ -409,3 +409,18 @@ class TestAPISpecServeDocs:
         response_json_docs = client.get("/api-docs/openapi.json")
         assert response_json_docs.status_code == 200
         assert response_json_docs.json["paths"] == paths
+
+
+@pytest.fixture
+def flask_cli_runner(app):
+    return app.test_cli_runner()
+
+
+class TestAPISpecFlaskCommands:
+    """Test Flask openapi commands"""
+
+    def test_apispec_command_print(self, app, flask_cli_runner):
+        api = Api(app)
+        result = flask_cli_runner.invoke(args=["openapi", "print"])
+        assert result.exit_code == 0
+        assert json.loads(result.output) == api.spec.to_dict()
