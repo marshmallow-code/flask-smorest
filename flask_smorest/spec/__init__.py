@@ -340,16 +340,18 @@ class APISpecMixin(DocBlueprintMixin):
 openapi_cli = flask.cli.AppGroup("openapi", help="OpenAPI commands.")
 
 
+def _get_api():
+    return current_app.extensions["flask-smorest"]["ext_obj"]
+
+
 @openapi_cli.command("print")
 def print_openapi_doc():
     """Print OpenAPI document."""
-    api = current_app.extensions["flask-smorest"]["ext_obj"]
-    click.echo(json.dumps(api.spec.to_dict(), indent=2))
+    click.echo(json.dumps(_get_api().spec.to_dict(), indent=2))
 
 
 @openapi_cli.command("write")
 @click.argument("output_file", type=click.File(mode="w"))
 def write_openapi_doc(output_file):
     """Write OpenAPI document to a file."""
-    api = current_app.extensions["flask-smorest"]["ext_obj"]
-    click.echo(json.dumps(api.spec.to_dict(), indent=2), file=output_file)
+    click.echo(json.dumps(_get_api().spec.to_dict(), indent=2), file=output_file)
