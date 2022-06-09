@@ -424,3 +424,11 @@ class TestAPISpecFlaskCommands:
         result = flask_cli_runner.invoke(args=["openapi", "print"])
         assert result.exit_code == 0
         assert json.loads(result.output) == api.spec.to_dict()
+
+    def test_apispec_command_write(self, app, flask_cli_runner, tmp_path):
+        api = Api(app)
+        file_path = str(tmp_path / "test_apispec_command_write")
+        result = flask_cli_runner.invoke(args=["openapi", "write", file_path])
+        assert result.exit_code == 0
+        with open(file_path) as spec_file:
+            assert json.load(spec_file) == api.spec.to_dict()
