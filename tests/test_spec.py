@@ -454,7 +454,7 @@ class TestAPISpecFlaskCommands:
         import yaml
 
         api = Api(app)
-        file_path = str(tmp_path / "test_apispec_command_write")
+        file_path = str(tmp_path / "test_apispec_command_write_yaml")
         result = flask_cli_runner.invoke(args=["openapi", "write_yaml", file_path])
         assert result.exit_code == 0
         with open(file_path) as spec_file:
