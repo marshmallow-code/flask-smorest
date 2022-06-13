@@ -12,6 +12,7 @@ EXTRAS_REQUIRE = {
         "marshmallow==3.16.0",
         "webargs==8.1.0",
         "apispec==5.2.2",
+        "PyYAML==6.0",
     ],
     "lint": [
         "flake8==4.0.1",
