@@ -364,15 +364,20 @@ def write_openapi_doc(output_file):
     click.echo(json.dumps(_get_api().spec.to_dict(), indent=2), file=output_file)
 
 
-if HAS_PYYAML:
-
-    @openapi_cli.command("print_yaml")
-    def print_openapi_doc_yaml():
-        """Print OpenAPI YAML document."""
+@openapi_cli.command("print_yaml")
+def print_openapi_doc_yaml():
+    """Print OpenAPI YAML document."""
+    if HAS_PYYAML:
         click.echo(yaml.dump(_get_api().spec.to_dict()))
+    else:
+        click.echo("To use this command, please install PyYAML module")
 
-    @openapi_cli.command("write_yaml")
-    @click.argument("output_file", type=click.File(mode="w"))
-    def write_openapi_doc_yaml(output_file):
-        """Write OpenAPI YAML document to a file."""
+
+@openapi_cli.command("write_yaml")
+@click.argument("output_file", type=click.File(mode="w"))
+def write_openapi_doc_yaml(output_file):
+    """Write OpenAPI YAML document to a file."""
+    if HAS_PYYAML:
         click.echo(yaml.dump(_get_api().spec.to_dict(), output_file))
+    else:
+        click.echo("To use this command, please install PyYAML module")

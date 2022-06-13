@@ -1,6 +1,7 @@
 """Test Api class"""
 import json
 import http
+from unittest import mock
 
 import pytest
 
@@ -446,6 +447,15 @@ class TestAPISpecFlaskCommands:
         assert result.exit_code == 0
         assert yaml.load(result.output, yaml.Loader) == api.spec.to_dict()
 
+    @mock.patch("flask_smorest.spec.HAS_PYYAML", False)
+    def test_apispec_command_print_yaml_no_yaml_module(self, app, flask_cli_runner):
+        Api(app)
+        result = flask_cli_runner.invoke(args=["openapi", "print_yaml"])
+        assert result.exit_code == 0
+        assert result.output.startswith(
+            "To use this command, please install PyYAML module"
+        )
+
     @pytest.mark.skipif(
         not HAS_PYYAML,
         reason="Command is present only if optional dependency pyyaml present",
@@ -459,3 +469,15 @@ class TestAPISpecFlaskCommands:
         assert result.exit_code == 0
         with open(file_path) as spec_file:
             assert yaml.load(spec_file, yaml.Loader) == api.spec.to_dict()
+
+    @mock.patch("flask_smorest.spec.HAS_PYYAML", False)
+    def test_apispec_command_write_yaml_no_yaml_module(
+        self, app, flask_cli_runner, tmp_path
+    ):
+        Api(app)
+        file_path = str(tmp_path / "test_apispec_command_write_yaml")
+        result = flask_cli_runner.invoke(args=["openapi", "write_yaml", file_path])
+        assert result.exit_code == 0
+        assert result.output.startswith(
+            "To use this command, please install PyYAML module"
+        )
