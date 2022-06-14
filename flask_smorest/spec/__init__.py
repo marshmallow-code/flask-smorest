@@ -8,11 +8,11 @@ import click
 import apispec
 from apispec.ext.marshmallow import MarshmallowPlugin
 
-try:
+try:  # pragma: no cover
     import yaml
 
     HAS_PYYAML = True
-except ImportError:
+except ImportError:  # pragma: no cover
     HAS_PYYAML = False
 
 from flask_smorest.exceptions import MissingAPIParameterError
