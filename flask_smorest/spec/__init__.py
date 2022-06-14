@@ -1,6 +1,7 @@
 """API specification using OpenAPI"""
 import json
 import http
+import sys
 
 import flask
 from flask import current_app
@@ -352,32 +353,31 @@ def _get_api():
 
 
 @openapi_cli.command("print")
-def print_openapi_doc():
+@click.option("--output", "-o", type=click.Choice(["json", "yaml"]), default="json")
+def print_openapi_doc(output):
     """Print OpenAPI JSON document."""
-    click.echo(json.dumps(_get_api().spec.to_dict(), indent=2))
+    if output == "json":
+        click.echo(json.dumps(_get_api().spec.to_dict(), indent=2))
+    elif output == "yaml":
+        if HAS_PYYAML:
+            click.echo(yaml.dump(_get_api().spec.to_dict()))
+        else:
+            click.echo(
+                "To use yaml output format, please install PyYAML module", sys.stderr
+            )
 
 
 @openapi_cli.command("write")
+@click.option("--output", "-o", type=click.Choice(["json", "yaml"]), default="json")
 @click.argument("output_file", type=click.File(mode="w"))
-def write_openapi_doc(output_file):
+def write_openapi_doc(output, output_file):
     """Write OpenAPI JSON document to a file."""
-    click.echo(json.dumps(_get_api().spec.to_dict(), indent=2), file=output_file)
-
-
-@openapi_cli.command("print_yaml")
-def print_openapi_doc_yaml():
-    """Print OpenAPI YAML document."""
-    if HAS_PYYAML:
-        click.echo(yaml.dump(_get_api().spec.to_dict()))
-    else:
-        click.echo("To use this command, please install PyYAML module")
-
-
-@openapi_cli.command("write_yaml")
-@click.argument("output_file", type=click.File(mode="w"))
-def write_openapi_doc_yaml(output_file):
-    """Write OpenAPI YAML document to a file."""
-    if HAS_PYYAML:
-        click.echo(yaml.dump(_get_api().spec.to_dict(), output_file))
-    else:
-        click.echo("To use this command, please install PyYAML module")
+    if output == "json":
+        click.echo(json.dumps(_get_api().spec.to_dict(), indent=2), file=output_file)
+    elif output == "yaml":
+        if HAS_PYYAML:
+            yaml.dump(_get_api().spec.to_dict(), output_file)
+        else:
+            click.echo(
+                "To use yaml output format, please install PyYAML module", sys.stderr
+            )
