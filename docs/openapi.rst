@@ -389,30 +389,20 @@ Here's an example application configuration using all available UIs:
 Write OpenAPI Documentation File
 --------------------------------
 
-flask-smorest provides flask commands to print the OpenAPI JSON file to the standard
+flask-smorest provides flask commands to print the OpenAPI JSON or YAML file to the standard
 output
 
 .. code-block:: none
 
-    flask openapi print
+    flask openapi print [--output=json|yaml]
 
-or in YAML
 
-.. code-block:: none
-
-    flask openapi print_yaml
-
-or write it to a JSON file
+or write it to a JSON or YAML file
 
 .. code-block:: none
 
-    flask openapi write openapi.json
+    flask openapi write [--output=json|yaml] openapi.json
 
-or to a YAML file
-
-.. code-block:: none
-
-    flask openapi write_yaml openapi.yaml
 
 A typical use case is to write the OpenAPI documentation to a file in a
 deployment script to host it on a separate server rather than serving it from
