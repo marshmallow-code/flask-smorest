@@ -348,8 +348,8 @@ class APISpecMixin(DocBlueprintMixin):
 openapi_cli = flask.cli.AppGroup("openapi", help="OpenAPI commands.")
 
 
-def _get_api():
-    return current_app.extensions["flask-smorest"]["ext_obj"]
+def _get_spec_dict():
+    return current_app.extensions["flask-smorest"]["ext_obj"].spec.to_dict()
 
 
 @openapi_cli.command("print")
@@ -357,10 +357,10 @@ def _get_api():
 def print_openapi_doc(output):
     """Print OpenAPI JSON document."""
     if output == "json":
-        click.echo(json.dumps(_get_api().spec.to_dict(), indent=2))
+        click.echo(json.dumps(_get_spec_dict(), indent=2))
     elif output == "yaml":
         if HAS_PYYAML:
-            click.echo(yaml.dump(_get_api().spec.to_dict()))
+            click.echo(yaml.dump(_get_spec_dict()))
         else:
             click.echo(
                 "To use yaml output format, please install PyYAML module", sys.stderr
@@ -373,10 +373,10 @@ def print_openapi_doc(output):
 def write_openapi_doc(output, output_file):
     """Write OpenAPI JSON document to a file."""
     if output == "json":
-        click.echo(json.dumps(_get_api().spec.to_dict(), indent=2), file=output_file)
+        click.echo(json.dumps(_get_spec_dict(), indent=2), file=output_file)
     elif output == "yaml":
         if HAS_PYYAML:
-            yaml.dump(_get_api().spec.to_dict(), output_file)
+            yaml.dump(_get_spec_dict(), output_file)
         else:
             click.echo(
                 "To use yaml output format, please install PyYAML module", sys.stderr
