@@ -442,19 +442,9 @@ class TestAPISpecFlaskCommands:
                 id="'openapi print  --output=json' serializes to JSON",
             ),
             pytest.param(
-                "openapi print -o json",
-                json.loads,
-                id="'openapi print -o json' serializes to JSON",
-            ),
-            pytest.param(
                 "openapi print --output=yaml",
                 lambda data: yaml.load(data, yaml.Loader),
                 id="'openapi print --output=yaml' serializes to YAML",
-            ),
-            pytest.param(
-                "openapi print -o yaml",
-                lambda data: yaml.load(data, yaml.Loader),
-                id="'openapi print -o yaml' serializes to YAML",
             ),
         ],
     )
@@ -487,19 +477,9 @@ class TestAPISpecFlaskCommands:
                 id="'openapi write --output=json' serializes to JSON",
             ),
             pytest.param(
-                "openapi write -o json",
-                json.load,
-                id="'openapi write -o json' serializes to JSON",
-            ),
-            pytest.param(
                 "openapi write --output=yaml",
                 lambda file: yaml.load(file, yaml.Loader),
                 id="'openapi write --output=yaml' serializes to YAML",
-            ),
-            pytest.param(
-                "openapi write -o yaml",
-                lambda file: yaml.load(file, yaml.Loader),
-                id="'openapi write -o yaml' serializes to YAML",
             ),
         ],
     )

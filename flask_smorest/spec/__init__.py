@@ -353,7 +353,7 @@ def _get_spec_dict():
 
 
 @openapi_cli.command("print")
-@click.option("--output", "-o", type=click.Choice(["json", "yaml"]), default="json")
+@click.option("--output", type=click.Choice(["json", "yaml"]), default="json")
 def print_openapi_doc(output):
     """Print OpenAPI JSON document."""
     if output == "json":
@@ -368,7 +368,7 @@ def print_openapi_doc(output):
 
 
 @openapi_cli.command("write")
-@click.option("--output", "-o", type=click.Choice(["json", "yaml"]), default="json")
+@click.option("--output", type=click.Choice(["json", "yaml"]), default="json")
 @click.argument("output_file", type=click.File(mode="w"))
 def write_openapi_doc(output, output_file):
     """Write OpenAPI JSON document to a file."""
