@@ -1,4 +1,5 @@
 """Test Api class"""
+import contextlib
 import json
 import http
 import random
@@ -426,7 +427,8 @@ def temp_file(tmp_path):
         random.choices(string.ascii_letters + string.digits, k=6)
     )
     yield str(file_path)
-    file_path.unlink(missing_ok=True)
+    with contextlib.suppress(FileNotFoundError):
+        file_path.unlink()
 
 
 class TestAPISpecFlaskCommands:
