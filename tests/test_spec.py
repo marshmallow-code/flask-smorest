@@ -2,8 +2,6 @@
 import contextlib
 import json
 import http
-import random
-import string
 from unittest import mock
 
 import pytest
@@ -423,9 +421,7 @@ def flask_cli_runner(app):
 
 @pytest.fixture
 def temp_file(tmp_path):
-    file_path = tmp_path / "".join(
-        random.choices(string.ascii_letters + string.digits, k=6)
-    )
+    file_path = tmp_path / "openapi_file"
     yield str(file_path)
     with contextlib.suppress(FileNotFoundError):
         file_path.unlink()
