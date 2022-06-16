@@ -358,7 +358,7 @@ def print_openapi_doc(format):
     """Print OpenAPI JSON document."""
     if format == "json":
         click.echo(json.dumps(_get_spec_dict(), indent=2))
-    elif format == "yaml":
+    else:  # format == "yaml"
         if HAS_PYYAML:
             click.echo(yaml.dump(_get_spec_dict()))
         else:
@@ -374,7 +374,7 @@ def write_openapi_doc(format, output_file):
     """Write OpenAPI JSON document to a file."""
     if format == "json":
         click.echo(json.dumps(_get_spec_dict(), indent=2), file=output_file)
-    elif format == "yaml":
+    else:  # format == "yaml"
         if HAS_PYYAML:
             yaml.dump(_get_spec_dict(), output_file)
         else:
