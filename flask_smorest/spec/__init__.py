@@ -353,12 +353,12 @@ def _get_spec_dict():
 
 
 @openapi_cli.command("print")
-@click.option("--output", type=click.Choice(["json", "yaml"]), default="json")
-def print_openapi_doc(output):
+@click.option("-f", "--format", type=click.Choice(["json", "yaml"]), default="json")
+def print_openapi_doc(format):
     """Print OpenAPI JSON document."""
-    if output == "json":
+    if format == "json":
         click.echo(json.dumps(_get_spec_dict(), indent=2))
-    elif output == "yaml":
+    elif format == "yaml":
         if HAS_PYYAML:
             click.echo(yaml.dump(_get_spec_dict()))
         else:
@@ -368,13 +368,13 @@ def print_openapi_doc(output):
 
 
 @openapi_cli.command("write")
-@click.option("--output", type=click.Choice(["json", "yaml"]), default="json")
+@click.option("-f", "--format", type=click.Choice(["json", "yaml"]), default="json")
 @click.argument("output_file", type=click.File(mode="w"))
-def write_openapi_doc(output, output_file):
+def write_openapi_doc(format, output_file):
     """Write OpenAPI JSON document to a file."""
-    if output == "json":
+    if format == "json":
         click.echo(json.dumps(_get_spec_dict(), indent=2), file=output_file)
-    elif output == "yaml":
+    elif format == "yaml":
         if HAS_PYYAML:
             yaml.dump(_get_spec_dict(), output_file)
         else:

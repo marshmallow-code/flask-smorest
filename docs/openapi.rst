@@ -394,14 +394,14 @@ output
 
 .. code-block:: none
 
-    flask openapi print [--output=json|yaml]
+    flask openapi print [--format=json|yaml]
 
 
 or write it to a JSON or YAML file
 
 .. code-block:: none
 
-    flask openapi write [--output=json|yaml] openapi.json
+    flask openapi write [--format=json|yaml] openapi.json
 
 
 A typical use case is to write the OpenAPI documentation to a file in a

@@ -156,22 +156,6 @@ class TestAPISpec:
             "schema": {"$ref": "#/components/schemas/PaginationMetadata"},
         }
 
-    def test_apispec_print_openapi_doc(self, app):
-        api = Api(app)
-        result = app.test_cli_runner().invoke(args=("openapi", "print"))
-        assert result.exit_code == 0
-        assert json.loads(result.output) == api.spec.to_dict()
-
-    def test_apispec_write_openapi_doc(self, app, tmp_path):
-        output_file = tmp_path / "openapi.json"
-        api = Api(app)
-        result = app.test_cli_runner().invoke(
-            args=("openapi", "write", str(output_file))
-        )
-        assert result.exit_code == 0
-        with open(output_file) as output:
-            assert json.loads(output.read()) == api.spec.to_dict()
-
 
 class TestAPISpecServeDocs:
     """Test APISpec class doc-serving features"""
@@ -437,14 +421,24 @@ class TestAPISpecFlaskCommands:
                 "openapi print", json.loads, id="'openapi print' serializes to JSON"
             ),
             pytest.param(
-                "openapi print --output=json",
+                "openapi print -f json",
                 json.loads,
-                id="'openapi print  --output=json' serializes to JSON",
+                id="'openapi print  -f json' serializes to JSON",
             ),
             pytest.param(
-                "openapi print --output=yaml",
+                "openapi print --format=json",
+                json.loads,
+                id="'openapi print  --format=json' serializes to JSON",
+            ),
+            pytest.param(
+                "openapi print -f yaml",
                 lambda data: yaml.load(data, yaml.Loader),
-                id="'openapi print --output=yaml' serializes to YAML",
+                id="'openapi print -f yaml' serializes to YAML",
+            ),
+            pytest.param(
+                "openapi print --format=yaml",
+                lambda data: yaml.load(data, yaml.Loader),
+                id="'openapi print --format=yaml' serializes to YAML",
             ),
         ],
     )
@@ -459,7 +453,7 @@ class TestAPISpecFlaskCommands:
         self, app, flask_cli_runner
     ):
         Api(app)
-        result = flask_cli_runner.invoke(args=["openapi", "print", "--output=yaml"])
+        result = flask_cli_runner.invoke(args=["openapi", "print", "--format=yaml"])
         assert result.exit_code == 0
         assert result.output.startswith(
             "To use yaml output format, please install PyYAML module"
@@ -472,14 +466,24 @@ class TestAPISpecFlaskCommands:
                 "openapi write", json.load, id="'openapi write' serializes to JSON"
             ),
             pytest.param(
-                "openapi write --output=json",
+                "openapi write -f json",
                 json.load,
-                id="'openapi write --output=json' serializes to JSON",
+                id="'openapi write -f json' serializes to JSON",
             ),
             pytest.param(
-                "openapi write --output=yaml",
+                "openapi write --format=json",
+                json.load,
+                id="'openapi write --format=json' serializes to JSON",
+            ),
+            pytest.param(
+                "openapi write -f yaml",
                 lambda file: yaml.load(file, yaml.Loader),
-                id="'openapi write --output=yaml' serializes to YAML",
+                id="'openapi write --f yaml' serializes to YAML",
+            ),
+            pytest.param(
+                "openapi write --format=yaml",
+                lambda file: yaml.load(file, yaml.Loader),
+                id="'openapi write --format=yaml' serializes to YAML",
             ),
         ],
     )
@@ -499,7 +503,7 @@ class TestAPISpecFlaskCommands:
     ):
         Api(app)
         result = flask_cli_runner.invoke(
-            args=["openapi", "write", "--output=yaml", temp_file]
+            args=["openapi", "write", "--format=yaml", temp_file]
         )
         assert result.exit_code == 0
         assert result.output.startswith(
