@@ -23,3 +23,4 @@ Contributors (chronological)
 - Grey Li `@greyli <https://github.com/greyli>`_
 - Tim Diekmann `@TimDiekmann <https://github.com/TimDiekmann>`_
 - Choudhury Noor `@Cnoor0171 <https://github.com/Cnoor0171>`_
+- Dmitry Erlikh `@derlikh-smart <https://github.com/derlikh-smart>` _

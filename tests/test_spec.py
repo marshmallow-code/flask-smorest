@@ -1,8 +1,10 @@
 """Test Api class"""
 import json
 import http
+from unittest import mock
 
 import pytest
+import yaml
 
 from flask_smorest import Api, Blueprint
 from flask_smorest import etag as fs_etag
@@ -152,22 +154,6 @@ class TestAPISpec:
             "description": "Pagination metadata",
             "schema": {"$ref": "#/components/schemas/PaginationMetadata"},
         }
-
-    def test_apispec_print_openapi_doc(self, app):
-        api = Api(app)
-        result = app.test_cli_runner().invoke(args=("openapi", "print"))
-        assert result.exit_code == 0
-        assert json.loads(result.output) == api.spec.to_dict()
-
-    def test_apispec_write_openapi_doc(self, app, tmp_path):
-        output_file = tmp_path / "openapi.json"
-        api = Api(app)
-        result = app.test_cli_runner().invoke(
-            args=("openapi", "write", str(output_file))
-        )
-        assert result.exit_code == 0
-        with open(output_file) as output:
-            assert json.loads(output.read()) == api.spec.to_dict()
 
 
 class TestAPISpecServeDocs:
@@ -409,3 +395,101 @@ class TestAPISpecServeDocs:
         response_json_docs = client.get("/api-docs/openapi.json")
         assert response_json_docs.status_code == 200
         assert response_json_docs.json["paths"] == paths
+
+
+class TestAPISpecCLICommands:
+    """Test OpenAPI CLI commands"""
+
+    @pytest.mark.parametrize(
+        ("cmd", "deserialize_fn"),
+        [
+            pytest.param(
+                "openapi print", json.loads, id="'openapi print' serializes to JSON"
+            ),
+            pytest.param(
+                "openapi print -f json",
+                json.loads,
+                id="'openapi print  -f json' serializes to JSON",
+            ),
+            pytest.param(
+                "openapi print --format=json",
+                json.loads,
+                id="'openapi print  --format=json' serializes to JSON",
+            ),
+            pytest.param(
+                "openapi print -f yaml",
+                lambda data: yaml.load(data, yaml.Loader),
+                id="'openapi print -f yaml' serializes to YAML",
+            ),
+            pytest.param(
+                "openapi print --format=yaml",
+                lambda data: yaml.load(data, yaml.Loader),
+                id="'openapi print --format=yaml' serializes to YAML",
+            ),
+        ],
+    )
+    def test_apispec_command_print(self, cmd, deserialize_fn, app):
+        api = Api(app)
+        result = app.test_cli_runner().invoke(args=cmd.split())
+        assert result.exit_code == 0
+        assert deserialize_fn(result.output) == api.spec.to_dict()
+
+    @mock.patch("flask_smorest.spec.HAS_PYYAML", False)
+    def test_apispec_command_print_output_yaml_no_yaml_module(self, app):
+        Api(app)
+        result = app.test_cli_runner().invoke(
+            args=["openapi", "print", "--format=yaml"]
+        )
+        assert result.exit_code == 0
+        assert result.output.startswith(
+            "To use yaml output format, please install PyYAML module"
+        )
+
+    @pytest.mark.parametrize(
+        ("cmd", "deserialize_fn"),
+        [
+            pytest.param(
+                "openapi write", json.load, id="'openapi write' serializes to JSON"
+            ),
+            pytest.param(
+                "openapi write -f json",
+                json.load,
+                id="'openapi write -f json' serializes to JSON",
+            ),
+            pytest.param(
+                "openapi write --format=json",
+                json.load,
+                id="'openapi write --format=json' serializes to JSON",
+            ),
+            pytest.param(
+                "openapi write -f yaml",
+                lambda file: yaml.load(file, yaml.Loader),
+                id="'openapi write --f yaml' serializes to YAML",
+            ),
+            pytest.param(
+                "openapi write --format=yaml",
+                lambda file: yaml.load(file, yaml.Loader),
+                id="'openapi write --format=yaml' serializes to YAML",
+            ),
+        ],
+    )
+    def test_apispec_command_write(self, cmd, deserialize_fn, app, tmp_path):
+        temp_file = tmp_path / "output"
+        api = Api(app)
+
+        result = app.test_cli_runner().invoke(args=cmd.split() + [str(temp_file)])
+        assert result.exit_code == 0
+        with open(temp_file, encoding="utf-8") as spec_file:
+            assert deserialize_fn(spec_file) == api.spec.to_dict()
+
+    @mock.patch("flask_smorest.spec.HAS_PYYAML", False)
+    def test_apispec_command_write_output_yaml_no_yaml_module(self, app, tmp_path):
+        temp_file = tmp_path / "output"
+        Api(app)
+        result = app.test_cli_runner().invoke(
+            args=["openapi", "write", "--format=yaml", str(temp_file)]
+        )
+        assert result.exit_code == 0
+        assert result.output.startswith(
+            "To use yaml output format, please install PyYAML module"
+        )
