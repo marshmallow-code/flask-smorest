@@ -1,6 +1,15 @@
 Changelog
 ---------
 
+0.38.1 (2022-06-20)
++++++++++++++++++++
+
+Features:
+
+- Add ``format`` argument to ``flask openapi print`` and
+  ``flask openapi write`` commands to provide a YAML output (:pr:`367`).
+  Thanks :user:`derlikh-smart` for the contribution.
+
 0.38.0 (2022-05-23)
 +++++++++++++++++++
 
