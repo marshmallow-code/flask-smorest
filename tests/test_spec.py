@@ -1,5 +1,4 @@
 """Test Api class"""
-import contextlib
 import json
 import http
 from unittest import mock
@@ -398,21 +397,8 @@ class TestAPISpecServeDocs:
         assert response_json_docs.json["paths"] == paths
 
 
-@pytest.fixture
-def flask_cli_runner(app):
-    return app.test_cli_runner()
-
-
-@pytest.fixture
-def temp_file(tmp_path):
-    file_path = tmp_path / "openapi_file"
-    yield str(file_path)
-    with contextlib.suppress(FileNotFoundError):
-        file_path.unlink()
-
-
-class TestAPISpecFlaskCommands:
-    """Test Flask openapi commands"""
+class TestAPISpecCLICommands:
+    """Test OpenAPI CLI commands"""
 
     @pytest.mark.parametrize(
         ("cmd", "deserialize_fn"),
@@ -442,18 +428,18 @@ class TestAPISpecFlaskCommands:
             ),
         ],
     )
-    def test_apispec_command_print(self, cmd, deserialize_fn, app, flask_cli_runner):
+    def test_apispec_command_print(self, cmd, deserialize_fn, app):
         api = Api(app)
-        result = flask_cli_runner.invoke(args=cmd.split())
+        result = app.test_cli_runner().invoke(args=cmd.split())
         assert result.exit_code == 0
         assert deserialize_fn(result.output) == api.spec.to_dict()
 
     @mock.patch("flask_smorest.spec.HAS_PYYAML", False)
-    def test_apispec_command_print_output_yaml_no_yaml_module(
-        self, app, flask_cli_runner
-    ):
+    def test_apispec_command_print_output_yaml_no_yaml_module(self, app):
         Api(app)
-        result = flask_cli_runner.invoke(args=["openapi", "print", "--format=yaml"])
+        result = app.test_cli_runner().invoke(
+            args=["openapi", "print", "--format=yaml"]
+        )
         assert result.exit_code == 0
         assert result.output.startswith(
             "To use yaml output format, please install PyYAML module"
@@ -487,23 +473,21 @@ class TestAPISpecFlaskCommands:
             ),
         ],
     )
-    def test_apispec_command_write(
-        self, cmd, deserialize_fn, app, flask_cli_runner, temp_file
-    ):
+    def test_apispec_command_write(self, cmd, deserialize_fn, app, tmp_path):
+        temp_file = tmp_path / "output"
         api = Api(app)
 
-        result = flask_cli_runner.invoke(args=cmd.split() + [temp_file])
+        result = app.test_cli_runner().invoke(args=cmd.split() + [str(temp_file)])
         assert result.exit_code == 0
-        with open(temp_file) as spec_file:
+        with open(temp_file, encoding="utf-8") as spec_file:
             assert deserialize_fn(spec_file) == api.spec.to_dict()
 
     @mock.patch("flask_smorest.spec.HAS_PYYAML", False)
-    def test_apispec_command_write_output_yaml_no_yaml_module(
-        self, app, flask_cli_runner, temp_file
-    ):
+    def test_apispec_command_write_output_yaml_no_yaml_module(self, app, tmp_path):
+        temp_file = tmp_path / "output"
         Api(app)
-        result = flask_cli_runner.invoke(
-            args=["openapi", "write", "--format=yaml", temp_file]
+        result = app.test_cli_runner().invoke(
+            args=["openapi", "write", "--format=yaml", str(temp_file)]
         )
         assert result.exit_code == 0
         assert result.output.startswith(

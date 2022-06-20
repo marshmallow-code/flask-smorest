@@ -1,7 +1,6 @@
 """API specification using OpenAPI"""
 import json
 import http
-import sys
 
 import flask
 from flask import current_app
@@ -363,7 +362,7 @@ def print_openapi_doc(format):
             click.echo(yaml.dump(_get_spec_dict()))
         else:
             click.echo(
-                "To use yaml output format, please install PyYAML module", sys.stderr
+                "To use yaml output format, please install PyYAML module", err=True
             )
 
 
@@ -379,5 +378,5 @@ def write_openapi_doc(format, output_file):
             yaml.dump(_get_spec_dict(), output_file)
         else:
             click.echo(
-                "To use yaml output format, please install PyYAML module", sys.stderr
+                "To use yaml output format, please install PyYAML module", err=True
             )
