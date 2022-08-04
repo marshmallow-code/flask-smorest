@@ -43,7 +43,7 @@ from functools import wraps
 from copy import deepcopy
 
 from flask import Blueprint as FlaskBlueprint
-from flask.views import MethodViewType
+from flask.views import MethodView
 
 from .utils import deepupdate, load_info_from_docstring
 from .arguments import ArgumentsMixin
@@ -141,7 +141,7 @@ class Blueprint(
             endpoint = f"{endpoint}_{len(self._endpoints)}"
         self._endpoints.append(endpoint)
 
-        if isinstance(view_func, MethodViewType):
+        if isinstance(view_func, type(MethodView)):
             func = view_func.as_view(endpoint)
         else:
             func = view_func
@@ -211,7 +211,7 @@ class Blueprint(
             endpoint_doc_info[method.lower()] = doc
 
         # MethodView (class)
-        if isinstance(obj, MethodViewType):
+        if isinstance(obj, type(MethodView)):
             for method in self.HTTP_METHODS:
                 if method in obj.methods:
                     if "methods" not in options or method in options["methods"]:
