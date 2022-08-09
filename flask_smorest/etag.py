@@ -8,7 +8,7 @@ import warnings
 import hashlib
 
 from marshmallow import Schema
-from flask import request, current_app, json
+from flask import request, current_app
 
 from .exceptions import PreconditionRequired, PreconditionFailed, NotModified
 from .utils import deepupdate, get_appcontext
@@ -141,8 +141,8 @@ class EtagMixin:
             raw_data = etag_schema.dump(etag_data)
         if extra_data:
             raw_data = (raw_data, extra_data)
-        # Use flask.json to respect app settings, specifically JSON_SORT_KEYS
-        data = json.dumps(raw_data)
+        # Use app.json to respect app settings, specifically app.json.sort_keys
+        data = current_app.json.dumps(raw_data)
         return hashlib.sha1(bytes(data, "utf-8")).hexdigest()
 
     def _check_precondition(self):

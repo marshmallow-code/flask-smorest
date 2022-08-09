@@ -128,7 +128,7 @@ def app_with_etag(request, collection, schemas, app):
 
 class TestEtag:
     @pytest.mark.parametrize("extra_data", [None, {}, {"answer": 42}])
-    def test_etag_generate_etag(self, schemas, extra_data):
+    def test_etag_generate_etag(self, app, schemas, extra_data):
         blp = Blueprint("test", __name__)
         etag_schema = schemas.DocEtagSchema
         item = {"item_id": 1, "db_field": 0}
@@ -140,21 +140,24 @@ class TestEtag:
             data = (item, extra_data)
             data_dump = (item_schema_dump, extra_data)
 
-        etag = blp._generate_etag(item, extra_data=extra_data)
+        with app.app_context():
+            etag = blp._generate_etag(item, extra_data=extra_data)
         assert (
             etag
             == hashlib.sha1(
                 bytes(json.dumps(data, sort_keys=True), "utf-8")
             ).hexdigest()
         )
-        etag = blp._generate_etag(item, etag_schema, extra_data=extra_data)
+        with app.app_context():
+            etag = blp._generate_etag(item, etag_schema, extra_data=extra_data)
         assert (
             etag
             == hashlib.sha1(
                 bytes(json.dumps(data_dump, sort_keys=True), "utf-8")
             ).hexdigest()
         )
-        etag = blp._generate_etag(item, etag_schema(), extra_data=extra_data)
+        with app.app_context():
+            etag = blp._generate_etag(item, etag_schema(), extra_data=extra_data)
         assert (
             etag
             == hashlib.sha1(
@@ -181,8 +184,9 @@ class TestEtag:
         etag_schema = schemas.DocEtagSchema
         old_item = {"item_id": 1, "db_field": 0}
         new_item = {"item_id": 1, "db_field": 1}
-        old_etag = blp._generate_etag(old_item)
-        old_etag_with_schema = blp._generate_etag(old_item, etag_schema)
+        with app.app_context():
+            old_etag = blp._generate_etag(old_item)
+            old_etag_with_schema = blp._generate_etag(old_item, etag_schema)
 
         with app.test_request_context(
             "/",
@@ -237,7 +241,8 @@ class TestEtag:
     def test_etag_verify_check_etag_warning(self, app, method):
         blp = Blueprint("test", __name__)
         old_item = {"item_id": 1, "db_field": 0}
-        old_etag = blp._generate_etag(old_item)
+        with app.app_context():
+            old_etag = blp._generate_etag(old_item)
 
         with pytest.warns(None) as record:
             with app.test_request_context(
@@ -268,8 +273,9 @@ class TestEtag:
         blp = Blueprint("test", __name__)
         etag_schema = schemas.DocEtagSchema
         item = {"item_id": 1, "db_field": 0}
-        etag = blp._generate_etag(item)
-        etag_with_schema = blp._generate_etag(item, etag_schema)
+        with app.app_context():
+            etag = blp._generate_etag(item)
+            etag_with_schema = blp._generate_etag(item, etag_schema)
 
         with app.test_request_context("/", method=method):
             blp.set_etag(item)
@@ -347,8 +353,11 @@ class TestEtag:
             extra_data = (("X-Pagination", "Dummy pagination header"),)
         else:
             extra_data = tuple()
-        etag = blp._generate_etag(item, extra_data=extra_data)
-        etag_with_schema = blp._generate_etag(item, etag_schema, extra_data=extra_data)
+        with app.app_context():
+            etag = blp._generate_etag(item, extra_data=extra_data)
+            etag_with_schema = blp._generate_etag(
+                item, etag_schema, extra_data=extra_data
+            )
 
         with app.test_request_context("/"):
             resp = Response()
@@ -395,6 +404,8 @@ class TestEtag:
         api = Api(app)
         blp = Blueprint("test", __name__, url_prefix="/test")
         client = app.test_client()
+        with app.app_context():
+            etag = blp._generate_etag("test")
 
         @blp.route("/<code>")
         @blp.etag
@@ -411,10 +422,10 @@ class TestEtag:
 
         response = client.get("/test/200")
         assert response.json == {}
-        assert response.get_etag() == (blp._generate_etag("test"), False)
+        assert response.get_etag() == (etag, False)
         response = client.get("/test/201")
         assert response.json == {}
-        assert response.get_etag() == (blp._generate_etag("test"), False)
+        assert response.get_etag() == (etag, False)
 
     def test_etag_operations_etag_enabled(self, app_with_etag):
 
