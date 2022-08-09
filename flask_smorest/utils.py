@@ -3,7 +3,7 @@
 from collections import abc
 
 from werkzeug.datastructures import Headers
-from flask import _app_ctx_stack
+from flask import g
 from apispec.utils import trim_docstring, dedent
 
 
@@ -28,15 +28,9 @@ def remove_none(mapping):
     return {k: v for k, v in mapping.items() if v is not None}
 
 
-# XXX: Does this belong here?
 def get_appcontext():
-    """Return extension section from top of appcontext stack"""
-
-    # http://flask.pocoo.org/docs/latest/extensiondev/#the-extension-code
-    ctx = _app_ctx_stack.top
-    if not hasattr(ctx, "flask_smorest"):
-        ctx.flask_smorest = {}
-    return ctx.flask_smorest
+    """Get extension section in flask g"""
+    return g.setdefault("_flask_smorest", {})
 
 
 def load_info_from_docstring(docstring, *, delimiter="---"):
