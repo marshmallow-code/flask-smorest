@@ -162,6 +162,12 @@ class TestEtag:
             ).hexdigest()
         )
 
+    def test_etag_generate_etag_order_insensitive(self):
+        blp = Blueprint("test", __name__)
+        data_1 = {"a": 1, "b": 2}
+        data_2 = {"b": 2, "a": 1}
+        assert blp._generate_etag(data_1) == blp._generate_etag(data_2)
+
     @pytest.mark.parametrize("method", HTTP_METHODS)
     def test_etag_check_precondition(self, app, method):
         blp = Blueprint("test", __name__)

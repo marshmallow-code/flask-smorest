@@ -2,13 +2,14 @@
 
 from functools import wraps
 from copy import deepcopy
+import json
 import http
 import warnings
 
 import hashlib
 
 from marshmallow import Schema
-from flask import request, current_app, json
+from flask import request, current_app
 
 from .exceptions import PreconditionRequired, PreconditionFailed, NotModified
 from .utils import deepupdate, get_appcontext
@@ -126,7 +127,7 @@ class EtagMixin:
     def _generate_etag(etag_data, etag_schema=None, extra_data=None):
         """Generate an ETag from data
 
-        etag_data: Data to use to compute ETag
+        etag_data: Data to use to compute ETag (must be json serializable)
         etag_schema: Schema to dump data with before hashing
         extra_data: Extra data to add before hashing
 
@@ -141,8 +142,7 @@ class EtagMixin:
             raw_data = etag_schema.dump(etag_data)
         if extra_data:
             raw_data = (raw_data, extra_data)
-        # Use flask.json to respect app settings, specifically JSON_SORT_KEYS
-        data = json.dumps(raw_data)
+        data = json.dumps(raw_data, sort_keys=True)
         return hashlib.sha1(bytes(data, "utf-8")).hexdigest()
 
     def _check_precondition(self):
