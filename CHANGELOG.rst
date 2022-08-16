@@ -1,6 +1,24 @@
 Changelog
 ---------
 
+0.39.0 (2022-08-16)
++++++++++++++++++++
+
+Features:
+
+- Use ``g`` rather than ``_app_ctx_stack.top``. The latter is deprecated in
+  Flask 2.2 (:pr:`392`).
+- Use standard ``json`` rather than ``flask.json`` to generate ETag data.
+  Our use of ``flask.json`` is broken in Flask 2.2. Also always sort keys when
+  serializing data for ETag computation (this reverts :pr:`305`). ETag is now
+  insensitive to payload dict order. (:pr:`393`)
+
+Bug fixes:
+
+- Import `MethodView` from flask rather than `MethodViewType`` which is removed
+  in Flask 2.2 (:pr:`387`).
+  Thanks :user:`0x78f1935` for the contribution.
+
 0.38.1 (2022-06-20)
 +++++++++++++++++++
 
