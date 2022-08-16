@@ -11,6 +11,7 @@ from flask import jsonify
 from .utils import (
     deepupdate,
     remove_none,
+    resolve_schema_instance,
     get_appcontext,
     prepare_response,
     unpack_tuple_response,
@@ -63,8 +64,7 @@ class ResponseMixin:
 
         See :doc:`Response <response>`.
         """
-        if isinstance(schema, type):
-            schema = schema()
+        schema = resolve_schema_instance(schema)
 
         # Document response (schema, description,...) in the API doc
         doc_schema = self._make_doc_response_schema(schema)
@@ -171,8 +171,7 @@ class ResponseMixin:
             resp_doc = response
         # Otherwise, build response description
         else:
-            if isinstance(schema, type):
-                schema = schema()
+            schema = resolve_schema_instance(schema)
 
             # Document response (schema, description,...) in the API doc
             doc_schema = self._make_doc_response_schema(schema)

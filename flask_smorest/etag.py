@@ -11,7 +11,7 @@ import hashlib
 from flask import request, current_app
 
 from .exceptions import PreconditionRequired, PreconditionFailed, NotModified
-from .utils import deepupdate, get_appcontext
+from .utils import deepupdate, resolve_schema_instance, get_appcontext
 
 
 IF_NONE_MATCH_HEADER = {
@@ -140,9 +140,7 @@ class EtagMixin:
             warnings.warn(f"ETag cannot be checked on {request.method} request.")
         if _is_etag_enabled():
             if etag_schema is not None:
-                if isinstance(etag_schema, type):
-                    etag_schema = etag_schema()
-                etag_data = etag_schema.dump(etag_data)
+                etag_data = resolve_schema_instance(etag_schema).dump(etag_data)
             new_etag = self._generate_etag(etag_data)
             _get_etag_ctx()["etag_checked"] = True
             if new_etag not in request.if_match:
@@ -192,9 +190,7 @@ class EtagMixin:
             warnings.warn(f"ETag cannot be set on {request.method} request.")
         if _is_etag_enabled():
             if etag_schema is not None:
-                if isinstance(etag_schema, type):
-                    etag_schema = etag_schema()
-                etag_data = etag_schema.dump(etag_data)
+                etag_data = resolve_schema_instance(etag_schema).dump(etag_data)
             new_etag = self._generate_etag(etag_data)
             self._check_not_modified(new_etag)
             # Store ETag in AppContext to add it to response headers later on
