@@ -35,16 +35,15 @@ The :class:`Schema <marshmallow.Schema>` must be provided explicitly, even
 though it is the same as the response schema.
 
 .. code-block:: python
-    :emphasize-lines: 3, 8, 17, 22, 28, 32, 37
+    :emphasize-lines: 2,15,26,34
 
     @blp.route("/")
+    @blp.etag
     class Pet(MethodView):
-        @blp.etag
         @blp.response(200, PetSchema(many=True))
         def get(self):
             return Pet.get()
 
-        @blp.etag
         @blp.arguments(PetSchema)
         @blp.response(201, PetSchema)
         def post(self, new_data):
@@ -52,13 +51,12 @@ though it is the same as the response schema.
 
 
     @blp.route("/<pet_id>")
+    @blp.etag
     class PetById(MethodView):
-        @blp.etag
         @blp.response(200, PetSchema)
         def get(self, pet_id):
             return Pet.get_by_id(pet_id)
 
-        @blp.etag
         @blp.arguments(PetSchema)
         @blp.response(200, PetSchema)
         def put(self, update_data, pet_id):
@@ -68,7 +66,6 @@ though it is the same as the response schema.
             pet.update(update_data)
             return pet
 
-        @blp.etag
         @blp.response(204)
         def delete(self, pet_id):
             pet = Pet.get_by_id(pet_id)
@@ -87,11 +84,11 @@ to pass an ETag schema to :meth:`set_etag <Blueprint.set_etag>` and
 :meth:`check_etag <Blueprint.check_etag>`.
 
 .. code-block:: python
-    :emphasize-lines: 3,8,11,16,22,26,29,35,38,41,46
+    :emphasize-lines: 2,8,15,20,25,33,36,43
 
     @blp.route("/")
+    @blp.etag
     class Pet(MethodView):
-        @blp.etag
         @blp.response(200, PetSchema(many=True))
         def get(self):
             pets = Pet.get()
@@ -99,7 +96,6 @@ to pass an ETag schema to :meth:`set_etag <Blueprint.set_etag>` and
             blp.set_etag([pet.update_time for pet in pets])
             return pets
 
-        @blp.etag
         @blp.arguments(PetSchema)
         @blp.response(201, PetSchema)
         def post(self, new_data):
@@ -109,15 +105,14 @@ to pass an ETag schema to :meth:`set_etag <Blueprint.set_etag>` and
 
 
     @blp.route("/<pet_id>")
+    @blp.etag
     class PetById(MethodView):
-        @blp.etag
         @blp.response(200, PetSchema)
         def get(self, pet_id):
             # Compute ETag using arbitrary data
             blp.set_etag(new_data["update_time"])
             return Pet.get_by_id(pet_id)
 
-        @blp.etag
         @blp.arguments(PetSchema)
         @blp.response(200, PetSchema)
         def put(self, update_data, pet_id):
@@ -129,7 +124,6 @@ to pass an ETag schema to :meth:`set_etag <Blueprint.set_etag>` and
             blp.set_etag(new_data["update_time"])
             return pet
 
-        @blp.etag
         @blp.response(204)
         def delete(self, pet_id):
             pet = Pet.get_by_id(pet_id)
