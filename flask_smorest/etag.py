@@ -9,7 +9,6 @@ import warnings
 import hashlib
 
 from flask import request, current_app
-from flask.views import MethodView
 
 from .exceptions import PreconditionRequired, PreconditionFailed, NotModified
 from .utils import deepupdate, resolve_schema_instance, get_appcontext
@@ -98,16 +97,7 @@ class EtagMixin:
 
             return wrapper
 
-        # Decorating a MethodView decorates all HTTP methods
-        if isinstance(obj, type(MethodView)):
-            for method in self.HTTP_METHODS:
-                if method in obj.methods:
-                    method_l = method.lower()
-                    func = getattr(obj, method_l)
-                    setattr(obj, method_l, decorator(func))
-            return obj
-
-        return decorator(obj)
+        return self._decorate_view_func_or_method_view(decorator, obj)
 
     @staticmethod
     def _generate_etag(etag_data, extra_data=None):
