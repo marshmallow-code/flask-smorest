@@ -27,20 +27,20 @@ def implicit_data_and_schema_etag_blueprint(collection, schemas):
     blp = Blueprint("test", __name__, url_prefix="/test")
 
     @blp.route("/")
+    @blp.etag
     class Resource(MethodView):
-        @blp.etag
         @blp.response(200, DocSchema(many=True))
         @blp.paginate(Page)
         def get(self):
             return collection.items
 
-        @blp.etag
         @blp.arguments(DocSchema)
         @blp.response(201, DocSchema)
         def post(self, new_item):
             return collection.post(new_item)
 
     @blp.route("/<int:item_id>")
+    @blp.etag
     class ResourceById(MethodView):
         def _get_item(self, item_id):
             try:
@@ -48,12 +48,10 @@ def implicit_data_and_schema_etag_blueprint(collection, schemas):
             except ItemNotFound:
                 abort(404)
 
-        @blp.etag
         @blp.response(200, DocSchema)
         def get(self, item_id):
             return self._get_item(item_id)
 
-        @blp.etag
         @blp.arguments(DocSchema)
         @blp.response(200, DocSchema)
         def put(self, new_item, item_id):
@@ -62,7 +60,6 @@ def implicit_data_and_schema_etag_blueprint(collection, schemas):
             blp.check_etag(item, DocSchema)
             return collection.put(item_id, new_item)
 
-        @blp.etag
         @blp.response(204)
         def delete(self, item_id):
             item = self._get_item(item_id)
@@ -86,8 +83,8 @@ def explicit_data_no_schema_etag_blueprint(collection, schemas):
     blp = Blueprint("test", __name__, url_prefix="/test")
 
     @blp.route("/")
+    @blp.etag
     class Resource(MethodView):
-        @blp.etag
         @blp.response(200, DocSchema(many=True))
         @blp.paginate()
         def get(self, pagination_parameters):
@@ -98,7 +95,6 @@ def explicit_data_no_schema_etag_blueprint(collection, schemas):
                 pagination_parameters.first_item : pagination_parameters.last_item + 1
             ]
 
-        @blp.etag
         @blp.arguments(DocSchema)
         @blp.response(201, DocSchema)
         def post(self, new_item):
@@ -107,6 +103,7 @@ def explicit_data_no_schema_etag_blueprint(collection, schemas):
             return collection.post(new_item)
 
     @blp.route("/<int:item_id>")
+    @blp.etag
     class ResourceById(MethodView):
         def _get_item(self, item_id):
             try:
@@ -114,7 +111,6 @@ def explicit_data_no_schema_etag_blueprint(collection, schemas):
             except ItemNotFound:
                 abort(404)
 
-        @blp.etag
         @blp.response(200, DocSchema)
         def get(self, item_id):
             item = self._get_item(item_id)
@@ -122,7 +118,6 @@ def explicit_data_no_schema_etag_blueprint(collection, schemas):
             blp.set_etag(item["db_field"])
             return item
 
-        @blp.etag
         @blp.arguments(DocSchema)
         @blp.response(200, DocSchema)
         def put(self, new_item, item_id):
@@ -134,7 +129,6 @@ def explicit_data_no_schema_etag_blueprint(collection, schemas):
             blp.set_etag(new_item["db_field"])
             return new_item
 
-        @blp.etag
         @blp.response(204)
         def delete(self, item_id):
             item = self._get_item(item_id)

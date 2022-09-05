@@ -9,6 +9,7 @@ import warnings
 import hashlib
 
 from flask import request, current_app
+from flask.views import MethodView
 
 from .exceptions import PreconditionRequired, PreconditionFailed, NotModified
 from .utils import deepupdate, resolve_schema_instance, get_appcontext
@@ -55,12 +56,16 @@ class EtagMixin:
     # Headers to include in ETag computation
     ETAG_INCLUDE_HEADERS = ["X-Pagination"]
 
-    def etag(self, view_func):
+    def etag(self, obj):
         """Decorator adding ETag management to the endpoint
 
         The ``etag`` decorator expects the decorated view function to return a
         ``Response`` object. It is the case if it is decorated with the
         ``response`` decorator.
+
+        The ``etag`` decorator may be used to decorate a
+        :class:`MethodView <flask.views.MethodView>`. In this case, it applies
+        to all HTTP methods in the ``MethodView``.
 
         See :doc:`ETag <etag>`.
         """
@@ -93,7 +98,16 @@ class EtagMixin:
 
             return wrapper
 
-        return decorator(view_func)
+        # Decorating a MethodView decorates all HTTP methods
+        if isinstance(obj, type(MethodView)):
+            for method in self.HTTP_METHODS:
+                if method in obj.methods:
+                    method_l = method.lower()
+                    func = getattr(obj, method_l)
+                    setattr(obj, method_l, decorator(func))
+            return obj
+
+        return decorator(obj)
 
     @staticmethod
     def _generate_etag(etag_data, extra_data=None):

@@ -34,6 +34,7 @@ def app_with_etag(request, collection, schemas, app):
 
     if as_method_view:
 
+        # Decorate each function
         @blp.route("/")
         class Resource(MethodView):
             @blp.etag
@@ -47,7 +48,9 @@ def app_with_etag(request, collection, schemas, app):
             def post(self, new_item):
                 return collection.post(new_item)
 
+        # Better: decorate the whole MethodView
         @blp.route("/<int:item_id>")
+        @blp.etag
         class ResourceById(MethodView):
             def _get_item(self, item_id):
                 try:
@@ -55,12 +58,10 @@ def app_with_etag(request, collection, schemas, app):
                 except ItemNotFound:
                     abort(404)
 
-            @blp.etag
             @blp.response(200, DocSchema)
             def get(self, item_id):
                 return self._get_item(item_id)
 
-            @blp.etag
             @blp.arguments(DocSchema)
             @blp.response(200, DocSchema)
             def put(self, new_item, item_id):
@@ -68,7 +69,6 @@ def app_with_etag(request, collection, schemas, app):
                 blp.check_etag(item, DocSchema)
                 return collection.put(item_id, new_item)
 
-            @blp.etag
             @blp.response(204)
             def delete(self, item_id):
                 item = self._get_item(item_id)
