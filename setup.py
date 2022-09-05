@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 
 EXTRAS_REQUIRE = {
     "tests": [
-        "pytest==7.1.2",
+        "pytest==7.1.3",
         "pytest-cov==3.0.0",
         "coverage==6.4.4",
         "werkzeug==2.2.2",
