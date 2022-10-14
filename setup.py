@@ -11,7 +11,7 @@ EXTRAS_REQUIRE = {
         "flask==2.2.2",
         "marshmallow==3.18.0",
         "webargs==8.2.0",
-        "apispec==5.2.2",
+        "apispec==6.0.0",
         "PyYAML==6.0",
     ],
     "lint": [
@@ -70,7 +70,7 @@ setup(
         "flask>=2.0,<3",
         "marshmallow>=3.13.0,<4",
         "webargs>=8.0.0,<9",
-        "apispec[marshmallow]>=5.1.0,<6",
+        "apispec[marshmallow]>=6.0.0,<7",
     ],
     extras_require=EXTRAS_REQUIRE,
 )

@@ -305,7 +305,7 @@ class APISpecMixin(DocBlueprintMixin):
             self._register_field(field, *args)
 
     def _register_field(self, field, *args):
-        self.ma_plugin.map_to_openapi_type(*args)(field)
+        self.ma_plugin.map_to_openapi_type(field, *args)
 
     def _register_responses(self):
         """Lazyly register default responses for all status codes"""
