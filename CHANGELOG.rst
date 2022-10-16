@@ -1,6 +1,22 @@
 Changelog
 ---------
 
+0.40.0 (2022-10-16)
++++++++++++++++++++
+
+Feature:
+
+- Support apispec 6.0.0 (:pr:`408`).
+- Document webargs's ``DelimitedList`` (:pr:`409`).
+- *Backwards-incompatible*: Rework ETag feature. Drop the "ETag computed with
+  API response data using another schema" case and allow decorating a whole
+  ``MethodView`` at once rather than decorating each method. (:pr:`394`)
+
+Other changes:
+
+- *Backwards-incompatible*: Drop apispec < 6.0.0 (:pr:`408`).
+- *Backwards-incompatible*: Drop marshmallow < 3.18.0 (:pr:`410`).
+
 0.39.0 (2022-08-16)
 +++++++++++++++++++
 
