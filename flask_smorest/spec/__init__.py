@@ -7,6 +7,7 @@ from flask import current_app
 import click
 import apispec
 from apispec.ext.marshmallow import MarshmallowPlugin
+from webargs.fields import DelimitedList
 
 try:  # pragma: no cover
     import yaml
@@ -26,6 +27,18 @@ from .field_converters import uploadfield2properties
 def _add_leading_slash(string):
     """Add leading slash to a string if there is None"""
     return string if string.startswith("/") else "/" + string
+
+
+def delimited_list2param(self, field, **kwargs):
+    """apispec parameter attribute function documenting DelimitedList field"""
+    ret = {}
+    if isinstance(field, DelimitedList):
+        if self.openapi_version.major < 3:
+            ret["collectionFormat"] = "csv"
+        else:
+            ret["explode"] = False
+            ret["style"] = "form"
+    return ret
 
 
 class DocBlueprintMixin:
@@ -217,6 +230,8 @@ class APISpecMixin(DocBlueprintMixin):
             self._register_converter(*args)
         # Register Upload field properties function
         self.ma_plugin.converter.add_attribute_function(uploadfield2properties)
+        # Register DelimitedList field parameter attribute function
+        self.ma_plugin.converter.add_parameter_attribute_function(delimited_list2param)
 
         # Lazy register default responses
         self._register_responses()

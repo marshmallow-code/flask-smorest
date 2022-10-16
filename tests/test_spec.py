@@ -5,6 +5,8 @@ from unittest import mock
 
 import pytest
 import yaml
+from webargs.fields import DelimitedList
+import marshmallow as ma
 
 from flask_smorest import Api, Blueprint
 from flask_smorest import etag as fs_etag
@@ -34,7 +36,7 @@ class TestAPISpec:
             assert "consumes" not in spec
 
     @pytest.mark.parametrize("openapi_version", ["2.0", "3.0.2"])
-    def test_api_lazy_registers_error_responses(self, app, openapi_version):
+    def test_apispec_lazy_registers_error_responses(self, app, openapi_version):
         """Test error responses are registered"""
         app.config["OPENAPI_VERSION"] = openapi_version
         api = Api(app)
@@ -81,7 +83,7 @@ class TestAPISpec:
                     }
 
     @pytest.mark.parametrize("openapi_version", ["2.0", "3.0.2"])
-    def test_api_lazy_registers_etag_headers(self, app, openapi_version):
+    def test_apispec_lazy_registers_etag_headers(self, app, openapi_version):
         """Test etag headers are registered"""
         app.config["OPENAPI_VERSION"] = openapi_version
         api = Api(app)
@@ -126,7 +128,7 @@ class TestAPISpec:
         assert parameters["IF_NONE_MATCH"] == fs_etag.IF_NONE_MATCH_HEADER
         assert parameters["IF_MATCH"] == fs_etag.IF_MATCH_HEADER
 
-    def test_api_lazy_registers_pagination_header(self, app):
+    def test_apispec_lazy_registers_pagination_header(self, app):
         """Test pagination header is registered"""
         api = Api(app)
 
@@ -154,6 +156,39 @@ class TestAPISpec:
             "description": "Pagination metadata",
             "schema": {"$ref": "#/components/schemas/PaginationMetadata"},
         }
+
+    @pytest.mark.parametrize("openapi_version", ("2.0", "3.0.2"))
+    def test_apispec_delimited_list_documentation(self, app, openapi_version):
+        """Test DelimitedList if correctly documented"""
+        app.config["OPENAPI_VERSION"] = openapi_version
+        api = Api(app)
+
+        blp = Blueprint("test", "test", url_prefix="/test")
+
+        class ListInputsSchema(ma.Schema):
+            inputs = DelimitedList(ma.fields.Integer)
+
+        @blp.route("/")
+        @blp.arguments(ListInputsSchema, location="query")
+        def test(args):
+            # Also test DelimitedList behaves as expected
+            assert args == {"inputs": [1, 2, 3]}
+
+        api.register_blueprint(blp)
+        spec = api.spec.to_dict()
+        parameters = spec["paths"]["/test/"]["get"]["parameters"]
+        param = next(p for p in parameters if p["name"] == "inputs")
+        if openapi_version == "2.0":
+            assert param["type"] == "array"
+            assert param["items"] == {"type": "integer"}
+            assert param["collectionFormat"] == "csv"
+        else:
+            assert param["schema"] == {"type": "array", "items": {"type": "integer"}}
+            assert param["explode"] is False
+            assert param["style"] == "form"
+
+        client = app.test_client()
+        client.get("/test/", query_string={"inputs": "1,2,3"})
 
 
 class TestAPISpecServeDocs:
