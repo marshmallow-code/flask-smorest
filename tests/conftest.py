@@ -66,9 +66,6 @@ def schemas():
         item_id = ma.fields.Int(dump_only=True)
         field = ma.fields.Int(attribute="db_field")
 
-    class DocEtagSchema(CounterSchema):
-        field = ma.fields.Int(attribute="db_field")
-
     class QueryArgsSchema(ma.Schema):
         class Meta:
             ordered = True
@@ -81,6 +78,6 @@ def schemas():
         error_id = ma.fields.Str()
         text = ma.fields.Str()
 
-    return namedtuple(
-        "Model", ("DocSchema", "DocEtagSchema", "QueryArgsSchema", "ClientErrorSchema")
-    )(DocSchema, DocEtagSchema, QueryArgsSchema, ClientErrorSchema)
+    return namedtuple("Model", ("DocSchema", "QueryArgsSchema", "ClientErrorSchema"))(
+        DocSchema, QueryArgsSchema, ClientErrorSchema
+    )

@@ -28,6 +28,15 @@ def remove_none(mapping):
     return {k: v for k, v in mapping.items() if v is not None}
 
 
+def resolve_schema_instance(schema):
+    """Return schema instance for given schema (instance or class).
+
+    :param type|Schema schema: marshmallow.Schema instance or class
+    :return: schema instance of given schema
+    """
+    return schema() if isinstance(schema, type) else schema
+
+
 def get_appcontext():
     """Get extension section in flask g"""
     return g.setdefault("_flask_smorest", {})

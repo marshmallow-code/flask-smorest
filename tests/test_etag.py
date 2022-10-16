@@ -30,25 +30,27 @@ def app_with_etag(request, collection, schemas, app):
 
     as_method_view = request.param
     DocSchema = schemas.DocSchema
-    DocEtagSchema = schemas.DocEtagSchema
     blp = Blueprint("test", __name__, url_prefix="/test")
 
     if as_method_view:
 
+        # Decorate each function
         @blp.route("/")
         class Resource(MethodView):
-            @blp.etag(DocEtagSchema(many=True))
+            @blp.etag
             @blp.response(200, DocSchema(many=True))
             def get(self):
                 return collection.items
 
-            @blp.etag(DocEtagSchema)
+            @blp.etag
             @blp.arguments(DocSchema)
             @blp.response(201, DocSchema)
             def post(self, new_item):
                 return collection.post(new_item)
 
+        # Better: decorate the whole MethodView
         @blp.route("/<int:item_id>")
+        @blp.etag
         class ResourceById(MethodView):
             def _get_item(self, item_id):
                 try:
@@ -56,36 +58,33 @@ def app_with_etag(request, collection, schemas, app):
                 except ItemNotFound:
                     abort(404)
 
-            @blp.etag(DocEtagSchema)
             @blp.response(200, DocSchema)
             def get(self, item_id):
                 return self._get_item(item_id)
 
-            @blp.etag(DocEtagSchema)
             @blp.arguments(DocSchema)
             @blp.response(200, DocSchema)
             def put(self, new_item, item_id):
                 item = self._get_item(item_id)
-                blp.check_etag(item, DocEtagSchema)
+                blp.check_etag(item, DocSchema)
                 return collection.put(item_id, new_item)
 
-            @blp.etag(DocEtagSchema)
             @blp.response(204)
             def delete(self, item_id):
                 item = self._get_item(item_id)
-                blp.check_etag(item, DocEtagSchema)
+                blp.check_etag(item, DocSchema)
                 del collection.items[collection.items.index(item)]
 
     else:
 
         @blp.route("/")
-        @blp.etag(DocEtagSchema(many=True))
+        @blp.etag
         @blp.response(200, DocSchema(many=True))
         def get_resources():
             return collection.items
 
         @blp.route("/", methods=("POST",))
-        @blp.etag(DocEtagSchema)
+        @blp.etag
         @blp.arguments(DocSchema)
         @blp.response(201, DocSchema)
         def post_resource(new_item):
@@ -98,26 +97,26 @@ def app_with_etag(request, collection, schemas, app):
                 abort(404)
 
         @blp.route("/<int:item_id>")
-        @blp.etag(DocEtagSchema)
+        @blp.etag
         @blp.response(200, DocSchema)
         def get_resource(item_id):
             return _get_item(item_id)
 
         @blp.route("/<int:item_id>", methods=("PUT",))
-        @blp.etag(DocEtagSchema)
+        @blp.etag
         @blp.arguments(DocSchema)
         @blp.response(200, DocSchema)
         def put_resource(new_item, item_id):
             item = _get_item(item_id)
-            blp.check_etag(item)
+            blp.check_etag(item, DocSchema)
             return collection.put(item_id, new_item)
 
         @blp.route("/<int:item_id>", methods=("DELETE",))
-        @blp.etag(DocEtagSchema)
+        @blp.etag
         @blp.response(204)
         def delete_resource(item_id):
             item = _get_item(item_id)
-            blp.check_etag(item)
+            blp.check_etag(item, DocSchema)
             del collection.items[collection.items.index(item)]
 
     api = Api(app)
@@ -128,37 +127,15 @@ def app_with_etag(request, collection, schemas, app):
 
 class TestEtag:
     @pytest.mark.parametrize("extra_data", [None, {}, {"answer": 42}])
-    def test_etag_generate_etag(self, schemas, extra_data):
+    def test_etag_generate_etag(self, extra_data):
         blp = Blueprint("test", __name__)
-        etag_schema = schemas.DocEtagSchema
         item = {"item_id": 1, "db_field": 0}
-        item_schema_dump = etag_schema().dump(item)
-        if extra_data is None or extra_data == {}:
-            data = item
-            data_dump = item_schema_dump
-        else:
-            data = (item, extra_data)
-            data_dump = (item_schema_dump, extra_data)
+        data = (item, extra_data) if extra_data else item
 
-        etag = blp._generate_etag(item, extra_data=extra_data)
         assert (
-            etag
+            blp._generate_etag(item, extra_data=extra_data)
             == hashlib.sha1(
                 bytes(json.dumps(data, sort_keys=True), "utf-8")
-            ).hexdigest()
-        )
-        etag = blp._generate_etag(item, etag_schema, extra_data=extra_data)
-        assert (
-            etag
-            == hashlib.sha1(
-                bytes(json.dumps(data_dump, sort_keys=True), "utf-8")
-            ).hexdigest()
-        )
-        etag = blp._generate_etag(item, etag_schema(), extra_data=extra_data)
-        assert (
-            etag
-            == hashlib.sha1(
-                bytes(json.dumps(data_dump, sort_keys=True), "utf-8")
             ).hexdigest()
         )
 
@@ -184,11 +161,11 @@ class TestEtag:
     def test_etag_check_etag(self, app, schemas, method, etag_disabled):
         app.config["ETAG_DISABLED"] = etag_disabled
         blp = Blueprint("test", __name__)
-        etag_schema = schemas.DocEtagSchema
+        schema = schemas.DocSchema
         old_item = {"item_id": 1, "db_field": 0}
         new_item = {"item_id": 1, "db_field": 1}
         old_etag = blp._generate_etag(old_item)
-        old_etag_with_schema = blp._generate_etag(old_item, etag_schema)
+        old_etag_with_schema = blp._generate_etag(schema().dump(old_item))
 
         with app.test_request_context(
             "/",
@@ -206,10 +183,10 @@ class TestEtag:
             method=method,
             headers={"If-Match": old_etag_with_schema},
         ):
-            blp.check_etag(old_item, etag_schema)
+            blp.check_etag(old_item, schema)
             if not etag_disabled:
                 with pytest.raises(PreconditionFailed):
-                    blp.check_etag(new_item, etag_schema)
+                    blp.check_etag(new_item, schema)
             else:
                 blp.check_etag(new_item)
 
@@ -272,10 +249,10 @@ class TestEtag:
     def test_etag_set_etag(self, app, schemas, method, etag_disabled):
         app.config["ETAG_DISABLED"] = etag_disabled
         blp = Blueprint("test", __name__)
-        etag_schema = schemas.DocEtagSchema
+        schema = schemas.DocSchema
         item = {"item_id": 1, "db_field": 0}
         etag = blp._generate_etag(item)
-        etag_with_schema = blp._generate_etag(item, etag_schema)
+        etag_with_schema = blp._generate_etag(schema().dump(item))
 
         with app.test_request_context("/", method=method):
             blp.set_etag(item)
@@ -304,9 +281,9 @@ class TestEtag:
             if not etag_disabled:
                 if method in ["GET", "HEAD"]:
                     with pytest.raises(NotModified):
-                        blp.set_etag(item, etag_schema)
+                        blp.set_etag(item, schema)
             else:
-                blp.set_etag(item, etag_schema)
+                blp.set_etag(item, schema)
                 assert "etag" not in _get_etag_ctx()
         with app.test_request_context(
             "/",
@@ -317,13 +294,13 @@ class TestEtag:
                 blp.set_etag(item)
                 assert _get_etag_ctx()["etag"] == etag
                 del _get_etag_ctx()["etag"]
-                blp.set_etag(item, etag_schema)
+                blp.set_etag(item, schema)
                 assert _get_etag_ctx()["etag"] == etag_with_schema
                 del _get_etag_ctx()["etag"]
             else:
                 blp.set_etag(item)
                 assert "etag" not in _get_etag_ctx()
-                blp.set_etag(item, etag_schema)
+                blp.set_etag(item, schema)
                 assert "etag" not in _get_etag_ctx()
 
     @pytest.mark.parametrize("etag_disabled", (True, False))
@@ -347,30 +324,20 @@ class TestEtag:
     @pytest.mark.parametrize("paginate", (True, False))
     def test_etag_set_etag_in_response(self, app, schemas, paginate):
         blp = Blueprint("test", __name__)
-        etag_schema = schemas.DocEtagSchema
         item = {"item_id": 1, "db_field": 0}
         if paginate:
             extra_data = (("X-Pagination", "Dummy pagination header"),)
         else:
             extra_data = tuple()
         etag = blp._generate_etag(item, extra_data=extra_data)
-        etag_with_schema = blp._generate_etag(item, etag_schema, extra_data=extra_data)
 
         with app.test_request_context("/"):
             resp = Response()
             if extra_data:
                 resp.headers["X-Pagination"] = "Dummy pagination header"
             get_appcontext()["result_dump"] = item
-            blp._set_etag_in_response(resp, None)
+            blp._set_etag_in_response(resp)
             assert resp.get_etag() == (etag, False)
-
-        with app.test_request_context("/"):
-            resp = Response()
-            if extra_data:
-                resp.headers["X-Pagination"] = "Dummy pagination header"
-            get_appcontext()["result_raw"] = item
-            blp._set_etag_in_response(resp, etag_schema)
-            assert resp.get_etag() == (etag_with_schema, False)
 
     def test_etag_duplicate_header(self, app):
         """Check duplicate header results in a different ETag"""
@@ -384,7 +351,7 @@ class TestEtag:
             resp = Response()
             resp.headers.add("X-test", "Test")
             get_appcontext()["result_dump"] = {}
-            blp._set_etag_in_response(resp, None)
+            blp._set_etag_in_response(resp)
             etag_1 = resp.get_etag()
 
         with app.test_request_context("/"):
@@ -392,7 +359,7 @@ class TestEtag:
             resp.headers.add("X-test", "Test")
             resp.headers.add("X-test", "Test")
             get_appcontext()["result_dump"] = {}
-            blp._set_etag_in_response(resp, None)
+            blp._set_etag_in_response(resp)
             etag_2 = resp.get_etag()
 
         assert etag_1 != etag_2

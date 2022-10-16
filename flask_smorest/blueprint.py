@@ -305,3 +305,17 @@ class Blueprint(
             return wrapper
 
         return decorator
+
+    def _decorate_view_func_or_method_view(self, decorator, obj):
+        """Apply decorator to view func or MethodView HTTP methods"""
+
+        # Decorating a MethodView decorates all HTTP methods
+        if isinstance(obj, type(MethodView)):
+            for method in self.HTTP_METHODS:
+                if method in obj.methods:
+                    method_l = method.lower()
+                    func = getattr(obj, method_l)
+                    setattr(obj, method_l, decorator(func))
+            return obj
+
+        return decorator(obj)
