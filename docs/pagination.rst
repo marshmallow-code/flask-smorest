@@ -101,6 +101,9 @@ specific range of data by passing query arguments:
 
 The view function gets default values for the pagination parameters, as well as
 a maximum value for ``page_size``.
+If the parameters are coming from another source (for example JSON), you can set the location from which to load
+them via the ``location`` argument to the decorator
+
 
 Those default values are defined as
 

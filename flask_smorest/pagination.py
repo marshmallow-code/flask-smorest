@@ -147,13 +147,14 @@ class PaginationMixin:
     # Can be overridden to provide custom defaults
     DEFAULT_PAGINATION_PARAMETERS = {"page": 1, "page_size": 10, "max_page_size": 100}
 
-    def paginate(self, pager=None, *, page=None, page_size=None, max_page_size=None):
+    def paginate(self, pager=None, *, page=None, page_size=None, max_page_size=None, location="query"):
         """Decorator adding pagination to the endpoint
 
         :param Page pager: Page class used to paginate response data
         :param int page: Default requested page number (default: 1)
         :param int page_size: Default requested page size (default: 10)
         :param int max_page_size: Maximum page size (default: 100)
+        :param str location: Where to look for the page params (default: query)
 
         If a :class:`Page <Page>` class is provided, it is used to paginate the
         data returned by the view function, typically a lazy database cursor.
@@ -188,7 +189,7 @@ class PaginationMixin:
             def wrapper(*args, **kwargs):
 
                 page_params = self.PAGINATION_ARGUMENTS_PARSER.parse(
-                    page_params_schema, request, location="query"
+                    page_params_schema, request, location=location
                 )
 
                 # Pagination in resource code: inject page_params as kwargs
