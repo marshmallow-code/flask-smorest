@@ -16,7 +16,7 @@ EXTRAS_REQUIRE = {
     ],
     "lint": [
         "flake8==5.0.4",
-        "flake8-bugbear==22.9.23",
+        "flake8-bugbear==22.10.25",
         "pre-commit==2.20.0",
     ],
 }
