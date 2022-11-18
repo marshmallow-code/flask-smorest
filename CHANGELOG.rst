@@ -4,7 +4,7 @@ Changelog
 0.40.0 (2022-10-16)
 +++++++++++++++++++
 
-Feature:
+Features:
 
 - Support apispec 6.0.0 (:pr:`408`).
 - Document webargs's ``DelimitedList`` (:pr:`409`).
