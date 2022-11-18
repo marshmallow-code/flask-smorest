@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+0.41.0 (unreleased)
+*******************
+
+Other changes:
+
+- Official Python 3.11 support (:pr:`416`).
+
 0.40.0 (2022-10-16)
 +++++++++++++++++++
 
