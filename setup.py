@@ -15,7 +15,7 @@ EXTRAS_REQUIRE = {
         "PyYAML==6.0",
     ],
     "lint": [
-        "flake8==5.0.4",
+        "flake8==6.0.0",
         "flake8-bugbear==22.10.27",
         "pre-commit==2.20.0",
     ],
