@@ -437,7 +437,7 @@ class TestAPISpecServeDocs:
         app.config["V1_OPENAPI_URL_PREFIX"] = "/v1-docs"
         app.config["V2_OPENAPI_URL_PREFIX"] = "/v2-docs/"
 
-        for i in range(1, 3):
+        for i in [1, 2]:
             api = Api(
                 app,
                 config_prefix=f"V{i}_",
