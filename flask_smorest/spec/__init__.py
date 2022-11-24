@@ -1,15 +1,13 @@
 """API specification using OpenAPI"""
-import http
 import json
+import http
 
-import apispec
-import click
 import flask
-from apispec.ext.marshmallow import MarshmallowPlugin
 from flask import current_app
+import click
+import apispec
+from apispec.ext.marshmallow import MarshmallowPlugin
 from webargs.fields import DelimitedList
-
-from ..utils import get_config_value, get_config_key
 
 try:  # pragma: no cover
     import yaml
@@ -18,13 +16,12 @@ try:  # pragma: no cover
 except ImportError:  # pragma: no cover
     HAS_PYYAML = False
 
+from flask_smorest.exceptions import MissingAPIParameterError
+from flask_smorest.utils import prepare_response, get_config_key, get_config_value
 from flask_smorest import etag as fs_etag
 from flask_smorest import pagination as fs_pagination
-from flask_smorest.exceptions import MissingAPIParameterError
-from flask_smorest.utils import prepare_response
-
-from .field_converters import uploadfield2properties
 from .plugins import FlaskPlugin
+from .field_converters import uploadfield2properties
 
 
 def _add_leading_slash(string):
@@ -55,9 +52,10 @@ class DocBlueprintMixin:
         - spec UI (ReDoc, Swagger UI).
         """
         api_url = get_config_value(self._app, self, "OPENAPI_URL_PREFIX", None)
+        bp_name = get_config_key(self, "api-docs").replace("_", "-").lower()
         if api_url is not None:
             blueprint = flask.Blueprint(
-                "api-docs",
+                bp_name,
                 __name__,
                 url_prefix=_add_leading_slash(api_url),
                 template_folder="./templates",

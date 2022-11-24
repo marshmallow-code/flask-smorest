@@ -431,6 +431,39 @@ class TestAPISpecServeDocs:
         assert response_json_docs.status_code == 200
         assert response_json_docs.json["paths"] == paths
 
+    def test_multiple_apis_serve_separate_specs(self, app):
+        client = app.test_client()
+
+        app.config["V1_OPENAPI_URL_PREFIX"] = "/v1-docs"
+        app.config["V2_OPENAPI_URL_PREFIX"] = "/v2-docs/"
+
+        for i in range(1, 3):
+            api = Api(
+                app,
+                config_prefix=f"V{i}_",
+                spec_kwargs={
+                    "title": f"V{i}",
+                    "version": f"{i}",
+                    "openapi_version": "3.0.2",
+                },
+            )
+            blp = Blueprint(f"test{i}", f"test{i}", url_prefix=f"/test-{i}")
+            blp.route("/")(lambda: None)
+            api.register_blueprint(blp)
+
+        json1 = client.get("/v1-docs/openapi.json").json
+        json2 = client.get("/v2-docs/openapi.json").json
+
+        # Should have a different info
+        assert json1["info"]["title"] == "V1"
+        assert json2["info"]["title"] == "V2"
+
+        # One api's routes should not leak into other's spec.
+        assert "/test-1/" in json1["paths"]
+        assert "/test-2/" not in json1["paths"]
+        assert "/test-1/" not in json2["paths"]
+        assert "/test-2/" in json2["paths"]
+
 
 class TestAPISpecCLICommands:
     """Test OpenAPI CLI commands"""

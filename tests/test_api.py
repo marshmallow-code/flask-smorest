@@ -414,8 +414,6 @@ class TestApi:
         # Default error is now registered
         assert "DEFAULT_ERROR" in get_responses(api.spec)
 
-
-class TestWithMultipleApiPerApp:
     @pytest.mark.parametrize(
         "app",
         [
@@ -431,7 +429,7 @@ class TestWithMultipleApiPerApp:
         ],
         indirect=True,
     )
-    def test_config_prefix_attribute(self, app):
+    def test_multiple_apis_using_config_prefix_attribute(self, app):
         api1 = Api(app, config_prefix="API_V1_")
         api2 = Api(app, config_prefix="API_V2")
 
@@ -443,7 +441,7 @@ class TestWithMultipleApiPerApp:
         [SimpleNamespace(API_TITLE="Ignore this title")],
         indirect=True,
     )
-    def test_raises_error(self, app):
+    def test_prefixed_api_to_raise_correctly_formatted_error(self, app):
         with pytest.raises(
             MissingAPIParameterError,
             match='API title must be specified either as "API_V1_API_TITLE"',

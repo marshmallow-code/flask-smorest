@@ -17,6 +17,7 @@ class Api(APISpecMixin, ErrorHandlerMixin):
 
     :param Flask app: Flask application
     :param spec_kwargs: kwargs to pass to internal APISpec instance
+    :param config_prefix: TODO
 
     The ``spec_kwargs`` dictionary is passed as kwargs to the internal APISpec
     instance. **flask-smorest** adds a few parameters to the original
@@ -39,10 +40,10 @@ class Api(APISpecMixin, ErrorHandlerMixin):
     parameter `API_SPEC_OPTIONS`.
     """
 
-    def __init__(self, app=None, *, config_prefix=None, spec_kwargs=None):
+    def __init__(self, app=None, *, spec_kwargs=None, config_prefix=""):
         self._app = app
         self._spec_kwargs = spec_kwargs or {}
-        self.config_prefix = config_prefix or ""
+        self.config_prefix = config_prefix
         if self.config_prefix and not self.config_prefix.endswith("_"):
             self.config_prefix += "_"
         self.spec = None
@@ -62,6 +63,7 @@ class Api(APISpecMixin, ErrorHandlerMixin):
 
         # Register flask-smorest in app extensions
         app.extensions = getattr(app, "extensions", {})
+        # TODO: backwards compatibility?
         ext = app.extensions.setdefault("flask-smorest", {"apis": {}})
         ext["apis"][self.config_prefix] = self
 
@@ -89,7 +91,9 @@ class Api(APISpecMixin, ErrorHandlerMixin):
         """
         blp_name = options.get("name", blp.name)
 
-        blp.config_prefix = self.config_prefix  # TODO: seems a little bit dirty
+        # TODO: seems a little bit dirty
+        if hasattr(blp, "config_prefix"):
+            blp.config_prefix = self.config_prefix
         self._app.register_blueprint(blp, **options)
 
         # Register views in API documentation for this resource
