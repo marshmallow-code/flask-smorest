@@ -137,3 +137,13 @@ def prepare_response(response, spec, content_type):
                         field
                     ]
                 ) = response.pop(field)
+
+
+def get_config_key(ctx, key):
+    """TODO: docstring"""
+    return getattr(ctx, "config_prefix", "") + key
+
+
+def get_config_value(app, ctx, key, default=None):
+    """TODO: docstring"""
+    return app.config.get(get_config_key(ctx, key), default)

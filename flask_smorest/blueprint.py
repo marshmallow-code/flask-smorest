@@ -69,8 +69,8 @@ class Blueprint(
     DOCSTRING_INFO_DELIMITER = "---"
 
     def __init__(self, *args, **kwargs):
-
         self.description = kwargs.pop("description", "")
+        self.config_prefix = ""
 
         super().__init__(*args, **kwargs)
 

@@ -39,9 +39,12 @@ class Api(APISpecMixin, ErrorHandlerMixin):
     parameter `API_SPEC_OPTIONS`.
     """
 
-    def __init__(self, app=None, *, spec_kwargs=None):
+    def __init__(self, app=None, *, config_prefix=None, spec_kwargs=None):
         self._app = app
         self._spec_kwargs = spec_kwargs or {}
+        self.config_prefix = config_prefix or ""
+        if self.config_prefix and not self.config_prefix.endswith("_"):
+            self.config_prefix += "_"
         self.spec = None
         # Use lists to enforce order
         self._fields = []
@@ -59,8 +62,8 @@ class Api(APISpecMixin, ErrorHandlerMixin):
 
         # Register flask-smorest in app extensions
         app.extensions = getattr(app, "extensions", {})
-        ext = app.extensions.setdefault("flask-smorest", {})
-        ext["ext_obj"] = self
+        ext = app.extensions.setdefault("flask-smorest", {"apis": {}})
+        ext["apis"][self.config_prefix] = self
 
         # Initialize spec
         self._init_spec(**{**self._spec_kwargs, **(spec_kwargs or {})})
@@ -86,6 +89,7 @@ class Api(APISpecMixin, ErrorHandlerMixin):
         """
         blp_name = options.get("name", blp.name)
 
+        blp.config_prefix = self.config_prefix  # TODO: seems a little bit dirty
         self._app.register_blueprint(blp, **options)
 
         # Register views in API documentation for this resource

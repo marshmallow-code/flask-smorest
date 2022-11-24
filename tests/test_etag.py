@@ -540,3 +540,7 @@ class TestEtag:
             f"/test/{item_2_id}", headers={"If-Match": "dummy_etag"}
         )
         assert response.status_code == 204
+
+    def test_multiple_api_per_app(self):
+        # TODO:
+        pass
