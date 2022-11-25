@@ -44,6 +44,9 @@ def delimited_list2param(self, field, **kwargs):
 class DocBlueprintMixin:
     """Extend Api to serve the spec in a dedicated blueprint."""
 
+    def _get_doc_blueprint_name(self):
+        return get_config_key(self, "api-docs").replace("_", "-").lower()
+
     def _register_doc_blueprint(self):
         """Register a blueprint in the application to expose the spec
 
@@ -52,10 +55,9 @@ class DocBlueprintMixin:
         - spec UI (ReDoc, Swagger UI).
         """
         api_url = get_config_value(self._app, self, "OPENAPI_URL_PREFIX", None)
-        bp_name = get_config_key(self, "api-docs").replace("_", "-").lower()
         if api_url is not None:
             blueprint = flask.Blueprint(
-                bp_name,
+                self._get_doc_blueprint_name(),
                 __name__,
                 url_prefix=_add_leading_slash(api_url),
                 template_folder="./templates",
@@ -134,7 +136,10 @@ class DocBlueprintMixin:
     def _openapi_redoc(self):
         """Expose OpenAPI spec with ReDoc"""
         return flask.render_template(
-            "redoc.html", title=self.spec.title, redoc_url=self._redoc_url
+            "redoc.html",
+            spec_url=flask.url_for(f"{self._get_doc_blueprint_name()}.openapi_json"),
+            title=self.spec.title,
+            redoc_url=self._redoc_url,
         )
 
     def _openapi_swagger_ui(self):
@@ -142,6 +147,7 @@ class DocBlueprintMixin:
         return flask.render_template(
             "swagger_ui.html",
             title=self.spec.title,
+            spec_url=flask.url_for(f"{self._get_doc_blueprint_name()}.openapi_json"),
             swagger_ui_url=self._swagger_ui_url,
             swagger_ui_config=get_config_value(
                 self._app, self, "OPENAPI_SWAGGER_UI_CONFIG", {}
@@ -153,6 +159,7 @@ class DocBlueprintMixin:
         return flask.render_template(
             "rapidoc.html",
             title=self.spec.title,
+            spec_url=flask.url_for(f"{self._get_doc_blueprint_name()}.openapi_json"),
             rapidoc_url=self._rapidoc_url,
             rapidoc_config=get_config_value(
                 self._app, self, "OPENAPI_RAPIDOC_CONFIG", {}

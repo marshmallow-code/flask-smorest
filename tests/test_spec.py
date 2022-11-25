@@ -434,10 +434,15 @@ class TestAPISpecServeDocs:
     def test_multiple_apis_serve_separate_specs(self, app):
         client = app.test_client()
 
-        app.config["V1_OPENAPI_URL_PREFIX"] = "/v1-docs"
-        app.config["V2_OPENAPI_URL_PREFIX"] = "/v2-docs/"
-
         for i in [1, 2]:
+            app.config[f"V{i}_OPENAPI_URL_PREFIX"] = f"/v{i}-docs"
+            app.config[f"V{i}_OPENAPI_RAPIDOC_PATH"] = "rapidoc/"
+            app.config[f"V{i}_OPENAPI_RAPIDOC_URL"] = "/statid/rapidoc.js"
+            app.config[f"V{i}_OPENAPI_REDOC_PATH"] = "/redoc/"
+            app.config[f"V{i}_OPENAPI_SWAGGER_UI_URL"] = "/static/swagger-ui/"
+            app.config[f"V{i}_OPENAPI_SWAGGER_UI_PATH"] = "/swagger/"
+            app.config[f"V{i}_OPENAPI_REDOC_URL"] = "/static/redoc.js"
+            app.config[f"V{i}_OPENAPI_REDOC_PATH"] = "/redoc/"
             api = Api(
                 app,
                 config_prefix=f"V{i}_",
@@ -451,6 +456,8 @@ class TestAPISpecServeDocs:
             blp.route("/")(lambda: None)
             api.register_blueprint(blp)
 
+        # Checking openapi.json
+
         json1 = client.get("/v1-docs/openapi.json").json
         json2 = client.get("/v2-docs/openapi.json").json
 
@@ -458,11 +465,26 @@ class TestAPISpecServeDocs:
         assert json1["info"]["title"] == "V1"
         assert json2["info"]["title"] == "V2"
 
-        # One api's routes should not leak into other's spec.
+        # One api's routes should not leak into other's
         assert "/test-1/" in json1["paths"]
         assert "/test-2/" not in json1["paths"]
         assert "/test-1/" not in json2["paths"]
         assert "/test-2/" in json2["paths"]
+
+        # Checking RapiDoc
+
+        assert "/v1-docs/openapi.json" in client.get("/v1-docs/rapidoc/").text
+        assert "/v2-docs/openapi.json" in client.get("/v2-docs/rapidoc/").text
+
+        # Checking Swagger
+
+        assert "/v1-docs/openapi.json" in client.get("/v1-docs/swagger/").text
+        assert "/v2-docs/openapi.json" in client.get("/v2-docs/swagger/").text
+
+        # Checking ReDoc
+
+        assert "/v1-docs/openapi.json" in client.get("/v1-docs/redoc/").text
+        assert "/v2-docs/openapi.json" in client.get("/v2-docs/redoc/").text
 
 
 class TestAPISpecCLICommands:
