@@ -140,6 +140,11 @@ def prepare_response(response, spec, content_type):
 
 
 def normalize_config_prefix(config_prefix: str):
+    """Normalize custom API config prefix
+
+    :param str config_prefix: raw prefix
+    :return: normalized prefix. Underscore is automatically added if prefix misses one.
+    """
     result = config_prefix.strip().upper()
     if result and not result.endswith("_"):
         result += "_"
@@ -147,10 +152,23 @@ def normalize_config_prefix(config_prefix: str):
 
 
 def get_config_key(ctx, key):
-    """TODO: docstring"""
+    """Get flask config key potentially affected by config_prefix
+
+    :param flask_smorest.Blueprint|flask_smorest.Api ctx: object
+        containing ``config_prefix`` attribute.
+    :param str key: full flask config key is constructed as ``config_prefix + key``.
+    :return: full flask config key
+    """
     return getattr(ctx, "config_prefix", "") + key
 
 
 def get_config_value(app, ctx, key, default=None):
-    """TODO: docstring"""
+    """Get flask config key potentially affected by config_prefix
+
+    :param flask_smorest.Blueprint|flask_smorest.Api ctx: object
+        containing ``config_prefix`` attribute.
+    :param str key: full flask config key is constructed as ``config_prefix + key``.
+    :param default: return this value if full key is not found.
+    :return: a flask config value or ``default``.
+    """
     return app.config.get(get_config_key(ctx, key), default)

@@ -4,6 +4,11 @@ Changelog
 0.41.0 (unreleased)
 *******************
 
+Features:
+
+- Support multiple APIs in a single application via ``Api.__init__`` param
+  ``config_prefix``.
+
 Other changes:
 
 - Official Python 3.11 support (:pr:`416`).

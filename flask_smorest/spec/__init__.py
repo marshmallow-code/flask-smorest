@@ -406,7 +406,7 @@ def _get_spec_dict(config_prefix):
 
 @openapi_cli.command("print")
 @click.option("-f", "--format", type=click.Choice(["json", "yaml"]), default="json")
-@click.option("--config-prefix", type=click.STRING, metavar="", help="TODO", default="")
+@click.option("--config-prefix", type=click.STRING, metavar="", default="")
 def print_openapi_doc(format, config_prefix):
     """Print OpenAPI JSON document."""
     config_prefix = normalize_config_prefix(config_prefix)
@@ -423,7 +423,7 @@ def print_openapi_doc(format, config_prefix):
 
 @openapi_cli.command("write")
 @click.option("-f", "--format", type=click.Choice(["json", "yaml"]), default="json")
-@click.option("--config-prefix", type=click.STRING, metavar="", help="TODO", default="")
+@click.option("--config-prefix", type=click.STRING, metavar="", default="")
 @click.argument("output_file", type=click.File(mode="w"))
 def write_openapi_doc(format, output_file, config_prefix):
     """Write OpenAPI JSON document to a file."""

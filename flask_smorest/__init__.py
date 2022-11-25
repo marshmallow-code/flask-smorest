@@ -18,7 +18,11 @@ class Api(APISpecMixin, ErrorHandlerMixin):
 
     :param Flask app: Flask application
     :param spec_kwargs: kwargs to pass to internal APISpec instance
-    :param config_prefix: TODO
+    :param str config_prefix: Should be used if the user is planning to use
+        multiple `Api`'s in the single app. If it is not empty then
+        all application parameters will be prefixed with it. For example:
+        if ``config_prefix`` is ``V1_`` then ``V1_API_TITLE`` is going to
+        be used instead of ``API_TITLE``.
 
     The ``spec_kwargs`` dictionary is passed as kwargs to the internal APISpec
     instance. **flask-smorest** adds a few parameters to the original
@@ -62,7 +66,6 @@ class Api(APISpecMixin, ErrorHandlerMixin):
 
         # Register flask-smorest in app extensions
         app.extensions = getattr(app, "extensions", {})
-        # TODO: backwards compatibility?
         ext = app.extensions.setdefault("flask-smorest", {"apis": {}})
         ext["apis"][self.config_prefix] = self
 
@@ -89,8 +92,6 @@ class Api(APISpecMixin, ErrorHandlerMixin):
         Must be called after app is initialized.
         """
         blp_name = options.get("name", blp.name)
-
-        # TODO: seems a little bit dirty
         if hasattr(blp, "config_prefix"):
             blp.config_prefix = self.config_prefix
         self._app.register_blueprint(blp, **options)
