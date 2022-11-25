@@ -17,7 +17,12 @@ except ImportError:  # pragma: no cover
     HAS_PYYAML = False
 
 from flask_smorest.exceptions import MissingAPIParameterError
-from flask_smorest.utils import prepare_response, get_config_key, get_config_value
+from flask_smorest.utils import (
+    prepare_response,
+    get_config_key,
+    get_config_value,
+    normalize_config_prefix,
+)
 from flask_smorest import etag as fs_etag
 from flask_smorest import pagination as fs_pagination
 from .plugins import FlaskPlugin
@@ -381,20 +386,35 @@ class APISpecMixin(DocBlueprintMixin):
 openapi_cli = flask.cli.AppGroup("openapi", help="OpenAPI commands.")
 
 
-def _get_spec_dict():
-    # TODO: multiple apis
-    return current_app.extensions["flask-smorest"]["apis"][""].spec.to_dict()
+def _get_spec_dict(config_prefix):
+    ext = current_app.extensions["flask-smorest"]
+    if config_prefix not in ext["apis"]:
+        if config_prefix == "":
+            click.echo(
+                "Error: Your API is using config_prefix. "
+                "Please provide a --config-prefix option.",
+                err=True,
+            )
+        else:
+            click.echo(f"Error: `{config_prefix}` not available. Use one of:", err=True)
+            for key in ext["apis"].keys():
+                click.echo(f"    {key}", err=True)
+        raise click.exceptions.Exit()
+
+    return ext["apis"][config_prefix].spec.to_dict()
 
 
 @openapi_cli.command("print")
 @click.option("-f", "--format", type=click.Choice(["json", "yaml"]), default="json")
-def print_openapi_doc(format):
+@click.option("--config-prefix", type=click.STRING, metavar="", help="TODO", default="")
+def print_openapi_doc(format, config_prefix):
     """Print OpenAPI JSON document."""
+    config_prefix = normalize_config_prefix(config_prefix)
     if format == "json":
-        click.echo(json.dumps(_get_spec_dict(), indent=2))
+        click.echo(json.dumps(_get_spec_dict(config_prefix), indent=2))
     else:  # format == "yaml"
         if HAS_PYYAML:
-            click.echo(yaml.dump(_get_spec_dict()))
+            click.echo(yaml.dump(_get_spec_dict(config_prefix)))
         else:
             click.echo(
                 "To use yaml output format, please install PyYAML module", err=True
@@ -403,15 +423,27 @@ def print_openapi_doc(format):
 
 @openapi_cli.command("write")
 @click.option("-f", "--format", type=click.Choice(["json", "yaml"]), default="json")
+@click.option("--config-prefix", type=click.STRING, metavar="", help="TODO", default="")
 @click.argument("output_file", type=click.File(mode="w"))
-def write_openapi_doc(format, output_file):
+def write_openapi_doc(format, output_file, config_prefix):
     """Write OpenAPI JSON document to a file."""
+    config_prefix = normalize_config_prefix(config_prefix)
     if format == "json":
-        click.echo(json.dumps(_get_spec_dict(), indent=2), file=output_file)
+        click.echo(
+            json.dumps(_get_spec_dict(config_prefix), indent=2),
+            file=output_file,
+        )
     else:  # format == "yaml"
         if HAS_PYYAML:
-            yaml.dump(_get_spec_dict(), output_file)
+            yaml.dump(_get_spec_dict(config_prefix), output_file)
         else:
             click.echo(
                 "To use yaml output format, please install PyYAML module", err=True
             )
+
+
+@openapi_cli.command("list-config-prefixes")
+def list_config_prefixes():
+    """List available API config prefixes."""
+    for prefix in current_app.extensions["flask-smorest"]["apis"].keys():
+        click.echo(prefix)

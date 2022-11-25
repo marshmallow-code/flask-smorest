@@ -6,6 +6,7 @@ from .spec import APISpecMixin
 from .blueprint import Blueprint  # noqa
 from .pagination import Page  # noqa
 from .error_handler import ErrorHandlerMixin
+from .utils import normalize_config_prefix
 
 __version__ = "0.40.0"
 
@@ -43,9 +44,7 @@ class Api(APISpecMixin, ErrorHandlerMixin):
     def __init__(self, app=None, *, spec_kwargs=None, config_prefix=""):
         self._app = app
         self._spec_kwargs = spec_kwargs or {}
-        self.config_prefix = config_prefix
-        if self.config_prefix and not self.config_prefix.endswith("_"):
-            self.config_prefix += "_"
+        self.config_prefix = normalize_config_prefix(config_prefix)
         self.spec = None
         # Use lists to enforce order
         self._fields = []

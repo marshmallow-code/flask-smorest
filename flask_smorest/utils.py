@@ -139,6 +139,13 @@ def prepare_response(response, spec, content_type):
                 ) = response.pop(field)
 
 
+def normalize_config_prefix(config_prefix: str):
+    result = config_prefix.strip().upper()
+    if result and not result.endswith("_"):
+        result += "_"
+    return result
+
+
 def get_config_key(ctx, key):
     """TODO: docstring"""
     return getattr(ctx, "config_prefix", "") + key

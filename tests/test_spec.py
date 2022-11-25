@@ -583,3 +583,65 @@ class TestAPISpecCLICommands:
         assert result.output.startswith(
             "To use yaml output format, please install PyYAML module"
         )
+
+    def test_apispec_command_print_with_multiple_apis(self, app):
+        spec_kwargs = {
+            "version": "1",
+            "openapi_version": "3.0.2",
+        }
+        Api(app, config_prefix="V1", spec_kwargs={**spec_kwargs, "title": "V1"})
+        Api(app, config_prefix="V2", spec_kwargs={**spec_kwargs, "title": "V2"})
+
+        result = app.test_cli_runner().invoke(args=["openapi", "print"])
+        assert "Error: " in result.output
+
+        r1 = app.test_cli_runner().invoke(
+            args=["openapi", "print", "--config-prefix=v1"]
+        )
+        assert "V1" in r1.output
+        assert "V2" not in r1.output
+        r2 = app.test_cli_runner().invoke(
+            args=["openapi", "print", "--config-prefix=v2"]
+        )
+        assert "V1" not in r2.output
+        assert "V2" in r2.output
+
+    def test_apispec_command_write_with_multiple_apis(self, app, tmp_path):
+        temp_file1 = tmp_path / "output1"
+        temp_file2 = tmp_path / "output2"
+
+        spec_kwargs = {
+            "version": "1",
+            "openapi_version": "3.0.2",
+        }
+        Api(app, config_prefix="V1", spec_kwargs={**spec_kwargs, "title": "V1"})
+        Api(app, config_prefix="V2", spec_kwargs={**spec_kwargs, "title": "V2"})
+
+        result = app.test_cli_runner().invoke(args=["openapi", "write"])
+        assert "Error: " in result.output
+
+        app.test_cli_runner().invoke(
+            args=["openapi", "write", "--config-prefix=v1", str(temp_file1)]
+        )
+        with open(temp_file1, encoding="utf-8") as spec_file1:
+            content1 = spec_file1.read()
+            assert "V1" in content1
+            assert "V2" not in content1
+
+        app.test_cli_runner().invoke(
+            args=["openapi", "write", "--config-prefix=v2", str(temp_file2)]
+        )
+        with open(temp_file2, encoding="utf-8") as spec_file2:
+            content2 = spec_file2.read()
+            assert "V1" not in content2
+            assert "V2" in content2
+
+    def test_apispec_command_list_config_prefixes(self, app):
+        spec_kwargs = {
+            "version": "1",
+            "openapi_version": "3.0.2",
+        }
+        Api(app, config_prefix="V1", spec_kwargs={**spec_kwargs, "title": "V1"})
+        Api(app, config_prefix="V2", spec_kwargs={**spec_kwargs, "title": "V2"})
+        result = app.test_cli_runner().invoke(args=["openapi", "list-config-prefixes"])
+        assert set(result.output.strip().splitlines()) == {"V1_", "V2_"}
