@@ -280,6 +280,19 @@ interactively. This feature is accessible through Flask app parameters.
 
    Default: ``openapi.json``
 
+`Note`: To support multiple APIs in the single application a ``config_prefix``
+parameter needs to be passed to :class:`Api <Api>` constructor. In that case
+Flask app parameters need to be prefixed with a custom prefix.
+
+.. code-block:: python
+
+   api1 = Api(config_prefix="V1_")
+
+
+   class Config:
+       V1_OPENAPI_VERSION = "3.0.2"  # Instead of OPENAPI_VERSION
+       V1_OPENAPI_URL_PREFIX = "/v1/"  # Instead of OPENAPI_URL_PREFIX
+
 `ReDoc`_, `Swagger UI`_ and `RapiDoc` interfaces are available to present the
 API.
 

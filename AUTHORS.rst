@@ -25,3 +25,4 @@ Contributors (chronological)
 - Choudhury Noor `@Cnoor0171 <https://github.com/Cnoor0171>`_
 - Dmitry Erlikh `@derlikh-smart <https://github.com/derlikh-smart>`_
 - 0x78f1935 `@0x78f1935 <https://github.com/0x78f1935>`_
+- One Codex, Inc. `@onecodex <https://github.com/onecodex>`_

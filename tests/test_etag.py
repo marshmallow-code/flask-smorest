@@ -16,6 +16,7 @@ from flask_smorest.exceptions import (
     PreconditionFailed,
 )
 from flask_smorest.utils import get_appcontext
+import marshmallow as ma
 
 from .mocks import ItemNotFound
 
@@ -540,3 +541,50 @@ class TestEtag:
             f"/test/{item_2_id}", headers={"If-Match": "dummy_etag"}
         )
         assert response.status_code == 204
+
+    @pytest.mark.parametrize("etag_disabled_for_v1", [False, True])
+    @pytest.mark.parametrize("etag_disabled_for_v2", [False, True])
+    def test_multiple_apis_per_app(
+        self, app, etag_disabled_for_v1, etag_disabled_for_v2
+    ):
+        # All created APIs are using prefix. So default ETAG_DISABLED should be ignored
+        app.config["ETAG_DISABLED"] = True
+        app.config["V1_ETAG_DISABLED"] = etag_disabled_for_v1
+        app.config["V2_ETAG_DISABLED"] = etag_disabled_for_v2
+
+        for i in [1, 2]:
+            api = Api(
+                app,
+                config_prefix=f"V{i}_",
+                spec_kwargs={
+                    "title": f"V{i}",
+                    "version": f"{i}",
+                    "openapi_version": "3.0.2",
+                },
+            )
+            blp = Blueprint(f"test{i}", f"test{i}", url_prefix=f"/test-{i}")
+
+            class HomeSchema(ma.Schema):
+                field = ma.fields.String()
+
+            @blp.route("/")
+            @blp.etag
+            @blp.response(200, HomeSchema)
+            def home():
+                return {"field": "value"}
+
+            api.register_blueprint(blp)
+
+        client = app.test_client()
+        headers1 = client.get("/test-1/").headers
+        headers2 = client.get("/test-2/").headers
+
+        if etag_disabled_for_v1:
+            assert "ETag" not in headers1
+        else:
+            assert "ETag" in headers1
+
+        if etag_disabled_for_v2:
+            assert "ETag" not in headers2
+        else:
+            assert "ETag" in headers2

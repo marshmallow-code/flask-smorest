@@ -1,15 +1,14 @@
 """Test Api class"""
+import apispec
+import marshmallow as ma
 import pytest
-
 from flask.views import MethodView
 from werkzeug.routing import BaseConverter
-import marshmallow as ma
-import apispec
 
 from flask_smorest import Api, Blueprint
 from flask_smorest.exceptions import MissingAPIParameterError
 
-from .utils import get_schemas, get_responses
+from .utils import get_responses, get_schemas
 
 
 class TestApi:
@@ -412,3 +411,28 @@ class TestApi:
 
         # Default error is now registered
         assert "DEFAULT_ERROR" in get_responses(api.spec)
+
+    def test_multiple_apis_using_config_prefix_attribute(self, app):
+        app.config.update(
+            {
+                "API_TITLE": "Ignore this title",
+                "API_V1_API_TITLE": "V1 Title",
+                "API_V1_API_VERSION": "1",
+                "API_V1_OPENAPI_VERSION": "2.0",
+                "API_V2_API_TITLE": "V2 Title",
+                "API_V2_API_VERSION": "2",
+                "API_V2_OPENAPI_VERSION": "3.0.2",
+            }
+        )
+        api1 = Api(app, config_prefix="API_V1_")
+        api2 = Api(app, config_prefix="API_V2")
+
+        assert api1.spec.title == "V1 Title"
+        assert api2.spec.title == "V2 Title"
+
+    def test_prefixed_api_to_raise_correctly_formatted_error(self, app):
+        with pytest.raises(
+            MissingAPIParameterError,
+            match='API title must be specified either as "API_V1_API_TITLE"',
+        ):
+            Api(app, config_prefix="API_V1_")
