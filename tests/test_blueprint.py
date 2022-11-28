@@ -308,6 +308,65 @@ class TestBlueprint:
         }
 
     @pytest.mark.parametrize("openapi_version", ("2.0", "3.0.2"))
+    def test_blueprint_dict_argument_schema(self, app, schemas, openapi_version):
+        app.config["OPENAPI_VERSION"] = openapi_version
+        api = Api(app)
+        blp = Blueprint("test", __name__, url_prefix="/test")
+        client = app.test_client()
+
+        @blp.route("/", methods=("POST",))
+        @blp.arguments(schemas.DictSchema)
+        def func(document):
+            return {"document": document}
+
+        api.register_blueprint(blp)
+        spec = api.spec.to_dict()
+
+        # Check parameters are documented
+        if openapi_version == "2.0":
+            parameters = spec["paths"]["/test/"]["post"]["parameters"]
+            assert len(parameters) == 1
+            assert parameters[0]["in"] == "body"
+            assert "schema" in parameters[0]
+        else:
+            assert (
+                "schema"
+                in spec["paths"]["/test/"]["post"]["requestBody"]["content"][
+                    "application/json"
+                ]
+            )
+
+        # Check parameters are passed as arguments to view function
+        item_data = {"field": 12}
+        response = client.post(
+            "/test/",
+            data=json.dumps(item_data),
+            content_type="application/json",
+        )
+        assert response.status_code == 200
+        assert response.json == {
+            "document": {"db_field": 12},
+        }
+
+    @pytest.mark.parametrize("openapi_version", ["2.0", "3.0.2"])
+    def test_blueprint_dict_response_schema(self, app, schemas, openapi_version):
+        """Check alt_response passes response transparently"""
+        app.config["OPENAPI_VERSION"] = openapi_version
+        api = Api(app)
+        blp = Blueprint("test", "test", url_prefix="/test")
+        client = app.test_client()
+
+        @blp.route("/")
+        @blp.response(200, schema=schemas.DictSchema)
+        def func():
+            return {"item_id": 12}
+
+        api.register_blueprint(blp)
+
+        resp = client.get("/test/")
+        assert resp.json == {"item_id": 12}
+
+    @pytest.mark.parametrize("openapi_version", ("2.0", "3.0.2"))
     def test_blueprint_arguments_files_multipart(self, app, schemas, openapi_version):
         app.config["OPENAPI_VERSION"] = openapi_version
         api = Api(app)
