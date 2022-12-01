@@ -14,13 +14,13 @@ jobs:
       - run: tox -elint
   tests:
     name: ${{ matrix.name }}
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         include:
-          - {name: '3.7', python: '3.7', os: ubuntu-latest, tox: py37}
-          - {name: '3.11', python: '3.11', os: ubuntu-latest, tox: py311}
+          - {name: '3.7', python: '3.7', tox: py37}
+          - {name: '3.11', python: '3.11', tox: py311}
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
