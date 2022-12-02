@@ -78,6 +78,11 @@ def schemas():
         error_id = ma.fields.Str()
         text = ma.fields.Str()
 
-    return namedtuple("Model", ("DocSchema", "QueryArgsSchema", "ClientErrorSchema"))(
-        DocSchema, QueryArgsSchema, ClientErrorSchema
-    )
+    DictSchema = {
+        "item_id": ma.fields.Int(dump_only=True),
+        "field": ma.fields.Int(attribute="db_field"),
+    }
+
+    return namedtuple(
+        "Model", ("DocSchema", "QueryArgsSchema", "ClientErrorSchema", "DictSchema")
+    )(DocSchema, QueryArgsSchema, ClientErrorSchema, DictSchema)

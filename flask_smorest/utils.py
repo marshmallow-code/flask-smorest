@@ -2,6 +2,7 @@
 
 from collections import abc
 
+import marshmallow as ma
 from werkzeug.datastructures import Headers
 from flask import g
 from apispec.utils import trim_docstring, dedent
@@ -31,9 +32,16 @@ def remove_none(mapping):
 def resolve_schema_instance(schema):
     """Return schema instance for given schema (instance or class).
 
-    :param type|Schema schema: marshmallow.Schema instance or class
+    :param type|Schema|dict schema: marshmallow.Schema instance or class or dict
     :return: schema instance of given schema
     """
+
+    # this dict may be used to document a file response, no a schema dict
+    if isinstance(schema, dict) and all(
+        [isinstance(v, (type, ma.fields.Field)) for v in schema.values()]
+    ):
+        schema = ma.Schema.from_dict(schema)
+
     return schema() if isinstance(schema, type) else schema
 
 
