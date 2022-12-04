@@ -415,6 +415,8 @@ class TestResponse:
         assert "schema" in resp["content"]["application/json"]
 
     def test_response_tuple(self, app):
+        # Unset TESTING to let Flask return 500 on unhandled exception
+        app.config["TESTING"] = False
         api = Api(app)
         blp = Blueprint("test", __name__, url_prefix="/test")
         client = app.test_client()

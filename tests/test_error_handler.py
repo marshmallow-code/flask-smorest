@@ -23,6 +23,8 @@ class TestErrorHandler:
 
     def test_error_handler_on_unhandled_error(self, app):
 
+        # Unset TESTING to let Flask return 500 on unhandled exception
+        app.config["TESTING"] = False
         client = app.test_client()
 
         @app.route("/uncaught")
