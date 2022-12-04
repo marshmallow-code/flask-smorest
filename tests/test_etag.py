@@ -1,4 +1,4 @@
-"""Test ETag feature"""
+"""Test EtagMixin"""
 
 import json
 import hashlib
@@ -16,6 +16,8 @@ from flask_smorest.exceptions import (
     PreconditionFailed,
 )
 from flask_smorest.utils import get_appcontext
+
+from .utils import build_ref
 
 from .mocks import ItemNotFound
 
@@ -126,6 +128,8 @@ def app_with_etag(request, collection, schemas, app):
 
 
 class TestEtag:
+    """Test EtagMixin"""
+
     @pytest.mark.parametrize("extra_data", [None, {}, {"answer": 42}])
     def test_etag_generate_etag(self, extra_data):
         blp = Blueprint("test", __name__)
@@ -540,3 +544,79 @@ class TestEtag:
             f"/test/{item_2_id}", headers={"If-Match": "dummy_etag"}
         )
         assert response.status_code == 204
+
+    @pytest.mark.parametrize("decorate", (True, False))
+    @pytest.mark.parametrize("has_response", (True, False))
+    @pytest.mark.parametrize("etag_disabled", (True, False))
+    @pytest.mark.parametrize(
+        "method", ("OPTIONS", "HEAD", "GET", "POST", "PUT", "PATCH", "DELETE")
+    )
+    def test_etag_documents_responses(
+        self,
+        app,
+        method,
+        decorate,
+        etag_disabled,
+        has_response,
+    ):
+        app.config["ETAG_DISABLED"] = etag_disabled
+        api = Api(app)
+        blp = Blueprint("test", "test", url_prefix="/test")
+
+        if decorate:
+            if has_response:
+
+                @blp.route("/", methods=[method])
+                @blp.response(204)
+                @blp.etag
+                def func():
+                    pass
+
+            else:
+
+                @blp.route("/", methods=[method])
+                @blp.etag
+                def func():
+                    pass
+
+        else:
+            if has_response:
+
+                @blp.route("/", methods=[method])
+                @blp.response(204)
+                def func():
+                    pass
+
+            else:
+
+                @blp.route("/", methods=[method])
+                def func():
+                    pass
+
+        api.register_blueprint(blp)
+
+        operation = api.spec.to_dict()["paths"]["/test/"][method.lower()]
+        responses = operation.get("responses", {})
+        response_headers = responses.get("204", {}).get("headers", {})
+        parameters = operation.get("parameters", [])
+
+        if not decorate or etag_disabled:
+            assert "304" not in responses
+            assert "412" not in responses
+            assert "428" not in responses
+            assert "IF_NONE_MATCH" not in parameters
+            assert "IF_MATCH" not in parameters
+            assert "ETag" not in response_headers
+        else:
+            assert ("304" in responses) == (method in ["GET", "HEAD"])
+            assert ("412" in responses) == (method in ["PUT", "PATCH", "DELETE"])
+            assert ("428" in responses) == (method in ["PUT", "PATCH", "DELETE"])
+            assert (
+                build_ref(api.spec, "parameter", "IF_NONE_MATCH") in parameters
+            ) == (method in ["GET", "HEAD"])
+            assert (build_ref(api.spec, "parameter", "IF_MATCH") in parameters) == (
+                method in ["PUT", "PATCH", "DELETE"]
+            )
+            assert not has_response or (
+                response_headers.get("ETag") == build_ref(api.spec, "header", "ETAG")
+            ) == (method in ["GET", "HEAD", "POST", "PUT", "PATCH"])
