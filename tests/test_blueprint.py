@@ -17,32 +17,14 @@ from flask_smorest.fields import Upload
 from .utils import build_ref, get_responses
 
 
-LOCATIONS_MAPPING = (
-    (
-        "querystring",
-        "query",
-    ),
-    (
-        "query",
-        "query",
-    ),
-    (
-        "json",
-        "body",
-    ),
-    (
-        "form",
-        "formData",
-    ),
-    (
-        "headers",
-        "header",
-    ),
-    (
-        "files",
-        "formData",
-    ),
-)
+LOCATIONS_MAPPING = {
+    "querystring": "query",
+    "query": "query",
+    "json": "body",
+    "form": "formData",
+    "headers": "header",
+    "files": "formData",
+}
 
 REQUEST_BODY_CONTENT_TYPE = {
     "json": "application/json",
@@ -58,7 +40,7 @@ class TestBlueprint:
     @pytest.mark.parametrize(
         # Also test 'json/body' is default
         "location_map",
-        LOCATIONS_MAPPING + ((None, "body"),),
+        list(LOCATIONS_MAPPING.items()) + [(None, "body")],
     )
     def test_blueprint_arguments_location(
         self, app, schemas, location_map, openapi_version
@@ -157,15 +139,14 @@ class TestBlueprint:
         assert path_1 == path_2
 
     @pytest.mark.parametrize("openapi_version", ("2.0", "3.0.2"))
-    @pytest.mark.parametrize("location_map", LOCATIONS_MAPPING)
+    @pytest.mark.parametrize("location", LOCATIONS_MAPPING.keys())
     @pytest.mark.parametrize("required", (True, False, None))
     def test_blueprint_arguments_required(
-        self, app, schemas, required, location_map, openapi_version
+        self, app, schemas, required, location, openapi_version
     ):
         app.config["OPENAPI_VERSION"] = openapi_version
         api = Api(app)
         blp = Blueprint("test", __name__, url_prefix="/test")
-        location, _ = location_map
 
         if required is None:
 
@@ -210,15 +191,14 @@ class TestBlueprint:
             assert parameters[0]["required"] is False
 
     @pytest.mark.parametrize("openapi_version", ("2.0", "3.0.2"))
-    @pytest.mark.parametrize("location_map", LOCATIONS_MAPPING)
+    @pytest.mark.parametrize("location", LOCATIONS_MAPPING.keys())
     @pytest.mark.parametrize("description", ("Description", None))
     def test_blueprint_arguments_description(
-        self, app, schemas, description, location_map, openapi_version
+        self, app, schemas, description, location, openapi_version
     ):
         app.config["OPENAPI_VERSION"] = openapi_version
         api = Api(app)
         blp = Blueprint("test", __name__, url_prefix="/test")
-        location, _ = location_map
 
         @blp.route("/")
         @blp.arguments(schemas.DocSchema, description=description, location=location)
