@@ -1,4 +1,6 @@
-"""Test pagination feature"""
+"""Test PaginationMixin"""
+
+import http
 
 from itertools import product
 from collections import namedtuple
@@ -11,7 +13,7 @@ from flask.views import MethodView
 from flask_smorest import Api, Blueprint, Page
 from flask_smorest.pagination import PaginationParameters
 
-from .utils import get_schemas
+from .utils import get_schemas, build_ref
 
 CUSTOM_PAGINATION_PARAMS = (2, 5, 10)
 
@@ -112,6 +114,8 @@ def app_fixture(request, collection, schemas, app):
 
 
 class TestPagination:
+    """Test PaginationMixin"""
+
     def test_pagination_parameters_repr(self):
         assert (
             repr(PaginationParameters(1, 10))
@@ -426,3 +430,141 @@ class TestPagination:
             query_string={"page": 2, "page_size": 20, "arg1": "Test", "arg2": 12},
         )
         assert response.json == list(range(20, 30))
+
+    @pytest.mark.parametrize("openapi_version", ("2.0", "3.0.2"))
+    def test_pagination_is_documented(self, app, schemas, openapi_version):
+        app.config["OPENAPI_VERSION"] = openapi_version
+        api = Api(app)
+        blp = Blueprint("test", __name__, url_prefix="/test")
+
+        @blp.route("/")
+        @blp.arguments(schemas.QueryArgsSchema, location="query")
+        @blp.paginate()
+        def func():
+            """Dummy view func"""
+
+        api.register_blueprint(blp)
+        spec = api.spec.to_dict()
+
+        # Check parameters are documented
+        parameters = spec["paths"]["/test/"]["get"]["parameters"]
+        # Query string parameters
+        assert parameters[0]["name"] == "arg1"
+        assert parameters[0]["in"] == "query"
+        assert parameters[1]["name"] == "arg2"
+        assert parameters[1]["in"] == "query"
+        # Page
+        assert parameters[2]["name"] == "page"
+        assert parameters[2]["in"] == "query"
+        assert parameters[2]["required"] is False
+        if openapi_version == "2.0":
+            assert parameters[2]["type"] == "integer"
+            assert parameters[2]["default"] == 1
+            assert parameters[2]["minimum"] == 1
+        else:
+            assert parameters[2]["schema"]["type"] == "integer"
+            assert parameters[2]["schema"]["default"] == 1
+            assert parameters[2]["schema"]["minimum"] == 1
+        # Page size
+        assert parameters[3]["name"] == "page_size"
+        assert parameters[3]["in"] == "query"
+        assert parameters[3]["required"] is False
+        if openapi_version == "2.0":
+            assert parameters[3]["type"] == "integer"
+            assert parameters[3]["default"] == 10
+            assert parameters[3]["minimum"] == 1
+            assert parameters[3]["maximum"] == 100
+        else:
+            assert parameters[3]["schema"]["type"] == "integer"
+            assert parameters[3]["schema"]["default"] == 10
+            assert parameters[3]["schema"]["minimum"] == 1
+            assert parameters[3]["schema"]["maximum"] == 100
+
+    @pytest.mark.parametrize("error_code", (400, 422))
+    @pytest.mark.parametrize("openapi_version", ("2.0", "3.0.2"))
+    def test_pagination_documents_error_response(
+        self, app, openapi_version, error_code
+    ):
+        app.config["OPENAPI_VERSION"] = openapi_version
+        api = Api(app)
+        blp = Blueprint("test", __name__, url_prefix="/test")
+        blp.PAGINATION_ARGUMENTS_PARSER.DEFAULT_VALIDATION_STATUS = error_code
+
+        @blp.route("/")
+        @blp.paginate(Page)
+        def func():
+            """Dummy view func"""
+
+        api.register_blueprint(blp)
+        spec = api.spec.to_dict()
+        assert spec["paths"]["/test/"]["get"]["responses"][
+            str(error_code)
+        ] == build_ref(api.spec, "response", http.HTTPStatus(error_code).name)
+
+    def test_pagination_response_tuple(self, app):
+        # Unset TESTING to let Flask return 500 on unhandled exception
+        app.config["TESTING"] = False
+        api = Api(app)
+        blp = Blueprint("test", __name__, url_prefix="/test")
+        client = app.test_client()
+
+        @blp.route("/response")
+        @blp.response(200)
+        @blp.paginate(Page)
+        def func_response():
+            return [1, 2]
+
+        @blp.route("/response_code")
+        @blp.response(200)
+        @blp.paginate(Page)
+        def func_response_code():
+            return [1, 2], 201
+
+        @blp.route("/response_headers")
+        @blp.response(200)
+        @blp.paginate(Page)
+        def func_response_headers():
+            return [1, 2], {"X-header": "test"}
+
+        @blp.route("/response_code_headers")
+        @blp.response(200)
+        @blp.paginate(Page)
+        def func_response_code_headers():
+            return [1, 2], 201, {"X-header": "test"}
+
+        @blp.route("/response_wrong_tuple")
+        @blp.response(200)
+        @blp.paginate(Page)
+        def func_response_wrong_tuple():
+            return [1, 2], 201, {"X-header": "test"}, "extra"
+
+        @blp.route("/response_tuple_subclass")
+        @blp.response(200)
+        @blp.paginate(Page)
+        def func_response_tuple_subclass():
+            class MyTuple(tuple):
+                pass
+
+            return MyTuple((1, 2))
+
+        api.register_blueprint(blp)
+
+        response = client.get("/test/response")
+        assert response.status_code == 200
+        assert response.json == [1, 2]
+        response = client.get("/test/response_code")
+        assert response.status_code == 201
+        assert response.json == [1, 2]
+        response = client.get("/test/response_headers")
+        assert response.status_code == 200
+        assert response.json == [1, 2]
+        assert response.headers["X-header"] == "test"
+        response = client.get("/test/response_code_headers")
+        assert response.status_code == 201
+        assert response.json == [1, 2]
+        assert response.headers["X-header"] == "test"
+        response = client.get("/test/response_wrong_tuple")
+        assert response.status_code == 500
+        response = client.get("/test/response_tuple_subclass")
+        assert response.status_code == 200
+        assert response.json == [1, 2]

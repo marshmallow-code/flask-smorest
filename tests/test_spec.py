@@ -173,6 +173,7 @@ class TestAPISpec:
         def test(args):
             # Also test DelimitedList behaves as expected
             assert args == {"inputs": [1, 2, 3]}
+            return "OK"
 
         api.register_blueprint(blp)
         spec = api.spec.to_dict()

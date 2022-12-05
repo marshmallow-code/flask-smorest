@@ -18,6 +18,7 @@ class AppConfig:
     API_TITLE = "API Test"
     API_VERSION = "1"
     OPENAPI_VERSION = "3.0.2"
+    TESTING = True
 
 
 @pytest.fixture(params=[0])
