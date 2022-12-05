@@ -436,3 +436,14 @@ class TestApi:
             match='API title must be specified either as "API_V1_API_TITLE"',
         ):
             Api(app, config_prefix="API_V1_")
+
+    def test_prefixed_api_to_set_config_prefix_of_added_blueprint(self, app):
+        api = Api(
+            app,
+            config_prefix="CONFIG_PREFIX_",
+            spec_kwargs={"version": "1", "openapi_version": "3.0.2", "title": "V1"},
+        )
+
+        blp = Blueprint("test", "test", url_prefix="/test")
+        api.register_blueprint(blp)
+        assert blp.config_prefix == "CONFIG_PREFIX_"

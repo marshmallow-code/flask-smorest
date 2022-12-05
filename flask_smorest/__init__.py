@@ -67,7 +67,7 @@ class Api(APISpecMixin, ErrorHandlerMixin):
         # Register flask-smorest in app extensions
         app.extensions = getattr(app, "extensions", {})
         ext = app.extensions.setdefault("flask-smorest", {"apis": {}})
-        ext["apis"][self.config_prefix] = self
+        ext["apis"][self.config_prefix] = {"ext_obj": self}
 
         # Initialize spec
         self._init_spec(**{**self._spec_kwargs, **(spec_kwargs or {})})
@@ -92,8 +92,7 @@ class Api(APISpecMixin, ErrorHandlerMixin):
         Must be called after app is initialized.
         """
         blp_name = options.get("name", blp.name)
-        if hasattr(blp, "config_prefix"):
-            blp.config_prefix = self.config_prefix
+        blp.config_prefix = self.config_prefix
         self._app.register_blueprint(blp, **options)
 
         # Register views in API documentation for this resource

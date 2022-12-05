@@ -419,7 +419,7 @@ def _get_spec_dict(config_prefix):
                 click.echo(f"    {key}", err=True)
         raise click.exceptions.Exit()
 
-    return ext["apis"][config_prefix].spec.to_dict()
+    return ext["apis"][config_prefix]["ext_obj"].spec.to_dict()
 
 
 @openapi_cli.command("print")

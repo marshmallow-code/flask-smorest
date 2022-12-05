@@ -593,8 +593,15 @@ class TestAPISpecCLICommands:
         Api(app, config_prefix="V1", spec_kwargs={**spec_kwargs, "title": "V1"})
         Api(app, config_prefix="V2", spec_kwargs={**spec_kwargs, "title": "V2"})
 
-        result = app.test_cli_runner().invoke(args=["openapi", "print"])
-        assert "Error: " in result.output
+        assert (
+            "Error:" in app.test_cli_runner().invoke(args=["openapi", "print"]).output
+        )
+        assert (
+            "Error: "
+            in app.test_cli_runner()
+            .invoke(args=["openapi", "print", "--config-prefix=not_exist"])
+            .output
+        )
 
         r1 = app.test_cli_runner().invoke(
             args=["openapi", "print", "--config-prefix=v1"]
@@ -618,8 +625,15 @@ class TestAPISpecCLICommands:
         Api(app, config_prefix="V1", spec_kwargs={**spec_kwargs, "title": "V1"})
         Api(app, config_prefix="V2", spec_kwargs={**spec_kwargs, "title": "V2"})
 
-        result = app.test_cli_runner().invoke(args=["openapi", "write"])
-        assert "Error: " in result.output
+        assert (
+            "Error: " in app.test_cli_runner().invoke(args=["openapi", "write"]).output
+        )
+        assert (
+            "Error: "
+            in app.test_cli_runner()
+            .invoke(args=["openapi", "write", "--config-prefix=not_exist"])
+            .output
+        )
 
         app.test_cli_runner().invoke(
             args=["openapi", "write", "--config-prefix=v1", str(temp_file1)]
