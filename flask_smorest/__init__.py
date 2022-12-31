@@ -88,6 +88,9 @@ class Api(APISpecMixin, ErrorHandlerMixin):
 
         self._app.register_blueprint(blp, **options)
 
+        for bp_plugin in getattr(blp, "_smore_plugins", []):
+            bp_plugin.visit_api(self)
+
         # Register views in API documentation for this resource
         blp.register_views_in_doc(
             self,
