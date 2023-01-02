@@ -30,14 +30,3 @@ class APIConfigMixin:
             value = app.config.get(app_config_key, default_val)
             if value is not None:
                 self.config[key] = value
-
-
-# def get_config_key(*, ctx, key):  # TODO: remove
-# """Get flask config key potentially affected by config_prefix
-
-# :param flask_smorest.Blueprint|flask_smorest.Api ctx: object
-# containing ``config_prefix`` attribute.
-# :param str key: full flask config key is constructed as ``config_prefix + key``.
-# :return: full flask config key
-# """
-# return getattr(ctx, "config_prefix", "") + key
