@@ -1,15 +1,14 @@
 """Test Api class"""
+import apispec
+import marshmallow as ma
 import pytest
-
 from flask.views import MethodView
 from werkzeug.routing import BaseConverter
-import marshmallow as ma
-import apispec
 
-from flask_smorest import Api, Blueprint
+from flask_smorest import Api, Blueprint, current_api
 from flask_smorest.exceptions import MissingAPIParameterError
 
-from .utils import get_schemas, get_responses
+from .utils import get_responses, get_schemas
 
 
 class TestApi:
@@ -438,13 +437,39 @@ class TestApi:
         ):
             Api(app, config_prefix="API_V1_")
 
-    def test_prefixed_api_to_set_config_prefix_of_added_blueprint(self, app):
-        api = Api(
-            app,
-            config_prefix="CONFIG_PREFIX_",
-            spec_kwargs={"version": "1", "openapi_version": "3.0.2", "title": "V1"},
-        )
+    def test_current_api(self, app):
+        def get_current_api_config_prefix():
+            return {"config_prefix": current_api.config_prefix}
 
-        blp = Blueprint("test", "test", url_prefix="/test")
-        api.register_blueprint(blp)
-        assert blp.config_prefix == "CONFIG_PREFIX_"
+        blp = Blueprint("parent", "parent")
+        blp.route("/")(get_current_api_config_prefix)
+
+        # `current_api` should be available for nested blueprints as well
+        nested_blp = Blueprint("child", "child")
+        nested_blp.route("/")(get_current_api_config_prefix)
+        blp.register_blueprint(nested_blp, url_prefix="/nested")
+
+        for i in [1, 2]:
+            api = Api(
+                app,
+                config_prefix=f"V{i}",
+                spec_kwargs={
+                    "title": f"V{i}",
+                    "version": f"{i}",
+                    "openapi_version": "3.0.2",
+                },
+            )
+
+            api.register_blueprint(blp, name=f"test-blp-{i}", url_prefix=f"/prefix_{i}")
+
+        client = app.test_client()
+
+        response = client.get("/prefix_1/")
+        assert response.json["config_prefix"] == "V1_"
+        response = client.get("/prefix_1/nested/")
+        assert response.json["config_prefix"] == "V1_"
+
+        response = client.get("/prefix_2/")
+        assert response.json["config_prefix"] == "V2_"
+        response = client.get("/prefix_2/nested/")
+        assert response.json["config_prefix"] == "V2_"

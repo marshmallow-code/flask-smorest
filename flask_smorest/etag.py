@@ -8,10 +8,11 @@ import warnings
 
 import hashlib
 
-from flask import request, current_app
+from flask import request
 
 from .exceptions import PreconditionRequired, PreconditionFailed, NotModified
-from .utils import deepupdate, resolve_schema_instance, get_appcontext, get_config_value
+from .utils import deepupdate, resolve_schema_instance, get_appcontext
+from .globals import current_api
 
 
 IF_NONE_MATCH_HEADER = {
@@ -145,11 +146,9 @@ class EtagMixin:
             if new_etag not in request.if_match:
                 raise PreconditionFailed
 
-    def _is_etag_enabled(self, app=None):
+    def _is_etag_enabled(self, api=None):
         """Return True if ETag feature enabled api-wise"""
-        return not get_config_value(
-            app=app or current_app, ctx=self, key="ETAG_DISABLED", default=False
-        )
+        return not (api or current_api).get_config_value("ETAG_DISABLED")
 
     def _verify_check_etag(self):
         """Verify check_etag was called in resource code
@@ -223,8 +222,8 @@ class EtagMixin:
                 self._check_not_modified(new_etag)
             response.set_etag(new_etag)
 
-    def _prepare_etag_doc(self, doc, doc_info, *, app, spec, method, **kwargs):
-        if doc_info.get("etag", False) and self._is_etag_enabled(app):
+    def _prepare_etag_doc(self, doc, doc_info, *, api, spec, method, **kwargs):
+        if doc_info.get("etag", False) and self._is_etag_enabled(api):
             responses = {}
             method_u = method.upper()
             if method_u in self.METHODS_CHECKING_NOT_MODIFIED:

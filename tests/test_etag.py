@@ -152,9 +152,11 @@ class TestEtag:
 
     @pytest.mark.parametrize("method", HTTP_METHODS)
     def test_etag_check_precondition(self, app, method):
+        api = Api(app)
         blp = Blueprint("test", __name__)
 
-        with app.test_request_context("/", method=method):
+        with app.test_request_context("/", method=method) as ctx:
+            ctx.api = api
             if method in ["PUT", "PATCH", "DELETE"]:
                 with pytest.raises(PreconditionRequired):
                     blp._check_precondition()
@@ -164,7 +166,8 @@ class TestEtag:
     @pytest.mark.parametrize("method", ["PUT", "PATCH", "DELETE"])
     @pytest.mark.parametrize("etag_disabled", (True, False))
     def test_etag_check_etag(self, app, schemas, method, etag_disabled):
-        app.config["ETAG_DISABLED"] = etag_disabled
+        api = Api(app)
+        api.config["ETAG_DISABLED"] = etag_disabled
         blp = Blueprint("test", __name__)
         schema = schemas.DocSchema
         old_item = {"item_id": 1, "db_field": 0}
@@ -176,7 +179,8 @@ class TestEtag:
             "/",
             method=method,
             headers={"If-Match": old_etag},
-        ):
+        ) as ctx:
+            ctx.api = api
             blp.check_etag(old_item)
             if not etag_disabled:
                 with pytest.raises(PreconditionFailed):
@@ -187,7 +191,8 @@ class TestEtag:
             "/",
             method=method,
             headers={"If-Match": old_etag_with_schema},
-        ):
+        ) as ctx:
+            ctx.api = api
             blp.check_etag(old_item, schema)
             if not etag_disabled:
                 with pytest.raises(PreconditionFailed):
@@ -198,7 +203,8 @@ class TestEtag:
     @pytest.mark.parametrize("method", HTTP_METHODS)
     @pytest.mark.parametrize("etag_disabled", (True, False))
     def test_etag_check_etag_wrong_method_warning(self, app, method, etag_disabled):
-        app.config["ETAG_DISABLED"] = etag_disabled
+        api = Api(app)
+        api.config["ETAG_DISABLED"] = etag_disabled
         blp = Blueprint("test", __name__)
 
         with pytest.warns(None) as record:
@@ -206,7 +212,8 @@ class TestEtag:
                 "/",
                 method=method,
                 headers={"If-Match": ""},
-            ):
+            ) as ctx:
+                ctx.api = api
                 # Ignore ETag check fail. Just testing the warning.
                 try:
                     blp.check_etag(None)
@@ -223,6 +230,7 @@ class TestEtag:
 
     @pytest.mark.parametrize("method", HTTP_METHODS)
     def test_etag_verify_check_etag_warning(self, app, method):
+        api = Api(app)
         blp = Blueprint("test", __name__)
         old_item = {"item_id": 1, "db_field": 0}
         old_etag = blp._generate_etag(old_item)
@@ -232,7 +240,8 @@ class TestEtag:
                 "/",
                 method=method,
                 headers={"If-Match": old_etag},
-            ):
+            ) as ctx:
+                ctx.api = api
                 blp._verify_check_etag()
                 if method in ["PUT", "PATCH", "DELETE"]:
                     assert len(record) == 1
@@ -252,14 +261,16 @@ class TestEtag:
     @pytest.mark.parametrize("method", HTTP_METHODS_ALLOWING_SET_ETAG)
     @pytest.mark.parametrize("etag_disabled", (True, False))
     def test_etag_set_etag(self, app, schemas, method, etag_disabled):
-        app.config["ETAG_DISABLED"] = etag_disabled
+        api = Api(app)
+        api.config["ETAG_DISABLED"] = etag_disabled
         blp = Blueprint("test", __name__)
         schema = schemas.DocSchema
         item = {"item_id": 1, "db_field": 0}
         etag = blp._generate_etag(item)
         etag_with_schema = blp._generate_etag(schema().dump(item))
 
-        with app.test_request_context("/", method=method):
+        with app.test_request_context("/", method=method) as ctx:
+            ctx.api = api
             blp.set_etag(item)
             if not etag_disabled:
                 assert _get_etag_ctx()["etag"] == etag
@@ -270,7 +281,8 @@ class TestEtag:
             "/",
             method=method,
             headers={"If-None-Match": etag},
-        ):
+        ) as ctx:
+            ctx.api = api
             if not etag_disabled:
                 if method in ["GET", "HEAD"]:
                     with pytest.raises(NotModified):
@@ -282,7 +294,8 @@ class TestEtag:
             "/",
             method=method,
             headers={"If-None-Match": etag_with_schema},
-        ):
+        ) as ctx:
+            ctx.api = api
             if not etag_disabled:
                 if method in ["GET", "HEAD"]:
                     with pytest.raises(NotModified):
@@ -294,7 +307,8 @@ class TestEtag:
             "/",
             method=method,
             headers={"If-None-Match": "dummy"},
-        ):
+        ) as ctx:
+            ctx.api = api
             if not etag_disabled:
                 blp.set_etag(item)
                 assert _get_etag_ctx()["etag"] == etag
@@ -311,11 +325,13 @@ class TestEtag:
     @pytest.mark.parametrize("etag_disabled", (True, False))
     @pytest.mark.parametrize("method", HTTP_METHODS)
     def test_etag_set_etag_method_not_allowed_warning(self, app, method, etag_disabled):
-        app.config["ETAG_DISABLED"] = etag_disabled
+        api = Api(app)
+        api.config["ETAG_DISABLED"] = etag_disabled
         blp = Blueprint("test", __name__)
 
         with pytest.warns(None) as record:
-            with app.test_request_context("/", method=method):
+            with app.test_request_context("/", method=method) as ctx:
+                ctx.api = api
                 blp.set_etag(None)
             if method in HTTP_METHODS_ALLOWING_SET_ETAG:
                 assert not record
@@ -480,8 +496,8 @@ class TestEtag:
         assert response.status_code == 204
 
     def test_etag_operations_etag_disabled(self, app_with_etag):
-
-        app_with_etag.config["ETAG_DISABLED"] = True
+        api = app_with_etag.extensions["flask-smorest"]["apis"][""]["ext_obj"]
+        api.config["ETAG_DISABLED"] = True
         client = app_with_etag.test_client()
 
         # GET without ETag: OK

@@ -1,17 +1,21 @@
 """Api extension initialization"""
 
 from webargs.flaskparser import abort  # noqa
+from flask import request
+from flask.globals import request_ctx
 
 from .spec import APISpecMixin
 from .blueprint import Blueprint  # noqa
 from .pagination import Page  # noqa
 from .error_handler import ErrorHandlerMixin
 from .utils import normalize_config_prefix
+from .config import APIConfigMixin
+from .globals import current_api  # noqa
 
 __version__ = "0.40.0"
 
 
-class Api(APISpecMixin, ErrorHandlerMixin):
+class Api(APISpecMixin, ErrorHandlerMixin, APIConfigMixin):
     """Main class
 
     Provides helpers to build a REST API using Flask.
@@ -56,6 +60,9 @@ class Api(APISpecMixin, ErrorHandlerMixin):
         if app is not None:
             self.init_app(app)
 
+        # TODO: better name and comment with an explanation
+        self._blp_names = set()
+
     def init_app(self, app, *, spec_kwargs=None):
         """Initialize Api with application
 
@@ -69,6 +76,9 @@ class Api(APISpecMixin, ErrorHandlerMixin):
         ext = app.extensions.setdefault("flask-smorest", {"apis": {}})
         ext["apis"][self.config_prefix] = {"ext_obj": self}
 
+        # Update config
+        self._init_config(app)
+
         # Initialize spec
         self._init_spec(**{**self._spec_kwargs, **(spec_kwargs or {})})
 
@@ -77,6 +87,10 @@ class Api(APISpecMixin, ErrorHandlerMixin):
 
         # Register error handlers
         self._register_error_handlers()
+
+        # register request handlers to assign self as `current_api` if needed
+        app.before_request(self._add_self_as_current_api)
+        app.teardown_request(self._remove_self_as_current_api)
 
     def register_blueprint(self, blp, *, parameters=None, **options):
         """Register a blueprint in the application
@@ -92,7 +106,8 @@ class Api(APISpecMixin, ErrorHandlerMixin):
         Must be called after app is initialized.
         """
         blp_name = options.get("name", blp.name)
-        blp.config_prefix = self.config_prefix
+        self._blp_names.add(blp_name)
+
         self._app.register_blueprint(blp, **options)
 
         # Register views in API documentation for this resource
@@ -106,3 +121,18 @@ class Api(APISpecMixin, ErrorHandlerMixin):
 
         # Add tag relative to this resource to the global tag list
         self.spec.tag({"name": blp_name, "description": blp.description})
+
+    def _add_self_as_current_api(self):  # TODO: rename
+        for blp_name in request.blueprints:
+            if blp_name in self._blp_names:
+                request_ctx.api = self
+                break
+
+    def _remove_self_as_current_api(self, response):  # TODO: rename
+        if hasattr(request_ctx, "api"):
+            for blp_name in request.blueprints:
+                if blp_name in self._blp_names:
+                    delattr(request_ctx, "api")
+                    break
+
+        return response
