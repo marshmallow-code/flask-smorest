@@ -6,7 +6,7 @@ EXTRAS_REQUIRE = {
     "tests": [
         "pytest==7.2.0",
         "pytest-cov==4.0.0",
-        "coverage==6.5.0",
+        "coverage==7.0.1",
         "werkzeug==2.2.2",
         "flask==2.2.2",
         "marshmallow==3.19.0",
@@ -16,8 +16,8 @@ EXTRAS_REQUIRE = {
     ],
     "lint": [
         "flake8==6.0.0",
-        "flake8-bugbear==22.10.27",
-        "pre-commit==2.20.0",
+        "flake8-bugbear==22.12.6",
+        "pre-commit==2.21.0",
     ],
 }
 EXTRAS_REQUIRE["dev"] = EXTRAS_REQUIRE["tests"] + EXTRAS_REQUIRE["lint"]
