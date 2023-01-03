@@ -11,8 +11,10 @@ def _find_api():
 
 
 current_api = LocalProxy(_find_api)
-"""
-TODO: write docstring
+"""A proxy for the current Api
+
+Only available within a request context and only
+if current blueprint is registered in a smorest api.
 """
 
 
