@@ -15,6 +15,7 @@ from flask_smorest.exceptions import (
     NotModified,
     PreconditionRequired,
     PreconditionFailed,
+    CurrentApiNotAvailableError,
 )
 from flask_smorest.utils import get_appcontext
 from flask_smorest.globals import update_current_api, teardown_current_api
@@ -672,3 +673,11 @@ class TestEtag:
             assert not has_response or (
                 response_headers.get("ETag") == build_ref(api.spec, "header", "ETAG")
             ) == (method in ["GET", "HEAD", "POST", "PUT", "PATCH"])
+
+    def test_trying_to_use_etag_without_current_api(self, app, collection):
+        blp = Blueprint("test", "test")
+        collection.post({"item_id": 1, "field": "test"})
+        item = collection.items[0]
+        with app.test_request_context(f"/test/{item['item_id']}"):
+            with pytest.raises(CurrentApiNotAvailableError):
+                blp.set_etag(item)
