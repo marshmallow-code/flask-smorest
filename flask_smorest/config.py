@@ -1,7 +1,10 @@
 class APIConfigMixin:
+    """Add config related features to Api class"""
+
     config = {}
 
     def get_default_config(self):
+        """TODO: docstring"""
         return {
             "API_SPEC_OPTIONS": {},
             "API_TITLE": None,
@@ -21,6 +24,7 @@ class APIConfigMixin:
         }
 
     def get_config_value(self, key, default=None):
+        """TODO: docstring"""
         return self.config.get(key, default)
 
     def _init_config(self, app):

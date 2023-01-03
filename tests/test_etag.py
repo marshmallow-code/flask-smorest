@@ -2,6 +2,7 @@
 
 import json
 import hashlib
+from contextlib import contextmanager
 
 import pytest
 
@@ -16,6 +17,7 @@ from flask_smorest.exceptions import (
     PreconditionFailed,
 )
 from flask_smorest.utils import get_appcontext
+from flask_smorest.globals import update_current_api, teardown_current_api
 import marshmallow as ma
 
 from .utils import build_ref
@@ -128,6 +130,16 @@ def app_with_etag(request, collection, schemas, app):
     return app
 
 
+@contextmanager
+def request_ctx_with_current_api(app, api, *args, **kwargs):
+    with app.test_request_context(*args, **kwargs):
+        try:
+            update_current_api(api)
+            yield
+        finally:
+            teardown_current_api()
+
+
 class TestEtag:
     """Test EtagMixin"""
 
@@ -155,8 +167,7 @@ class TestEtag:
         api = Api(app)
         blp = Blueprint("test", __name__)
 
-        with app.test_request_context("/", method=method) as ctx:
-            ctx.api = api
+        with request_ctx_with_current_api(app, api, "/", method=method):
             if method in ["PUT", "PATCH", "DELETE"]:
                 with pytest.raises(PreconditionRequired):
                     blp._check_precondition()
@@ -175,24 +186,18 @@ class TestEtag:
         old_etag = blp._generate_etag(old_item)
         old_etag_with_schema = blp._generate_etag(schema().dump(old_item))
 
-        with app.test_request_context(
-            "/",
-            method=method,
-            headers={"If-Match": old_etag},
-        ) as ctx:
-            ctx.api = api
+        with request_ctx_with_current_api(
+            app, api, "/", method=method, headers={"If-Match": old_etag}
+        ):
             blp.check_etag(old_item)
             if not etag_disabled:
                 with pytest.raises(PreconditionFailed):
                     blp.check_etag(new_item)
             else:
                 blp.check_etag(new_item)
-        with app.test_request_context(
-            "/",
-            method=method,
-            headers={"If-Match": old_etag_with_schema},
-        ) as ctx:
-            ctx.api = api
+        with request_ctx_with_current_api(
+            app, api, "/", method=method, headers={"If-Match": old_etag_with_schema}
+        ):
             blp.check_etag(old_item, schema)
             if not etag_disabled:
                 with pytest.raises(PreconditionFailed):
@@ -208,12 +213,9 @@ class TestEtag:
         blp = Blueprint("test", __name__)
 
         with pytest.warns(None) as record:
-            with app.test_request_context(
-                "/",
-                method=method,
-                headers={"If-Match": ""},
-            ) as ctx:
-                ctx.api = api
+            with request_ctx_with_current_api(
+                app, api, "/", method=method, headers={"If-Match": ""}
+            ):
                 # Ignore ETag check fail. Just testing the warning.
                 try:
                     blp.check_etag(None)
@@ -236,12 +238,9 @@ class TestEtag:
         old_etag = blp._generate_etag(old_item)
 
         with pytest.warns(None) as record:
-            with app.test_request_context(
-                "/",
-                method=method,
-                headers={"If-Match": old_etag},
-            ) as ctx:
-                ctx.api = api
+            with request_ctx_with_current_api(
+                app, api, "/", method=method, headers={"If-Match": old_etag}
+            ):
                 blp._verify_check_etag()
                 if method in ["PUT", "PATCH", "DELETE"]:
                     assert len(record) == 1
@@ -269,20 +268,16 @@ class TestEtag:
         etag = blp._generate_etag(item)
         etag_with_schema = blp._generate_etag(schema().dump(item))
 
-        with app.test_request_context("/", method=method) as ctx:
-            ctx.api = api
+        with request_ctx_with_current_api(app, api, "/", method=method):
             blp.set_etag(item)
             if not etag_disabled:
                 assert _get_etag_ctx()["etag"] == etag
                 del _get_etag_ctx()["etag"]
             else:
                 assert "etag" not in _get_etag_ctx()
-        with app.test_request_context(
-            "/",
-            method=method,
-            headers={"If-None-Match": etag},
-        ) as ctx:
-            ctx.api = api
+        with request_ctx_with_current_api(
+            app, api, "/", method=method, headers={"If-None-Match": etag}
+        ):
             if not etag_disabled:
                 if method in ["GET", "HEAD"]:
                     with pytest.raises(NotModified):
@@ -290,12 +285,9 @@ class TestEtag:
             else:
                 blp.set_etag(item)
                 assert "etag" not in _get_etag_ctx()
-        with app.test_request_context(
-            "/",
-            method=method,
-            headers={"If-None-Match": etag_with_schema},
-        ) as ctx:
-            ctx.api = api
+        with request_ctx_with_current_api(
+            app, api, "/", method=method, headers={"If-None-Match": etag_with_schema}
+        ):
             if not etag_disabled:
                 if method in ["GET", "HEAD"]:
                     with pytest.raises(NotModified):
@@ -303,12 +295,9 @@ class TestEtag:
             else:
                 blp.set_etag(item, schema)
                 assert "etag" not in _get_etag_ctx()
-        with app.test_request_context(
-            "/",
-            method=method,
-            headers={"If-None-Match": "dummy"},
-        ) as ctx:
-            ctx.api = api
+        with request_ctx_with_current_api(
+            app, api, "/", method=method, headers={"If-None-Match": "dummy"}
+        ):
             if not etag_disabled:
                 blp.set_etag(item)
                 assert _get_etag_ctx()["etag"] == etag
@@ -330,8 +319,7 @@ class TestEtag:
         blp = Blueprint("test", __name__)
 
         with pytest.warns(None) as record:
-            with app.test_request_context("/", method=method) as ctx:
-                ctx.api = api
+            with request_ctx_with_current_api(app, api, "/", method=method):
                 blp.set_etag(None)
             if method in HTTP_METHODS_ALLOWING_SET_ETAG:
                 assert not record
