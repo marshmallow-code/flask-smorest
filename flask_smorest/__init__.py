@@ -1,7 +1,6 @@
 """Api extension initialization"""
 
 from webargs.flaskparser import abort  # noqa
-from flask import request
 
 from .spec import APISpecMixin
 from .blueprint import Blueprint  # noqa
@@ -10,7 +9,6 @@ from .error_handler import ErrorHandlerMixin
 from .utils import normalize_config_prefix
 from .config import APIConfigMixin
 from .globals import current_api  # noqa
-from .globals import update_current_api, teardown_current_api
 
 __version__ = "0.40.0"
 
@@ -60,9 +58,8 @@ class Api(APISpecMixin, ErrorHandlerMixin, APIConfigMixin):
         if app is not None:
             self.init_app(app)
 
-        # To keep track of registered blueprints. It will be used
-        # later in `_before_request` and `_teardown_request` to manage
-        # `.globals.current_api`.
+        # To keep track of registered blueprints.
+        # It will be used in globals to find `current_api`.
         self._registered_blueprint_names = set()
 
     def init_app(self, app, *, spec_kwargs=None):
@@ -89,10 +86,6 @@ class Api(APISpecMixin, ErrorHandlerMixin, APIConfigMixin):
 
         # Register error handlers
         self._register_error_handlers()
-
-        # register request handlers to assign self as `current_api` if needed
-        app.before_request(self._before_request)
-        app.teardown_request(self._teardown_request)
 
     def register_blueprint(self, blp, *, parameters=None, **options):
         """Register a blueprint in the application
@@ -123,17 +116,3 @@ class Api(APISpecMixin, ErrorHandlerMixin, APIConfigMixin):
 
         # Add tag relative to this resource to the global tag list
         self.spec.tag({"name": blp_name, "description": blp.description})
-
-    def _before_request(self):
-        for blp_name in request.blueprints:  # To support nested blps
-            if blp_name in self._registered_blueprint_names:
-                update_current_api(self)
-                break
-
-    def _teardown_request(self, response):
-        for blp_name in request.blueprints:  # To support nested blps
-            if blp_name in self._registered_blueprint_names:
-                teardown_current_api()
-                break
-
-        return response
