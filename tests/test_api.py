@@ -438,11 +438,11 @@ class TestApi:
             Api(app, config_prefix="API_V1_")
 
     def test_current_api(self, app):
+        blp = Blueprint("parent", "parent")
+
+        @blp.route("/")
         def get_current_api_config_prefix():
             return {"config_prefix": current_api.config_prefix}
-
-        blp = Blueprint("parent", "parent")
-        blp.route("/")(get_current_api_config_prefix)
 
         # `current_api` should be available for nested blueprints as well
         nested_blp = Blueprint("child", "child")
@@ -473,3 +473,29 @@ class TestApi:
         assert response.json["config_prefix"] == "V2_"
         response = client.get("/prefix_2/nested/")
         assert response.json["config_prefix"] == "V2_"
+
+    @pytest.mark.parametrize("add_to_api", [True, False])
+    def test_current_api_is_falsy_if_blp_is_not_part_of_api(self, app, add_to_api):
+        blp = Blueprint("parent", "parent")
+
+        @blp.route("/")
+        def get_current_api_config_prefix():
+            return {"bool_current_api": bool(current_api)}
+
+        api = Api(
+            app,
+            spec_kwargs={
+                "title": "Title",
+                "version": "1",
+                "openapi_version": "3.0.2",
+            },
+        )
+
+        if add_to_api:
+            api.register_blueprint(blp)
+        else:
+            app.register_blueprint(blp)
+
+        client = app.test_client()
+        response = client.get("/")
+        assert response.json["bool_current_api"] is add_to_api
