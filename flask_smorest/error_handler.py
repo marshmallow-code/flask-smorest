@@ -54,6 +54,12 @@ class ErrorHandlerMixin:
         """
         headers = {}
         payload = {"code": error.code, "status": error.name}
+        
+        # To cover the example:
+        # raise werkzeug.exceptions.BadRequest(description="<text>")
+        description = getattr(error, "description", None)
+        if description:
+            payload["description"] = error.description
 
         # Get additional info passed as kwargs when calling abort
         # data may not exist if HTTPException was raised without webargs abort
