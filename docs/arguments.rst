@@ -159,7 +159,7 @@ Calls to ``arguments`` decorator can be stacked, for instance to define
 arguments from multiple locations:
 
 .. code-block:: python
-    :emphasize-lines: 4,5
+    :emphasize-lines: 3,4
 
     @blp.route("/")
     class Pets(MethodView):
