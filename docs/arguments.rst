@@ -95,21 +95,8 @@ For locations that typically don't use nested ``Schema`` s (``query_string``,
 is considered a more sensible default.
 
 The ``unknown`` argument passed to the ``Schema`` for each location can be
-customized in the ``FlaskParser`` imported from webargs.
-
-The easiest way is to mutate ``DEFAULT_UNKNOWN_BY_LOCATION`` in the parser
-class:
-
-.. code-block:: python
-
-    import marshmallow as ma
-    from webargs.flaskparser import FlaskParser
-
-    # Don't do that when using the pagination feature. See below.
-    FlaskParser.DEFAULT_UNKNOWN_BY_LOCATION["query"] = ma.RAISE
-
-It can also be achieved by subclassing the parser and setting
-``ARGUMENTS_PARSER`` in a base :class:`Blueprint` class:
+customized by subclassing the ``FlaskParser`` imported from webargs and set it
+in a base :class:`Blueprint` class:
 
 .. code-block:: python
 
@@ -128,10 +115,6 @@ It can also be achieved by subclassing the parser and setting
     class MyBlueprint(Blueprint):
         ARGUMENTS_PARSER = MyFlaskParser()
 
-This latter method is recommended if several parsers are instantiated with
-different ``unknown`` values, for instance to get different behaviours in
-different ``Blueprint`` s.
-
 For the reason stated above, setting a value there for locations containing
 nested ``Schema`` s is not recommended because that value would only apply to
 the first level and would not propagate to nested ``Schema`` s.
@@ -142,11 +125,6 @@ Setting ``None`` for a location disables the feature for that location: no
 
 Setting ``None`` as ``DEFAULT_UNKNOWN_BY_LOCATION`` instead of a location/value
 mapping disables the feature for all locations.
-
-.. note:: The pagination feature in flask-smorest uses its own ``FlaskParser``
-   instance to parse pagination parameters from query arguments. It is affected
-   by mutations of ``FlaskParser.DEFAULT_UNKNOWN_BY_LOCATION`` setting a value
-   other than ``EXCLUDE`` for ``query``.
 
 .. note:: More info about customizing ``unknown`` can be found in `webargs
    documentation
