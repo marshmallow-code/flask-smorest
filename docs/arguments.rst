@@ -12,7 +12,7 @@ When processing a request, the input data is deserialized, validated, and
 injected in the view function.
 
 .. code-block:: python
-    :emphasize-lines: 4,6,9,11
+    :emphasize-lines: 3,5,8,10
 
     @blp.route("/")
     class Pets(MethodView):
@@ -49,7 +49,7 @@ If ``as_kwargs=True`` is passed, the decorator passes deserialized input data
 as keyword arguments instead.
 
 .. code-block:: python
-    :emphasize-lines: 4,6
+    :emphasize-lines: 3,5
 
     @blp.route("/")
     class Pets(MethodView):
