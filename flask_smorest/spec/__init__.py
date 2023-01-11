@@ -54,7 +54,7 @@ class DocBlueprintMixin:
         - json spec file
         - spec UI (ReDoc, Swagger UI).
         """
-        api_url = self.get_config_value("OPENAPI_URL_PREFIX")
+        api_url = self.config.get("OPENAPI_URL_PREFIX")
         if api_url is not None:
             blueprint = flask.Blueprint(
                 self._get_doc_blueprint_name(),
@@ -63,7 +63,7 @@ class DocBlueprintMixin:
                 template_folder="./templates",
             )
             # Serve json spec at 'url_prefix/openapi.json' by default
-            json_path = self.get_config_value("OPENAPI_JSON_PATH", "openapi.json")
+            json_path = self.config.get("OPENAPI_JSON_PATH", "openapi.json")
             blueprint.add_url_rule(
                 _add_leading_slash(json_path),
                 endpoint="openapi_json",
@@ -79,9 +79,9 @@ class DocBlueprintMixin:
 
         The ReDoc script URL should be specified as OPENAPI_REDOC_URL.
         """
-        redoc_path = self.get_config_value("OPENAPI_REDOC_PATH")
+        redoc_path = self.config.get("OPENAPI_REDOC_PATH")
         if redoc_path is not None:
-            redoc_url = self.get_config_value("OPENAPI_REDOC_URL")
+            redoc_url = self.config.get("OPENAPI_REDOC_URL")
             if redoc_url is not None:
                 self._redoc_url = redoc_url
                 blueprint.add_url_rule(
@@ -96,9 +96,9 @@ class DocBlueprintMixin:
         The Swagger UI scripts base URL should be specified as
         OPENAPI_SWAGGER_UI_URL.
         """
-        swagger_ui_path = self.get_config_value("OPENAPI_SWAGGER_UI_PATH")
+        swagger_ui_path = self.config.get("OPENAPI_SWAGGER_UI_PATH")
         if swagger_ui_path is not None:
-            swagger_ui_url = self.get_config_value("OPENAPI_SWAGGER_UI_URL")
+            swagger_ui_url = self.config.get("OPENAPI_SWAGGER_UI_URL")
             if swagger_ui_url is not None:
                 self._swagger_ui_url = swagger_ui_url
                 blueprint.add_url_rule(
@@ -112,9 +112,9 @@ class DocBlueprintMixin:
 
         The RapiDoc script URL should be specified as OPENAPI_RAPIDOC_URL.
         """
-        rapidoc_path = self.get_config_value("OPENAPI_RAPIDOC_PATH")
+        rapidoc_path = self.config.get("OPENAPI_RAPIDOC_PATH")
         if rapidoc_path is not None:
-            rapidoc_url = self.get_config_value("OPENAPI_RAPIDOC_URL")
+            rapidoc_url = self.config.get("OPENAPI_RAPIDOC_URL")
             if rapidoc_url is not None:
                 self._rapidoc_url = rapidoc_url
                 blueprint.add_url_rule(
@@ -147,7 +147,7 @@ class DocBlueprintMixin:
             title=self.spec.title,
             spec_url=flask.url_for(f"{self._get_doc_blueprint_name()}.openapi_json"),
             swagger_ui_url=self._swagger_ui_url,
-            swagger_ui_config=self.get_config_value("OPENAPI_SWAGGER_UI_CONFIG"),
+            swagger_ui_config=self.config.get("OPENAPI_SWAGGER_UI_CONFIG", {}),
         )
 
     def _openapi_rapidoc(self):
@@ -157,7 +157,7 @@ class DocBlueprintMixin:
             title=self.spec.title,
             spec_url=flask.url_for(f"{self._get_doc_blueprint_name()}.openapi_json"),
             rapidoc_url=self._rapidoc_url,
-            rapidoc_config=self.get_config_value("OPENAPI_RAPIDOC_CONFIG"),
+            rapidoc_config=self.config.get("OPENAPI_RAPIDOC_CONFIG", {}),
         )
 
 
@@ -187,21 +187,21 @@ class APISpecMixin(DocBlueprintMixin):
         plugins.extend(extra_plugins or ())
 
         # APISpec options
-        title = self.get_config_value("API_TITLE", title)
+        title = self.config.get("API_TITLE", title)
         if title is None:
             key = f"{self.config_prefix}API_TITLE"
             raise MissingAPIParameterError(
                 f'API title must be specified either as "{key}" '
                 'app parameter or as "title" spec kwarg.'
             )
-        version = self.get_config_value("API_VERSION", version)
+        version = self.config.get("API_VERSION", version)
         if version is None:
             key = f"{self.config_prefix}API_VERSION"
             raise MissingAPIParameterError(
                 f'API version must be specified either as "{key}" '
                 'app parameter or as "version" spec kwarg.'
             )
-        openapi_version = self.get_config_value("OPENAPI_VERSION", openapi_version)
+        openapi_version = self.config.get("OPENAPI_VERSION", openapi_version)
         if openapi_version is None:
             key = f"{self.config_prefix}OPENAPI_VERSION"
             raise MissingAPIParameterError(
@@ -222,7 +222,7 @@ class APISpecMixin(DocBlueprintMixin):
                     self.DEFAULT_REQUEST_BODY_CONTENT_TYPE,
                 ],
             )
-        options.update(self.get_config_value("API_SPEC_OPTIONS"))
+        options.update(self.config.get("API_SPEC_OPTIONS", {}))
 
         # Instantiate spec
         self.spec = apispec.APISpec(

@@ -499,3 +499,43 @@ class TestApi:
         client = app.test_client()
         response = client.get("/")
         assert response.json["bool_current_api"] is add_to_api
+
+    def test_api_config_proxying_flask_config(self, app):
+        app.config.update(
+            {
+                "DEBUG": True,
+                "SECRET_KEY": "secret",
+                "API_TITLE": "No Prefix Title",
+                "API_VERSION": "2",
+                "OPENAPI_VERSION": "3.0.2",
+                "API_V1_API_TITLE": "V1 Title",
+                "API_V1_API_VERSION": "1",
+                "API_V1_OPENAPI_VERSION": "2.0",
+                "API_V2_API_TITLE": "V2 Title",
+                "API_V2_API_VERSION": "2",
+                "API_V2_OPENAPI_VERSION": "3.0.2",
+            }
+        )
+
+        api_empty = Api(app)
+        # It is expected behaviour for Api with no config prefix to just
+        # proxy whole App config
+        assert "DEBUG" in api_empty.config
+        assert set(api_empty.config) == set(app.config)
+        assert len(api_empty.config) == len(app.config)
+
+        api_v1 = Api(app, config_prefix="API_V1")
+        assert set(api_v1.config) == {
+            "API_V1_API_TITLE",
+            "API_V1_API_VERSION",
+            "API_V1_OPENAPI_VERSION",
+        }
+        assert len(api_v1.config) == 3
+
+        api_v2 = Api(app, config_prefix="API_V2")
+        assert set(api_v2.config) == {
+            "API_V2_API_TITLE",
+            "API_V2_API_VERSION",
+            "API_V2_OPENAPI_VERSION",
+        }
+        assert len(api_v2.config) == 3

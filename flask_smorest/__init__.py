@@ -2,18 +2,18 @@
 
 from webargs.flaskparser import abort  # noqa
 
-from .spec import APISpecMixin
 from .blueprint import Blueprint  # noqa
-from .pagination import Page  # noqa
 from .error_handler import ErrorHandlerMixin
-from .utils import normalize_config_prefix
-from .config import APIConfigMixin
 from .globals import current_api  # noqa
+from .pagination import Page  # noqa
+from .prefixed_config import PrefixedConfigProxy
+from .spec import APISpecMixin
+from .utils import normalize_config_prefix
 
 __version__ = "0.40.0"
 
 
-class Api(APISpecMixin, ErrorHandlerMixin, APIConfigMixin):
+class Api(APISpecMixin, ErrorHandlerMixin):
     """Main class
 
     Provides helpers to build a REST API using Flask.
@@ -51,6 +51,7 @@ class Api(APISpecMixin, ErrorHandlerMixin, APIConfigMixin):
         self._app = app
         self._spec_kwargs = spec_kwargs or {}
         self.config_prefix = normalize_config_prefix(config_prefix)
+        self.config = None
         self.spec = None
         # Use lists to enforce order
         self._fields = []
@@ -69,14 +70,12 @@ class Api(APISpecMixin, ErrorHandlerMixin, APIConfigMixin):
             Updates ``spec_kwargs`` passed in ``Api`` init.
         """
         self._app = app
+        self.config = PrefixedConfigProxy(app, self.config_prefix)
 
         # Register flask-smorest in app extensions
         app.extensions = getattr(app, "extensions", {})
         ext = app.extensions.setdefault("flask-smorest", {"apis": {}})
         ext["apis"][self.config_prefix] = {"ext_obj": self}
-
-        # Update config
-        self._init_config(app)
 
         # Initialize spec
         self._init_spec(**{**self._spec_kwargs, **(spec_kwargs or {})})

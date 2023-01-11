@@ -182,8 +182,8 @@ class TestEtag:
     @pytest.mark.parametrize("method", ["PUT", "PATCH", "DELETE"])
     @pytest.mark.parametrize("etag_disabled", (True, False))
     def test_etag_check_etag(self, app, schemas, method, etag_disabled):
+        app.config["ETAG_DISABLED"] = etag_disabled
         api = Api(app)
-        api.config["ETAG_DISABLED"] = etag_disabled
         blp = Blueprint("test", __name__)
         api.register_blueprint(blp)
 
@@ -215,9 +215,9 @@ class TestEtag:
     @pytest.mark.parametrize("method", HTTP_METHODS)
     @pytest.mark.parametrize("etag_disabled", (True, False))
     def test_etag_check_etag_wrong_method_warning(self, app, method, etag_disabled):
-        api = Api(app)
-        api.config["ETAG_DISABLED"] = etag_disabled
+        app.config["ETAG_DISABLED"] = etag_disabled
         blp = Blueprint("test", __name__)
+        api = Api(app)
         api.register_blueprint(blp)
 
         with pytest.warns(None) as record:
@@ -240,8 +240,8 @@ class TestEtag:
 
     @pytest.mark.parametrize("method", HTTP_METHODS)
     def test_etag_verify_check_etag_warning(self, app, method):
-        api = Api(app)
         blp = Blueprint("test", __name__)
+        api = Api(app)
         api.register_blueprint(blp)
         old_item = {"item_id": 1, "db_field": 0}
         old_etag = blp._generate_etag(old_item)
@@ -269,9 +269,9 @@ class TestEtag:
     @pytest.mark.parametrize("method", HTTP_METHODS_ALLOWING_SET_ETAG)
     @pytest.mark.parametrize("etag_disabled", (True, False))
     def test_etag_set_etag(self, app, schemas, method, etag_disabled):
-        api = Api(app)
-        api.config["ETAG_DISABLED"] = etag_disabled
+        app.config["ETAG_DISABLED"] = etag_disabled
         blp = Blueprint("test", __name__)
+        api = Api(app)
         api.register_blueprint(blp)
         schema = schemas.DocSchema
         item = {"item_id": 1, "db_field": 0}
@@ -324,9 +324,9 @@ class TestEtag:
     @pytest.mark.parametrize("etag_disabled", (True, False))
     @pytest.mark.parametrize("method", HTTP_METHODS)
     def test_etag_set_etag_method_not_allowed_warning(self, app, method, etag_disabled):
-        api = Api(app)
-        api.config["ETAG_DISABLED"] = etag_disabled
+        app.config["ETAG_DISABLED"] = etag_disabled
         blp = Blueprint("test", __name__)
+        api = Api(app)
         api.register_blueprint(blp)
 
         with pytest.warns(None) as record:
@@ -495,8 +495,7 @@ class TestEtag:
         assert response.status_code == 204
 
     def test_etag_operations_etag_disabled(self, app_with_etag):
-        api = app_with_etag.extensions["flask-smorest"]["apis"][""]["ext_obj"]
-        api.config["ETAG_DISABLED"] = True
+        app_with_etag.config["ETAG_DISABLED"] = True
         client = app_with_etag.test_client()
 
         # GET without ETag: OK

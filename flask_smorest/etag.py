@@ -161,7 +161,7 @@ class EtagMixin:
                 "Make sure that request context is available "
                 "and/or ETag is checked inside flask_smorest views."
             )
-        return not api.get_config_value("ETAG_DISABLED")
+        return not api.config.get("ETAG_DISABLED", False)
 
     def _verify_check_etag(self):
         """Verify check_etag was called in resource code
