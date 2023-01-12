@@ -149,3 +149,26 @@ def normalize_config_prefix(config_prefix: str):
     if result and not result.endswith("_"):
         result += "_"
     return result
+
+
+class PrefixedMappingProxy(abc.Mapping):
+    """Mapping to proxy an another mapping using a prefix
+
+    .. code-block:: python
+        some_dict = {"foobar_key1": 1, "foobar_key2": 2}
+        assert some_dict["key1"] == 1
+        assert some_dict["key2"] == 2
+    """
+
+    def __init__(self, proxied_dict, prefix):
+        self._dict = proxied_dict
+        self.prefix = prefix
+
+    def __getitem__(self, key):
+        return self._dict[self.prefix + str(key)]
+
+    def __iter__(self):
+        return iter(x for x in self._dict if x.startswith(self.prefix))
+
+    def __len__(self):
+        return sum(1 for _x in iter(self))

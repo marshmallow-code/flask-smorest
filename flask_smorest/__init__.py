@@ -6,9 +6,8 @@ from .blueprint import Blueprint  # noqa
 from .error_handler import ErrorHandlerMixin
 from .globals import current_api  # noqa
 from .pagination import Page  # noqa
-from .prefixed_config import PrefixedConfigProxy
 from .spec import APISpecMixin
-from .utils import normalize_config_prefix
+from .utils import normalize_config_prefix, PrefixedMappingProxy
 
 __version__ = "0.40.0"
 
@@ -70,7 +69,7 @@ class Api(APISpecMixin, ErrorHandlerMixin):
             Updates ``spec_kwargs`` passed in ``Api`` init.
         """
         self._app = app
-        self.config = PrefixedConfigProxy(app, self.config_prefix)
+        self.config = PrefixedMappingProxy(app.config, self.config_prefix)
 
         # Register flask-smorest in app extensions
         app.extensions = getattr(app, "extensions", {})
