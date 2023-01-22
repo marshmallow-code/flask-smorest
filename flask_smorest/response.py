@@ -158,7 +158,7 @@ class ResponseMixin:
         This decorator allows the user to document an alternative response.
         This can be an error managed with :func:`abort <abort>` or any response
         that is not the primary flow of the function documented by
-        :meth:`Blueprint.reponse <Blueprint.response>`.
+        :meth:`Blueprint.response <Blueprint.response>`.
 
         When a response reference is passed as ``response``, it is used as
         description and the keyword arguments are ignored. Otherwise, a
