@@ -145,7 +145,7 @@ class ResponseMixin:
         """Decorator documenting an alternative response
 
         :param int|str|HTTPStatus status_code: HTTP status code.
-        :param str response: Reponse reference.
+        :param str response: Response reference.
         :param schema schema|str|dict: :class:`Schema <marshmallow.Schema>`
             class or instance or reference or dict.
         :param str description: Description of the response (default: None).

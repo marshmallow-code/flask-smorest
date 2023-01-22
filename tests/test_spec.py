@@ -42,7 +42,7 @@ class TestAPISpec:
         api = Api(app)
 
         # Declare a dummy response to ensure get_response doesn't fail
-        response_1 = {"description": "Reponse 1"}
+        response_1 = {"description": "Response 1"}
         api.spec.components.response("Response_1", response_1)
 
         # No route registered -> default errors not registered
