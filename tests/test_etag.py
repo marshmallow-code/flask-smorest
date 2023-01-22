@@ -196,57 +196,57 @@ class TestEtag:
 
     @pytest.mark.parametrize("method", HTTP_METHODS)
     @pytest.mark.parametrize("etag_disabled", (True, False))
-    def test_etag_check_etag_wrong_method_warning(self, app, method, etag_disabled):
+    def test_etag_check_etag_wrong_method_warning(
+        self, app, method, etag_disabled, recwarn
+    ):
         app.config["ETAG_DISABLED"] = etag_disabled
         blp = Blueprint("test", __name__)
 
-        with pytest.warns(None) as record:
-            with app.test_request_context(
-                "/",
-                method=method,
-                headers={"If-Match": ""},
-            ):
-                # Ignore ETag check fail. Just testing the warning.
-                try:
-                    blp.check_etag(None)
-                except PreconditionFailed:
-                    pass
-                if method in ["PUT", "PATCH", "DELETE"]:
-                    assert not record
-                else:
-                    assert len(record) == 1
-                    assert record[0].category == UserWarning
-                    assert str(record[0].message) == (
-                        f"ETag cannot be checked on {method} request."
-                    )
+        with app.test_request_context(
+            "/",
+            method=method,
+            headers={"If-Match": ""},
+        ):
+            # Ignore ETag check fail. Just testing the warning.
+            try:
+                blp.check_etag(None)
+            except PreconditionFailed:
+                pass
+        if method in ["PUT", "PATCH", "DELETE"]:
+            assert not recwarn
+        else:
+            assert len(recwarn) == 1
+            assert recwarn[0].category == UserWarning
+            assert str(recwarn[0].message) == (
+                f"ETag cannot be checked on {method} request."
+            )
 
     @pytest.mark.parametrize("method", HTTP_METHODS)
-    def test_etag_verify_check_etag_warning(self, app, method):
+    def test_etag_verify_check_etag_warning(self, app, method, recwarn):
         blp = Blueprint("test", __name__)
         old_item = {"item_id": 1, "db_field": 0}
         old_etag = blp._generate_etag(old_item)
 
-        with pytest.warns(None) as record:
-            with app.test_request_context(
-                "/",
-                method=method,
-                headers={"If-Match": old_etag},
-            ):
-                blp._verify_check_etag()
-                if method in ["PUT", "PATCH", "DELETE"]:
-                    assert len(record) == 1
-                    assert record[0].category == UserWarning
-                    assert str(record[0].message) == (
-                        "ETag not checked in endpoint {} on {} request.".format(
-                            f_request.endpoint, method
-                        )
+        with app.test_request_context(
+            "/",
+            method=method,
+            headers={"If-Match": old_etag},
+        ):
+            blp._verify_check_etag()
+            if method in ["PUT", "PATCH", "DELETE"]:
+                assert len(recwarn) == 1
+                assert recwarn[0].category == UserWarning
+                assert str(recwarn[0].message) == (
+                    "ETag not checked in endpoint {} on {} request.".format(
+                        f_request.endpoint, method
                     )
-                else:
-                    assert not record
-                blp.check_etag(old_item)
-                record.clear()
-                blp._verify_check_etag()
-                assert not record
+                )
+            else:
+                assert not recwarn
+            blp.check_etag(old_item)
+            recwarn.clear()
+            blp._verify_check_etag()
+            assert not recwarn
 
     @pytest.mark.parametrize("method", HTTP_METHODS_ALLOWING_SET_ETAG)
     @pytest.mark.parametrize("etag_disabled", (True, False))
@@ -309,21 +309,22 @@ class TestEtag:
 
     @pytest.mark.parametrize("etag_disabled", (True, False))
     @pytest.mark.parametrize("method", HTTP_METHODS)
-    def test_etag_set_etag_method_not_allowed_warning(self, app, method, etag_disabled):
+    def test_etag_set_etag_method_not_allowed_warning(
+        self, app, method, etag_disabled, recwarn
+    ):
         app.config["ETAG_DISABLED"] = etag_disabled
         blp = Blueprint("test", __name__)
 
-        with pytest.warns(None) as record:
-            with app.test_request_context("/", method=method):
-                blp.set_etag(None)
-            if method in HTTP_METHODS_ALLOWING_SET_ETAG:
-                assert not record
-            else:
-                assert len(record) == 1
-                assert record[0].category == UserWarning
-                assert str(record[0].message) == (
-                    f"ETag cannot be set on {method} request."
-                )
+        with app.test_request_context("/", method=method):
+            blp.set_etag(None)
+        if method in HTTP_METHODS_ALLOWING_SET_ETAG:
+            assert not recwarn
+        else:
+            assert len(recwarn) == 1
+            assert recwarn[0].category == UserWarning
+            assert str(recwarn[0].message) == (
+                f"ETag cannot be set on {method} request."
+            )
 
     @pytest.mark.parametrize("paginate", (True, False))
     def test_etag_set_etag_in_response(self, app, schemas, paginate):

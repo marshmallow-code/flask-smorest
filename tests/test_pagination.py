@@ -195,7 +195,7 @@ class TestPagination:
             }
 
     @pytest.mark.parametrize("header_name", ("X-Pagination", None))
-    def test_pagination_item_count_missing(self, app, header_name):
+    def test_pagination_item_count_missing(self, app, header_name, recwarn):
         """If item_count was not set, pass and warn"""
         api = Api(app)
 
@@ -215,14 +215,13 @@ class TestPagination:
         api.register_blueprint(blp)
         client = app.test_client()
 
-        with pytest.warns(None) as record:
-            response = client.get("/test/")
+        response = client.get("/test/")
         if header_name is None:
-            assert not record
+            assert not recwarn
         else:
-            assert len(record) == 1
-            assert record[0].category == UserWarning
-            assert str(record[0].message) == (
+            assert len(recwarn) == 1
+            assert recwarn[0].category == UserWarning
+            assert str(recwarn[0].message) == (
                 "item_count not set in endpoint test.func."
             )
         assert response.status_code == 200
