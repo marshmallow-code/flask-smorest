@@ -84,7 +84,6 @@ class ResponseMixin:
         def decorator(func):
             @wraps(func)
             def wrapper(*args, **kwargs):
-
                 # Execute decorated function
                 result_raw, r_status_code, r_headers = unpack_tuple_response(
                     func(*args, **kwargs)

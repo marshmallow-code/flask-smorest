@@ -398,7 +398,6 @@ class TestResponse:
 
         @blp.route("/")
         class Resource(MethodView):
-
             # When documenting a response, @blp.doc MUST use the same type
             # to express the status code as the one used in @blp.response.
             # (Default is 200 expressed as int.)
