@@ -7,7 +7,6 @@ from flask_smorest import Api, abort
 class TestErrorHandler:
     @pytest.mark.parametrize("code", default_exceptions)
     def test_error_handler_on_abort(self, app, code):
-
         client = app.test_client()
 
         @app.route("/abort")
@@ -22,7 +21,6 @@ class TestErrorHandler:
         assert response.json["status"] == default_exceptions[code]().name
 
     def test_error_handler_on_unhandled_error(self, app):
-
         # Unset TESTING to let Flask return 500 on unhandled exception
         app.config["TESTING"] = False
         client = app.test_client()
@@ -39,7 +37,6 @@ class TestErrorHandler:
         assert response.json["status"] == InternalServerError().name
 
     def test_error_handler_payload(self, app):
-
         client = app.test_client()
 
         errors = {"dimensions": ["Too tall", "Too wide"], "color": ["Too bright"]}

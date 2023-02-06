@@ -35,7 +35,6 @@ def app_with_etag(request, collection, schemas, app):
     blp = Blueprint("test", __name__, url_prefix="/test")
 
     if as_method_view:
-
         # Decorate each function
         @blp.route("/")
         class Resource(MethodView):
@@ -395,7 +394,6 @@ class TestEtag:
         assert response.get_etag() == (blp._generate_etag("test"), False)
 
     def test_etag_operations_etag_enabled(self, app_with_etag):
-
         client = app_with_etag.test_client()
 
         # GET without ETag: OK
@@ -480,7 +478,6 @@ class TestEtag:
         assert response.status_code == 204
 
     def test_etag_operations_etag_disabled(self, app_with_etag):
-
         app_with_etag.config["ETAG_DISABLED"] = True
         client = app_with_etag.test_client()
 

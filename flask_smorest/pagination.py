@@ -186,7 +186,6 @@ class PaginationMixin:
         def decorator(func):
             @wraps(func)
             def wrapper(*args, **kwargs):
-
                 page_params = self.PAGINATION_ARGUMENTS_PARSER.parse(
                     page_params_schema, request, location="query"
                 )
