@@ -7,7 +7,7 @@ from .error_handler import ErrorHandlerMixin
 from .globals import current_api  # noqa
 from .pagination import Page  # noqa
 from .spec import APISpecMixin
-from .utils import normalize_config_prefix, PrefixedMappingProxy
+from .utils import PrefixedMappingProxy, normalize_config_prefix
 
 __version__ = "0.40.0"
 
@@ -58,10 +58,6 @@ class Api(APISpecMixin, ErrorHandlerMixin):
         if app is not None:
             self.init_app(app)
 
-        # To keep track of registered blueprints.
-        # It will be used in globals to find `current_api`.
-        self._registered_blueprint_names = set()
-
     def init_app(self, app, *, spec_kwargs=None):
         """Initialize Api with application
 
@@ -73,7 +69,13 @@ class Api(APISpecMixin, ErrorHandlerMixin):
 
         # Register flask-smorest in app extensions
         app.extensions = getattr(app, "extensions", {})
-        ext = app.extensions.setdefault("flask-smorest", {"apis": {}})
+        ext = app.extensions.setdefault(
+            "flask-smorest",
+            {
+                "apis": {},
+                "blp_name_to_api": {},  # globals is using it to find `current_api`.
+            },
+        )
         ext["apis"][self.config_prefix] = {"ext_obj": self}
 
         # Initialize spec
@@ -99,7 +101,9 @@ class Api(APISpecMixin, ErrorHandlerMixin):
         Must be called after app is initialized.
         """
         blp_name = options.get("name", blp.name)
-        self._registered_blueprint_names.add(blp_name)
+
+        blp_name_to_api = self._app.extensions["flask-smorest"]["blp_name_to_api"]
+        blp_name_to_api[blp_name] = self
 
         self._app.register_blueprint(blp, **options)
 

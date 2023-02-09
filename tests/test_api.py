@@ -2,6 +2,7 @@
 import apispec
 import marshmallow as ma
 import pytest
+from flask import jsonify
 from flask.views import MethodView
 from werkzeug.routing import BaseConverter
 
@@ -438,41 +439,48 @@ class TestApi:
             Api(app, config_prefix="API_V1_")
 
     def test_current_api(self, app):
-        blp = Blueprint("parent", "parent")
-
-        @blp.route("/")
         def get_current_api_config_prefix():
-            return {"config_prefix": current_api.config_prefix}
+            return jsonify(current_api.config_prefix)
 
-        # `current_api` should be available for nested blueprints as well
-        nested_blp = Blueprint("child", "child")
-        nested_blp.route("/")(get_current_api_config_prefix)
-        blp.register_blueprint(nested_blp, url_prefix="/nested")
+        a_blp = Blueprint("A", "A")
+        a_blp.route("/")(get_current_api_config_prefix)
 
-        for i in [1, 2]:
-            api = Api(
-                app,
-                config_prefix=f"V{i}",
-                spec_kwargs={
-                    "title": f"V{i}",
-                    "version": f"{i}",
-                    "openapi_version": "3.0.2",
-                },
-            )
+        b_blp = Blueprint("B", "B")
+        b_blp.route("/")(get_current_api_config_prefix)
 
-            api.register_blueprint(blp, name=f"test-blp-{i}", url_prefix=f"/prefix_{i}")
+        a_blp.register_blueprint(b_blp, url_prefix="/b")
+
+        api1 = Api(
+            app,
+            config_prefix="V1",
+            spec_kwargs={
+                "title": "V1",
+                "version": "1",
+                "openapi_version": "3.0.2",
+            },
+        )
+        api2 = Api(
+            app,
+            config_prefix="V2",
+            spec_kwargs={
+                "title": "V2",
+                "version": "2",
+                "openapi_version": "3.0.2",
+            },
+        )
+
+        api1.register_blueprint(a_blp, url_prefix="/v1/a", name="1A")
+        api1.register_blueprint(b_blp, url_prefix="/v1/b", name="1B")
+        api2.register_blueprint(a_blp, url_prefix="/v2/a", name="2A")
+        api2.register_blueprint(b_blp, url_prefix="/v2/b", name="2B")
 
         client = app.test_client()
-
-        response = client.get("/prefix_1/")
-        assert response.json["config_prefix"] == "V1_"
-        response = client.get("/prefix_1/nested/")
-        assert response.json["config_prefix"] == "V1_"
-
-        response = client.get("/prefix_2/")
-        assert response.json["config_prefix"] == "V2_"
-        response = client.get("/prefix_2/nested/")
-        assert response.json["config_prefix"] == "V2_"
+        assert client.get("/v1/a/").json == "V1_"
+        assert client.get("/v1/a/b/").json == "V1_"
+        assert client.get("/v1/b/").json == "V1_"
+        assert client.get("/v2/a/").json == "V2_"
+        assert client.get("/v2/a/b/").json == "V2_"
+        assert client.get("/v2/b/").json == "V2_"
 
     @pytest.mark.parametrize("add_to_api", [True, False])
     def test_current_api_is_falsy_if_blp_is_not_part_of_api(self, app, add_to_api):

@@ -4,11 +4,12 @@ from werkzeug.local import LocalProxy
 
 def _find_current_api():
     if has_request_context():
-        apis = current_app.extensions["flask-smorest"]["apis"].values()
-        blueprints = set(request.blueprints)
-        for api in (x["ext_obj"] for x in apis):
-            if api._registered_blueprint_names & blueprints:
+        blp_name_to_api = current_app.extensions["flask-smorest"]["blp_name_to_api"]
+        for blp_name in request.blueprints:
+            api = blp_name_to_api.get(blp_name)
+            if api:
                 return api
+
     return None
 
 
