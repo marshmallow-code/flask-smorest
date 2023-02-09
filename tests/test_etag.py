@@ -710,6 +710,7 @@ class TestEtag:
             assert "ETag" in headers2
 
     def test_trying_to_use_etag_without_current_api(self, app, collection):
+        Api(app)
         blp = Blueprint("test", "test")
         collection.post({"item_id": 1, "field": "test"})
         item = collection.items[0]

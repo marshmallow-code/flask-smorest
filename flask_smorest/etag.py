@@ -157,8 +157,7 @@ class EtagMixin:
         if not api:
             raise CurrentApiNotAvailableError(
                 "Can't access current API config. "
-                "Make sure that request context is available "
-                "and/or ETag is checked inside flask_smorest views."
+                "Make sure that request context is available. "
             )
         return not api.config.get("ETAG_DISABLED", False)
 

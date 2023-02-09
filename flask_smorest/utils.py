@@ -152,10 +152,12 @@ def normalize_config_prefix(config_prefix: str):
 
 
 class PrefixedMappingProxy(abc.Mapping):
-    """Mapping to proxy an another mapping using a prefix
+    """Mapping to proxy another mapping using a prefix
 
     .. code-block:: python
-        some_dict = {"foobar_key1": 1, "foobar_key2": 2}
+        some_dict = PrefixedMappingProxy(
+            proxied_dict={"foobar_key1": 1, "foobar_key2": 2}, prefix="foobar_"
+        )
         assert some_dict["key1"] == 1
         assert some_dict["key2"] == 2
     """

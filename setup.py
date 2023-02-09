@@ -67,7 +67,7 @@ setup(
     },
     python_requires=">=3.7",
     install_requires=[
-        "werkzeug>=2.0,<3",
+        "werkzeug>=2.0.1,<3",
         "flask>=2.0,<3",
         "marshmallow>=3.18.0,<4",
         "webargs>=8.0.0,<9",
