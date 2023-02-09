@@ -18,8 +18,8 @@ from flask_smorest.exceptions import (
     PreconditionFailed,
     CurrentApiNotAvailableError,
 )
-from flask_smorest.utils import get_appcontext
 import marshmallow as ma
+from flask_smorest.utils import get_appcontext
 
 from .utils import build_ref
 
@@ -39,7 +39,6 @@ def app_with_etag(request, collection, schemas, app):
     blp = Blueprint("test", __name__, url_prefix="/test")
 
     if as_method_view:
-
         # Decorate each function
         @blp.route("/")
         class Resource(MethodView):
@@ -186,7 +185,6 @@ class TestEtag:
         api = Api(app)
         blp = Blueprint("test", __name__)
         api.register_blueprint(blp)
-
         schema = schemas.DocSchema
         old_item = {"item_id": 1, "db_field": 0}
         new_item = {"item_id": 1, "db_field": 1}
@@ -194,7 +192,11 @@ class TestEtag:
         old_etag_with_schema = blp._generate_etag(schema().dump(old_item))
 
         with request_ctx_with_current_api(
-            app, blp, "/", method=method, headers={"If-Match": old_etag}
+            app,
+            blp,
+            "/",
+            method=method,
+            headers={"If-Match": old_etag},
         ):
             blp.check_etag(old_item)
             if not etag_disabled:
@@ -203,7 +205,11 @@ class TestEtag:
             else:
                 blp.check_etag(new_item)
         with request_ctx_with_current_api(
-            app, blp, "/", method=method, headers={"If-Match": old_etag_with_schema}
+            app,
+            blp,
+            "/",
+            method=method,
+            headers={"If-Match": old_etag_with_schema},
         ):
             blp.check_etag(old_item, schema)
             if not etag_disabled:
@@ -214,64 +220,72 @@ class TestEtag:
 
     @pytest.mark.parametrize("method", HTTP_METHODS)
     @pytest.mark.parametrize("etag_disabled", (True, False))
-    def test_etag_check_etag_wrong_method_warning(self, app, method, etag_disabled):
+    def test_etag_check_etag_wrong_method_warning(
+        self, app, method, etag_disabled, recwarn
+    ):
         app.config["ETAG_DISABLED"] = etag_disabled
-        blp = Blueprint("test", __name__)
         api = Api(app)
+        blp = Blueprint("test", __name__)
         api.register_blueprint(blp)
 
-        with pytest.warns(None) as record:
-            with request_ctx_with_current_api(
-                app, blp, "/", method=method, headers={"If-Match": ""}
-            ):
-                # Ignore ETag check fail. Just testing the warning.
-                try:
-                    blp.check_etag(None)
-                except PreconditionFailed:
-                    pass
-                if method in ["PUT", "PATCH", "DELETE"]:
-                    assert not record
-                else:
-                    assert len(record) == 1
-                    assert record[0].category == UserWarning
-                    assert str(record[0].message) == (
-                        f"ETag cannot be checked on {method} request."
-                    )
+        with request_ctx_with_current_api(
+            app,
+            blp,
+            "/",
+            method=method,
+            headers={"If-Match": ""},
+        ):
+            # Ignore ETag check fail. Just testing the warning.
+            try:
+                blp.check_etag(None)
+            except PreconditionFailed:
+                pass
+        if method in ["PUT", "PATCH", "DELETE"]:
+            assert not recwarn
+        else:
+            assert len(recwarn) == 1
+            assert recwarn[0].category == UserWarning
+            assert str(recwarn[0].message) == (
+                f"ETag cannot be checked on {method} request."
+            )
 
     @pytest.mark.parametrize("method", HTTP_METHODS)
-    def test_etag_verify_check_etag_warning(self, app, method):
-        blp = Blueprint("test", __name__)
+    def test_etag_verify_check_etag_warning(self, app, method, recwarn):
         api = Api(app)
+        blp = Blueprint("test", __name__)
         api.register_blueprint(blp)
         old_item = {"item_id": 1, "db_field": 0}
         old_etag = blp._generate_etag(old_item)
 
-        with pytest.warns(None) as record:
-            with request_ctx_with_current_api(
-                app, blp, "/", method=method, headers={"If-Match": old_etag}
-            ):
-                blp._verify_check_etag()
-                if method in ["PUT", "PATCH", "DELETE"]:
-                    assert len(record) == 1
-                    assert record[0].category == UserWarning
-                    assert str(record[0].message) == (
-                        "ETag not checked in endpoint {} on {} request.".format(
-                            f_request.endpoint, method
-                        )
+        with request_ctx_with_current_api(
+            app,
+            blp,
+            "/",
+            method=method,
+            headers={"If-Match": old_etag},
+        ):
+            blp._verify_check_etag()
+            if method in ["PUT", "PATCH", "DELETE"]:
+                assert len(recwarn) == 1
+                assert recwarn[0].category == UserWarning
+                assert str(recwarn[0].message) == (
+                    "ETag not checked in endpoint {} on {} request.".format(
+                        f_request.endpoint, method
                     )
-                else:
-                    assert not record
-                blp.check_etag(old_item)
-                record.clear()
-                blp._verify_check_etag()
-                assert not record
+                )
+            else:
+                assert not recwarn
+            blp.check_etag(old_item)
+            recwarn.clear()
+            blp._verify_check_etag()
+            assert not recwarn
 
     @pytest.mark.parametrize("method", HTTP_METHODS_ALLOWING_SET_ETAG)
     @pytest.mark.parametrize("etag_disabled", (True, False))
     def test_etag_set_etag(self, app, schemas, method, etag_disabled):
         app.config["ETAG_DISABLED"] = etag_disabled
-        blp = Blueprint("test", __name__)
         api = Api(app)
+        blp = Blueprint("test", __name__)
         api.register_blueprint(blp)
         schema = schemas.DocSchema
         item = {"item_id": 1, "db_field": 0}
@@ -286,7 +300,11 @@ class TestEtag:
             else:
                 assert "etag" not in _get_etag_ctx()
         with request_ctx_with_current_api(
-            app, blp, "/", method=method, headers={"If-None-Match": etag}
+            app,
+            blp,
+            "/",
+            method=method,
+            headers={"If-None-Match": etag},
         ):
             if not etag_disabled:
                 if method in ["GET", "HEAD"]:
@@ -296,7 +314,11 @@ class TestEtag:
                 blp.set_etag(item)
                 assert "etag" not in _get_etag_ctx()
         with request_ctx_with_current_api(
-            app, blp, "/", method=method, headers={"If-None-Match": etag_with_schema}
+            app,
+            blp,
+            "/",
+            method=method,
+            headers={"If-None-Match": etag_with_schema},
         ):
             if not etag_disabled:
                 if method in ["GET", "HEAD"]:
@@ -306,7 +328,11 @@ class TestEtag:
                 blp.set_etag(item, schema)
                 assert "etag" not in _get_etag_ctx()
         with request_ctx_with_current_api(
-            app, blp, "/", method=method, headers={"If-None-Match": "dummy"}
+            app,
+            blp,
+            "/",
+            method=method,
+            headers={"If-None-Match": "dummy"},
         ):
             if not etag_disabled:
                 blp.set_etag(item)
@@ -323,23 +349,24 @@ class TestEtag:
 
     @pytest.mark.parametrize("etag_disabled", (True, False))
     @pytest.mark.parametrize("method", HTTP_METHODS)
-    def test_etag_set_etag_method_not_allowed_warning(self, app, method, etag_disabled):
+    def test_etag_set_etag_method_not_allowed_warning(
+        self, app, method, etag_disabled, recwarn
+    ):
         app.config["ETAG_DISABLED"] = etag_disabled
-        blp = Blueprint("test", __name__)
         api = Api(app)
+        blp = Blueprint("test", __name__)
         api.register_blueprint(blp)
 
-        with pytest.warns(None) as record:
-            with request_ctx_with_current_api(app, blp, "/", method=method):
-                blp.set_etag(None)
-            if method in HTTP_METHODS_ALLOWING_SET_ETAG:
-                assert not record
-            else:
-                assert len(record) == 1
-                assert record[0].category == UserWarning
-                assert str(record[0].message) == (
-                    f"ETag cannot be set on {method} request."
-                )
+        with request_ctx_with_current_api(app, blp, "/", method=method):
+            blp.set_etag(None)
+        if method in HTTP_METHODS_ALLOWING_SET_ETAG:
+            assert not recwarn
+        else:
+            assert len(recwarn) == 1
+            assert recwarn[0].category == UserWarning
+            assert str(recwarn[0].message) == (
+                f"ETag cannot be set on {method} request."
+            )
 
     @pytest.mark.parametrize("paginate", (True, False))
     def test_etag_set_etag_in_response(self, app, schemas, paginate):
@@ -410,7 +437,6 @@ class TestEtag:
         assert response.get_etag() == (blp._generate_etag("test"), False)
 
     def test_etag_operations_etag_enabled(self, app_with_etag):
-
         client = app_with_etag.test_client()
 
         # GET without ETag: OK
@@ -560,53 +586,6 @@ class TestEtag:
         )
         assert response.status_code == 204
 
-    @pytest.mark.parametrize("etag_disabled_for_v1", [False, True])
-    @pytest.mark.parametrize("etag_disabled_for_v2", [False, True])
-    def test_multiple_apis_per_app(
-        self, app, etag_disabled_for_v1, etag_disabled_for_v2
-    ):
-        # All created APIs are using prefix. So default ETAG_DISABLED should be ignored
-        app.config["ETAG_DISABLED"] = True
-        app.config["V1_ETAG_DISABLED"] = etag_disabled_for_v1
-        app.config["V2_ETAG_DISABLED"] = etag_disabled_for_v2
-
-        for i in [1, 2]:
-            api = Api(
-                app,
-                config_prefix=f"V{i}_",
-                spec_kwargs={
-                    "title": f"V{i}",
-                    "version": f"{i}",
-                    "openapi_version": "3.0.2",
-                },
-            )
-            blp = Blueprint(f"test{i}", f"test{i}", url_prefix=f"/test-{i}")
-
-            class HomeSchema(ma.Schema):
-                field = ma.fields.String()
-
-            @blp.route("/")
-            @blp.etag
-            @blp.response(200, HomeSchema)
-            def home():
-                return {"field": "value"}
-
-            api.register_blueprint(blp)
-
-        client = app.test_client()
-        headers1 = client.get("/test-1/").headers
-        headers2 = client.get("/test-2/").headers
-
-        if etag_disabled_for_v1:
-            assert "ETag" not in headers1
-        else:
-            assert "ETag" in headers1
-
-        if etag_disabled_for_v2:
-            assert "ETag" not in headers2
-        else:
-            assert "ETag" in headers2
-
     @pytest.mark.parametrize("decorate", (True, False))
     @pytest.mark.parametrize("has_response", (True, False))
     @pytest.mark.parametrize("etag_disabled", (True, False))
@@ -682,6 +661,53 @@ class TestEtag:
             assert not has_response or (
                 response_headers.get("ETag") == build_ref(api.spec, "header", "ETAG")
             ) == (method in ["GET", "HEAD", "POST", "PUT", "PATCH"])
+
+    @pytest.mark.parametrize("etag_disabled_for_v1", [False, True])
+    @pytest.mark.parametrize("etag_disabled_for_v2", [False, True])
+    def test_multiple_apis_per_app(
+        self, app, etag_disabled_for_v1, etag_disabled_for_v2
+    ):
+        # All created APIs are using prefix. So default ETAG_DISABLED should be ignored
+        app.config["ETAG_DISABLED"] = True
+        app.config["V1_ETAG_DISABLED"] = etag_disabled_for_v1
+        app.config["V2_ETAG_DISABLED"] = etag_disabled_for_v2
+
+        for i in [1, 2]:
+            api = Api(
+                app,
+                config_prefix=f"V{i}_",
+                spec_kwargs={
+                    "title": f"V{i}",
+                    "version": f"{i}",
+                    "openapi_version": "3.0.2",
+                },
+            )
+            blp = Blueprint(f"test{i}", f"test{i}", url_prefix=f"/test-{i}")
+
+            class HomeSchema(ma.Schema):
+                field = ma.fields.String()
+
+            @blp.route("/")
+            @blp.etag
+            @blp.response(200, HomeSchema)
+            def home():
+                return {"field": "value"}
+
+            api.register_blueprint(blp)
+
+        client = app.test_client()
+        headers1 = client.get("/test-1/").headers
+        headers2 = client.get("/test-2/").headers
+
+        if etag_disabled_for_v1:
+            assert "ETag" not in headers1
+        else:
+            assert "ETag" in headers1
+
+        if etag_disabled_for_v2:
+            assert "ETag" not in headers2
+        else:
+            assert "ETag" in headers2
 
     def test_trying_to_use_etag_without_current_api(self, app, collection):
         blp = Blueprint("test", "test")

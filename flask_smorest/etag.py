@@ -73,7 +73,6 @@ class EtagMixin:
         def decorator(func):
             @wraps(func)
             def wrapper(*args, **kwargs):
-
                 etag_enabled = self._is_etag_enabled()
 
                 if etag_enabled:

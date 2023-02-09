@@ -71,6 +71,7 @@ Mongoengine's :class:`QuerySet <mongoengine.queryset.QuerySet>`,...
 
 
 .. code-block:: python
+    :emphasize-lines: 13
 
     from flask_smorest import Page
 

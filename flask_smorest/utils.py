@@ -112,7 +112,7 @@ def unpack_tuple_response(rv):
 
 
 def set_status_and_headers_in_response(response, status, headers):
-    """Set status and headers in flask Reponse object"""
+    """Set status and headers in flask Response object"""
     if headers:
         response.headers.extend(headers)
     if status is not None:

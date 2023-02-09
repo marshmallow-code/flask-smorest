@@ -153,7 +153,6 @@ def blueprint_fixture(request, collection, schemas):
 
 class TestFullExample:
     def test_examples(self, app, blueprint_fixture, schemas):
-
         blueprint, etag_schema = blueprint_fixture
 
         api = Api(app)
@@ -337,7 +336,6 @@ class TestCustomExamples:
         """Demonstrates how to wrap response payload in a data field"""
 
         class WrapperBlueprint(Blueprint):
-
             # Wrap payload data
             @staticmethod
             def _prepare_response_content(data):
@@ -393,7 +391,6 @@ class TestCustomExamples:
         """Demonstrates how to add pagination metadata in response payload"""
 
         class WrapperBlueprint(Blueprint):
-
             # Set pagination metadata in app context
             def _set_pagination_metadata(self, page_params, result, headers):
                 page_meta = self._make_pagination_metadata(

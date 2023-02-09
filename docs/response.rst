@@ -104,6 +104,7 @@ A file response can be documented by passing the documentation schema in its
 dict representation to :meth:`Blueprint.response <Blueprint.response>`:
 
 .. code-block:: python
+    :emphasize-lines: 2,3,4
 
     @blp.route("/")
     @blp.response(

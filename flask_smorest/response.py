@@ -84,7 +84,6 @@ class ResponseMixin:
         def decorator(func):
             @wraps(func)
             def wrapper(*args, **kwargs):
-
                 # Execute decorated function
                 result_raw, r_status_code, r_headers = unpack_tuple_response(
                     func(*args, **kwargs)
@@ -145,7 +144,7 @@ class ResponseMixin:
         """Decorator documenting an alternative response
 
         :param int|str|HTTPStatus status_code: HTTP status code.
-        :param str response: Reponse reference.
+        :param str response: Response reference.
         :param schema schema|str|dict: :class:`Schema <marshmallow.Schema>`
             class or instance or reference or dict.
         :param str description: Description of the response (default: None).
@@ -158,7 +157,7 @@ class ResponseMixin:
         This decorator allows the user to document an alternative response.
         This can be an error managed with :func:`abort <abort>` or any response
         that is not the primary flow of the function documented by
-        :meth:`Blueprint.reponse <Blueprint.response>`.
+        :meth:`Blueprint.response <Blueprint.response>`.
 
         When a response reference is passed as ``response``, it is used as
         description and the keyword arguments are ignored. Otherwise, a
