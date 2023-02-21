@@ -140,7 +140,10 @@ class EtagMixin:
         DELETE.
         """
         if request.method not in self.METHODS_NEEDING_CHECK_ETAG:
-            warnings.warn(f"ETag cannot be checked on {request.method} request.")
+            warnings.warn(
+                f"ETag cannot be checked on {request.method} request.",
+                stacklevel=2,
+            )
         if _is_etag_enabled():
             if etag_schema is not None:
                 etag_data = resolve_schema_instance(etag_schema).dump(etag_data)
@@ -161,9 +164,9 @@ class EtagMixin:
         if request.method in self.METHODS_NEEDING_CHECK_ETAG:
             if not _get_etag_ctx().get("etag_checked"):
                 warnings.warn(
-                    "ETag not checked in endpoint {} on {} request.".format(
-                        request.endpoint, request.method
-                    )
+                    f"ETag not checked in endpoint {request.endpoint} "
+                    f"on {request.method} request.",
+                    stacklevel=2,
                 )
 
     def _check_not_modified(self, etag):
@@ -190,7 +193,10 @@ class EtagMixin:
         or PATCH.
         """
         if request.method not in self.METHODS_ALLOWING_SET_ETAG:
-            warnings.warn(f"ETag cannot be set on {request.method} request.")
+            warnings.warn(
+                f"ETag cannot be set on {request.method} request.",
+                stacklevel=2,
+            )
         if _is_etag_enabled():
             if etag_schema is not None:
                 etag_data = resolve_schema_instance(etag_schema).dump(etag_data)
