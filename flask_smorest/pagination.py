@@ -205,9 +205,8 @@ class PaginationMixin:
                 if self.PAGINATION_HEADER_NAME is not None:
                     if page_params.item_count is None:
                         warnings.warn(
-                            "item_count not set in endpoint {}.".format(
-                                request.endpoint
-                            )
+                            f"item_count not set in endpoint {request.endpoint}.",
+                            stacklevel=1,
                         )
                     else:
                         result, headers = self._set_pagination_metadata(
