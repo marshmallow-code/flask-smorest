@@ -1,8 +1,14 @@
 Changelog
 ---------
 
-0.41.0 (unreleased)
+0.41.0 (2023-03-30)
 *******************
+
+Features:
+
+- Allow multiple responses with same status code and different content types
+  (:pr:`481`).
+- Set ``stacklevel`` in calls to warnings/warn (:pr:`462`).
 
 Other changes:
 
