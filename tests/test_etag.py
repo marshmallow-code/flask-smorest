@@ -236,9 +236,8 @@ class TestEtag:
                 assert len(recwarn) == 1
                 assert recwarn[0].category == UserWarning
                 assert str(recwarn[0].message) == (
-                    "ETag not checked in endpoint {} on {} request.".format(
-                        f_request.endpoint, method
-                    )
+                    f"ETag not checked in endpoint {f_request.endpoint} "
+                    f"on {method} request."
                 )
             else:
                 assert not recwarn

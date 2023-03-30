@@ -45,8 +45,9 @@ class PaginationParameters:
         return self.first_item + self.page_size - 1
 
     def __repr__(self):
-        return "{}(page={!r},page_size={!r})".format(
-            self.__class__.__name__, self.page, self.page_size
+        return (
+            f"{self.__class__.__name__}"
+            f"(page={self.page!r},page_size={self.page_size!r})"
         )
 
 
@@ -104,8 +105,9 @@ class Page:
         return len(self.collection)
 
     def __repr__(self):
-        return "{}(collection={!r},page_params={!r})".format(
-            self.__class__.__name__, self.collection, self.page_params
+        return (
+            f"{self.__class__.__name__}"
+            f"(collection={self.collection!r},page_params={self.page_params!r})"
         )
 
 
@@ -205,9 +207,7 @@ class PaginationMixin:
                 if self.PAGINATION_HEADER_NAME is not None:
                     if page_params.item_count is None:
                         warnings.warn(
-                            "item_count not set in endpoint {}.".format(
-                                request.endpoint
-                            ),
+                            f"item_count not set in endpoint {request.endpoint}.",
                             stacklevel=2,
                         )
                     else:
