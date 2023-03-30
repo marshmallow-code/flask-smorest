@@ -322,6 +322,39 @@ class TestResponse:
 
         assert paths["/test/"]["get"]["responses"]["404"] == response_ref
 
+    # This is only relevant to OAS3.
+    @pytest.mark.parametrize("openapi_version", ("3.0.2",))
+    def test_blueprint_multiple_alt_response_same_status_code(
+        self, app, openapi_version
+    ):
+        """Check multiple calls to response and alt_response with same status code"""
+        app.config["OPENAPI_VERSION"] = openapi_version
+        api = Api(app)
+        blp = Blueprint("test", "test", url_prefix="/test")
+
+        @blp.route("/")
+        @blp.response(200, schema="JSONDocSchema")
+        @blp.alt_response(200, schema="HTMLDocSchema", content_type="text/html")
+        @blp.alt_response(200, schema="CSVDocSchema", content_type="text/csv")
+        def func():
+            pass
+
+        api.register_blueprint(blp)
+
+        paths = api.spec.to_dict()["paths"]
+
+        json_schema_ref = build_ref(api.spec, "schema", "JSONDocSchema")
+        html_schema_ref = build_ref(api.spec, "schema", "HTMLDocSchema")
+        csv_schema_ref = build_ref(api.spec, "schema", "CSVDocSchema")
+
+        response = paths["/test/"]["get"]["responses"]["200"]
+
+        assert response["content"] == {
+            "application/json": {"schema": json_schema_ref},
+            "text/html": {"schema": html_schema_ref},
+            "text/csv": {"schema": csv_schema_ref},
+        }
+
     @pytest.mark.parametrize("openapi_version", ["2.0", "3.0.2"])
     def test_alt_response_wrapper(self, app, schemas, openapi_version):
         """Check alt_response passes response transparently"""

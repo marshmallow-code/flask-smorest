@@ -116,10 +116,14 @@ class ResponseMixin:
 
             # Store doc in wrapper function
             # The deepcopy avoids modifying the wrapped function doc
+            # In OAS 3, there may be several responses for the same status code
             wrapper._apidoc = deepcopy(getattr(wrapper, "_apidoc", {}))
-            wrapper._apidoc.setdefault("response", {}).setdefault("responses", {})[
-                status_code
-            ] = resp_doc
+            (
+                wrapper._apidoc.setdefault("response", {})
+                .setdefault("responses", {})
+                .setdefault(status_code, [])
+                .append(resp_doc)
+            )
             # Indicate this code is a success status code
             # Helps other decorators documenting success responses
             wrapper._apidoc.setdefault("success_status_codes", []).append(status_code)
@@ -194,10 +198,14 @@ class ResponseMixin:
 
             # Store doc in wrapper function
             # The deepcopy avoids modifying the wrapped function doc
+            # In OAS 3, there may be several responses for the same status code
             wrapper._apidoc = deepcopy(getattr(wrapper, "_apidoc", {}))
-            wrapper._apidoc.setdefault("response", {}).setdefault("responses", {})[
-                status_code
-            ] = resp_doc
+            (
+                wrapper._apidoc.setdefault("response", {})
+                .setdefault("responses", {})
+                .setdefault(status_code, [])
+                .append(resp_doc)
+            )
             if success:
                 # Indicate this code is a success status code
                 # Helps other decorators documenting success responses
@@ -249,9 +257,11 @@ class ResponseMixin:
         operation = doc_info.get("response", {})
         # Document default error response
         if api.DEFAULT_ERROR_RESPONSE_NAME:
-            operation.setdefault("responses", {})[
-                "default"
-            ] = api.DEFAULT_ERROR_RESPONSE_NAME
+            (
+                operation.setdefault("responses", {})
+                .setdefault("default", [])
+                .append(api.DEFAULT_ERROR_RESPONSE_NAME)
+            )
         if operation:
             # OAS 2: set "produces"
             # TODO: The list of content types should contain those used by other
@@ -261,24 +271,37 @@ class ResponseMixin:
             # is set, so it will only be slightly incomplete in corner cases.
             if spec.openapi_version.major < 3:
                 content_types = set()
-                for response in operation["responses"].values():
-                    if isinstance(response, abc.Mapping):
-                        content_type = (
-                            response["content_type"]
-                            or api.DEFAULT_RESPONSE_CONTENT_TYPE
-                        )
-                    else:
-                        content_type = api.DEFAULT_RESPONSE_CONTENT_TYPE
-                    content_types.add(content_type)
+                for responses in operation["responses"].values():
+                    for response in responses:
+                        if isinstance(response, abc.Mapping):
+                            content_type = (
+                                response["content_type"]
+                                or api.DEFAULT_RESPONSE_CONTENT_TYPE
+                            )
+                        else:
+                            content_type = api.DEFAULT_RESPONSE_CONTENT_TYPE
+                        content_types.add(content_type)
                 if content_types != {api.DEFAULT_RESPONSE_CONTENT_TYPE}:
                     operation["produces"] = list(content_types)
             # OAS2 / OAS 3: adapt response to OAS version
-            for response in operation["responses"].values():
-                if isinstance(response, abc.Mapping):
+            # In OAS 3 there may be several responses with different content
+            # types for a given status code.
+            # However, only a single response reference may be passed. If a
+            # response is a response reference, use this response.
+            for status_code in operation["responses"].keys():
+                resp = {}
+                # Reverse the list so that the responses provided in top
+                # decorators appear first in the doc
+                for response in reversed(operation["responses"][status_code]):
+                    if not isinstance(response, abc.Mapping):
+                        resp = response
+                        break
                     content_type = (
                         response.pop("content_type")
                         or api.DEFAULT_RESPONSE_CONTENT_TYPE
                     )
                     prepare_response(response, spec, content_type)
+                    resp = deepupdate(resp, response)
+                operation["responses"][status_code] = resp
             doc = deepupdate(doc, operation)
         return doc
