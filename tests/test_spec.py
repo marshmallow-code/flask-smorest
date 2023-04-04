@@ -603,16 +603,16 @@ class TestAPISpecCLICommands:
             .output
         )
 
-        r1 = app.test_cli_runner().invoke(
+        ret_1 = app.test_cli_runner().invoke(
             args=["openapi", "print", "--config-prefix=v1"]
         )
-        assert "V1" in r1.output
-        assert "V2" not in r1.output
-        r2 = app.test_cli_runner().invoke(
+        assert "V1" in ret_1.output
+        assert "V2" not in ret_1.output
+        ret_2 = app.test_cli_runner().invoke(
             args=["openapi", "print", "--config-prefix=v2"]
         )
-        assert "V1" not in r2.output
-        assert "V2" in r2.output
+        assert "V1" not in ret_2.output
+        assert "V2" in ret_2.output
 
     def test_apispec_command_write_with_multiple_apis(self, app, tmp_path):
         temp_file1 = tmp_path / "output1"

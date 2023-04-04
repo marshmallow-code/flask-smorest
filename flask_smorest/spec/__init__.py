@@ -374,21 +374,18 @@ openapi_cli = flask.cli.AppGroup("openapi", help="OpenAPI commands.")
 
 
 def _get_spec_dict(config_prefix):
-    ext = current_app.extensions["flask-smorest"]
-    if config_prefix not in ext["apis"]:
-        if config_prefix == "":
-            click.echo(
-                "Error: Your API is using config_prefix. "
-                "Please provide a --config-prefix option.",
-                err=True,
-            )
-        else:
-            click.echo(f"Error: `{config_prefix}` not available. Use one of:", err=True)
-            for key in ext["apis"].keys():
-                click.echo(f"    {key}", err=True)
-        raise click.exceptions.Exit()
-
-    return ext["apis"][config_prefix]["ext_obj"].spec.to_dict()
+    apis = current_app.extensions["flask-smorest"]["apis"]
+    try:
+        api = apis[config_prefix]["ext_obj"]
+    except KeyError:
+        click.echo(
+            f'Error: config prefix "{config_prefix}" not available. Use one of:',
+            err=True,
+        )
+        for key in apis.keys():
+            click.echo(f'    "{key}"', err=True)
+        raise click.exceptions.Exit() from KeyError
+    return api.spec.to_dict()
 
 
 @openapi_cli.command("print")
