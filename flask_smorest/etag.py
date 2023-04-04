@@ -10,12 +10,7 @@ import hashlib
 
 from flask import request
 
-from .exceptions import (
-    PreconditionRequired,
-    PreconditionFailed,
-    NotModified,
-    CurrentApiNotAvailableError,
-)
+from .exceptions import PreconditionRequired, PreconditionFailed, NotModified
 from .utils import deepupdate, resolve_schema_instance, get_appcontext
 from .globals import current_api
 
@@ -153,16 +148,9 @@ class EtagMixin:
             if new_etag not in request.if_match:
                 raise PreconditionFailed
 
-    def _is_etag_enabled(self, api=None):
+    def _is_etag_enabled(self):
         """Return True if ETag feature enabled api-wise"""
-        api = api or current_api
-        # Do not check `api is None`. `current_api` is a LocalProxy. It is never `None`.
-        if not api:
-            raise CurrentApiNotAvailableError(
-                "Can't access current API config. "
-                "Make sure that request context is available. "
-            )
-        return not api.config.get("ETAG_DISABLED", False)
+        return not current_api.config.get("ETAG_DISABLED", False)
 
     def _verify_check_etag(self):
         """Verify check_etag was called in resource code
@@ -240,7 +228,7 @@ class EtagMixin:
             response.set_etag(new_etag)
 
     def _prepare_etag_doc(self, doc, doc_info, *, api, spec, method, **kwargs):
-        if doc_info.get("etag", False) and self._is_etag_enabled(api):
+        if doc_info.get("etag", False) and not api.config.get("ETAG_DISABLED", False):
             responses = {}
             method_u = method.upper()
             if method_u in self.METHODS_CHECKING_NOT_MODIFIED:
