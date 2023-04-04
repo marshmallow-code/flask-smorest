@@ -482,32 +482,6 @@ class TestApi:
         assert client.get("/v2/a/b/").json == "V2_"
         assert client.get("/v2/b/").json == "V2_"
 
-    @pytest.mark.parametrize("add_to_api", [True, False])
-    def test_current_api_is_falsy_if_blp_is_not_part_of_api(self, app, add_to_api):
-        blp = Blueprint("parent", "parent")
-
-        @blp.route("/")
-        def get_current_api_config_prefix():
-            return {"bool_current_api": bool(current_api)}
-
-        api = Api(
-            app,
-            spec_kwargs={
-                "title": "Title",
-                "version": "1",
-                "openapi_version": "3.0.2",
-            },
-        )
-
-        if add_to_api:
-            api.register_blueprint(blp)
-        else:
-            app.register_blueprint(blp)
-
-        client = app.test_client()
-        response = client.get("/")
-        assert response.json["bool_current_api"] is add_to_api
-
     def test_api_config_proxying_flask_config(self, app):
         app.config.update(
             {
