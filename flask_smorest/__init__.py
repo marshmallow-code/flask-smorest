@@ -72,8 +72,10 @@ class Api(APISpecMixin, ErrorHandlerMixin):
         ext = app.extensions.setdefault(
             "flask-smorest",
             {
+                # Config prefix -> {"ext_obj": Api instance}
                 "apis": {},
-                "blp_name_to_api": {},  # globals is using it to find `current_api`.
+                # Blueprint name -> Api instance
+                "blp_name_to_api": {},
             },
         )
         ext["apis"][self.config_prefix] = {"ext_obj": self}

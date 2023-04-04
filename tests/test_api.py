@@ -1,15 +1,15 @@
 """Test Api class"""
-import apispec
-import marshmallow as ma
 import pytest
 from flask import jsonify
 from flask.views import MethodView
 from werkzeug.routing import BaseConverter
+import marshmallow as ma
+import apispec
 
 from flask_smorest import Api, Blueprint, current_api
 from flask_smorest.exceptions import MissingAPIParameterError
 
-from .utils import get_responses, get_schemas
+from .utils import get_schemas, get_responses
 
 
 class TestApi:
