@@ -656,7 +656,8 @@ class TestAPISpecCLICommands:
             "version": "1",
             "openapi_version": "3.0.2",
         }
+        Api(app, config_prefix="", spec_kwargs={**spec_kwargs, "title": ""})
         Api(app, config_prefix="V1", spec_kwargs={**spec_kwargs, "title": "V1"})
         Api(app, config_prefix="V2", spec_kwargs={**spec_kwargs, "title": "V2"})
         result = app.test_cli_runner().invoke(args=["openapi", "list-config-prefixes"])
-        assert set(result.output.strip().splitlines()) == {"V1_", "V2_"}
+        assert set(result.output.strip().splitlines()) == {'""', '"V1_"', '"V2_"'}

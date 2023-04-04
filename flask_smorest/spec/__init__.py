@@ -433,4 +433,4 @@ def write_openapi_doc(format, output_file, config_prefix):
 def list_config_prefixes():
     """List available API config prefixes."""
     for prefix in current_app.extensions["flask-smorest"]["apis"].keys():
-        click.echo(prefix)
+        click.echo(f'"{prefix}"')
