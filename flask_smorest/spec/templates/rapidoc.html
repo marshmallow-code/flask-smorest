@@ -7,7 +7,7 @@
   </head>
   <body>
     <rapi-doc
-      spec-url = "{{ url_for('api-docs.openapi_json') }}"
+      spec-url = "{{ spec_url }}"
       {% for key, val in rapidoc_config.items() -%}
         {{key}} = "{{val}}"
       {% endfor -%}

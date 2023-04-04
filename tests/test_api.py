@@ -1,15 +1,15 @@
 """Test Api class"""
+import apispec
+import marshmallow as ma
 import pytest
-
+from flask import jsonify
 from flask.views import MethodView
 from werkzeug.routing import BaseConverter
-import marshmallow as ma
-import apispec
 
-from flask_smorest import Api, Blueprint
+from flask_smorest import Api, Blueprint, current_api
 from flask_smorest.exceptions import MissingAPIParameterError
 
-from .utils import get_schemas, get_responses
+from .utils import get_responses, get_schemas
 
 
 class TestApi:
@@ -412,3 +412,138 @@ class TestApi:
 
         # Default error is now registered
         assert "DEFAULT_ERROR" in get_responses(api.spec)
+
+    def test_multiple_apis_using_config_prefix_attribute(self, app):
+        app.config.update(
+            {
+                "API_TITLE": "Ignore this title",
+                "API_V1_API_TITLE": "V1 Title",
+                "API_V1_API_VERSION": "1",
+                "API_V1_OPENAPI_VERSION": "2.0",
+                "API_V2_API_TITLE": "V2 Title",
+                "API_V2_API_VERSION": "2",
+                "API_V2_OPENAPI_VERSION": "3.0.2",
+            }
+        )
+        api1 = Api(app, config_prefix="API_V1_")
+        api2 = Api(app, config_prefix="API_V2")
+
+        assert api1.spec.title == "V1 Title"
+        assert api2.spec.title == "V2 Title"
+
+    def test_prefixed_api_to_raise_correctly_formatted_error(self, app):
+        with pytest.raises(
+            MissingAPIParameterError,
+            match='API title must be specified either as "API_V1_API_TITLE"',
+        ):
+            Api(app, config_prefix="API_V1_")
+
+    def test_current_api(self, app):
+        def get_current_api_config_prefix():
+            return jsonify(current_api.config_prefix)
+
+        a_blp = Blueprint("A", "A")
+        a_blp.route("/")(get_current_api_config_prefix)
+
+        b_blp = Blueprint("B", "B")
+        b_blp.route("/")(get_current_api_config_prefix)
+
+        a_blp.register_blueprint(b_blp, url_prefix="/b")
+
+        api1 = Api(
+            app,
+            config_prefix="V1",
+            spec_kwargs={
+                "title": "V1",
+                "version": "1",
+                "openapi_version": "3.0.2",
+            },
+        )
+        api2 = Api(
+            app,
+            config_prefix="V2",
+            spec_kwargs={
+                "title": "V2",
+                "version": "2",
+                "openapi_version": "3.0.2",
+            },
+        )
+
+        api1.register_blueprint(a_blp, url_prefix="/v1/a", name="1A")
+        api1.register_blueprint(b_blp, url_prefix="/v1/b", name="1B")
+        api2.register_blueprint(a_blp, url_prefix="/v2/a", name="2A")
+        api2.register_blueprint(b_blp, url_prefix="/v2/b", name="2B")
+
+        client = app.test_client()
+        assert client.get("/v1/a/").json == "V1_"
+        assert client.get("/v1/a/b/").json == "V1_"
+        assert client.get("/v1/b/").json == "V1_"
+        assert client.get("/v2/a/").json == "V2_"
+        assert client.get("/v2/a/b/").json == "V2_"
+        assert client.get("/v2/b/").json == "V2_"
+
+    @pytest.mark.parametrize("add_to_api", [True, False])
+    def test_current_api_is_falsy_if_blp_is_not_part_of_api(self, app, add_to_api):
+        blp = Blueprint("parent", "parent")
+
+        @blp.route("/")
+        def get_current_api_config_prefix():
+            return {"bool_current_api": bool(current_api)}
+
+        api = Api(
+            app,
+            spec_kwargs={
+                "title": "Title",
+                "version": "1",
+                "openapi_version": "3.0.2",
+            },
+        )
+
+        if add_to_api:
+            api.register_blueprint(blp)
+        else:
+            app.register_blueprint(blp)
+
+        client = app.test_client()
+        response = client.get("/")
+        assert response.json["bool_current_api"] is add_to_api
+
+    def test_api_config_proxying_flask_config(self, app):
+        app.config.update(
+            {
+                "DEBUG": True,
+                "SECRET_KEY": "secret",
+                "API_TITLE": "No Prefix Title",
+                "API_VERSION": "2",
+                "OPENAPI_VERSION": "3.0.2",
+                "API_V1_API_TITLE": "V1 Title",
+                "API_V1_API_VERSION": "1",
+                "API_V1_OPENAPI_VERSION": "2.0",
+                "API_V2_API_TITLE": "V2 Title",
+                "API_V2_API_VERSION": "2",
+                "API_V2_OPENAPI_VERSION": "3.0.2",
+            }
+        )
+
+        api_empty = Api(app)
+        # It is expected behaviour for Api with no config prefix to just
+        # proxy whole App config
+        assert "DEBUG" in api_empty.config
+        assert set(api_empty.config) == set(app.config)
+        assert len(api_empty.config) == len(app.config)
+
+        api_v1 = Api(app, config_prefix="API_V1")
+        assert set(api_v1.config) == {
+            "API_V1_API_TITLE",
+            "API_V1_API_VERSION",
+            "API_V1_OPENAPI_VERSION",
+        }
+        assert len(api_v1.config) == 3
+
+        api_v2 = Api(app, config_prefix="API_V2")
+        assert set(api_v2.config) == {
+            "API_V2_API_TITLE",
+            "API_V2_API_VERSION",
+            "API_V2_OPENAPI_VERSION",
+        }
+        assert len(api_v2.config) == 3

@@ -432,6 +432,61 @@ class TestAPISpecServeDocs:
         assert response_json_docs.status_code == 200
         assert response_json_docs.json["paths"] == paths
 
+    def test_multiple_apis_serve_separate_specs(self, app):
+        client = app.test_client()
+
+        for i in [1, 2]:
+            app.config[f"V{i}_OPENAPI_URL_PREFIX"] = f"/v{i}-docs"
+            app.config[f"V{i}_OPENAPI_RAPIDOC_PATH"] = "rapidoc/"
+            app.config[f"V{i}_OPENAPI_RAPIDOC_URL"] = "/statid/rapidoc.js"
+            app.config[f"V{i}_OPENAPI_REDOC_PATH"] = "/redoc/"
+            app.config[f"V{i}_OPENAPI_SWAGGER_UI_URL"] = "/static/swagger-ui/"
+            app.config[f"V{i}_OPENAPI_SWAGGER_UI_PATH"] = "/swagger/"
+            app.config[f"V{i}_OPENAPI_REDOC_URL"] = "/static/redoc.js"
+            app.config[f"V{i}_OPENAPI_REDOC_PATH"] = "/redoc/"
+            api = Api(
+                app,
+                config_prefix=f"V{i}_",
+                spec_kwargs={
+                    "title": f"V{i}",
+                    "version": f"{i}",
+                    "openapi_version": "3.0.2",
+                },
+            )
+            blp = Blueprint(f"test{i}", f"test{i}", url_prefix=f"/test-{i}")
+            blp.route("/")(lambda: None)
+            api.register_blueprint(blp)
+
+        # Checking openapi.json
+
+        json1 = client.get("/v1-docs/openapi.json").json
+        json2 = client.get("/v2-docs/openapi.json").json
+
+        # Should have a different info
+        assert json1["info"]["title"] == "V1"
+        assert json2["info"]["title"] == "V2"
+
+        # One api's routes should not leak into other's
+        assert "/test-1/" in json1["paths"]
+        assert "/test-2/" not in json1["paths"]
+        assert "/test-1/" not in json2["paths"]
+        assert "/test-2/" in json2["paths"]
+
+        # Checking RapiDoc
+
+        assert "/v1-docs/openapi.json" in client.get("/v1-docs/rapidoc/").text
+        assert "/v2-docs/openapi.json" in client.get("/v2-docs/rapidoc/").text
+
+        # Checking Swagger
+
+        assert "/v1-docs/openapi.json" in client.get("/v1-docs/swagger/").text
+        assert "/v2-docs/openapi.json" in client.get("/v2-docs/swagger/").text
+
+        # Checking ReDoc
+
+        assert "/v1-docs/openapi.json" in client.get("/v1-docs/redoc/").text
+        assert "/v2-docs/openapi.json" in client.get("/v2-docs/redoc/").text
+
 
 class TestAPISpecCLICommands:
     """Test OpenAPI CLI commands"""
@@ -529,3 +584,79 @@ class TestAPISpecCLICommands:
         assert result.output.startswith(
             "To use yaml output format, please install PyYAML module"
         )
+
+    def test_apispec_command_print_with_multiple_apis(self, app):
+        spec_kwargs = {
+            "version": "1",
+            "openapi_version": "3.0.2",
+        }
+        Api(app, config_prefix="V1", spec_kwargs={**spec_kwargs, "title": "V1"})
+        Api(app, config_prefix="V2", spec_kwargs={**spec_kwargs, "title": "V2"})
+
+        assert (
+            "Error:" in app.test_cli_runner().invoke(args=["openapi", "print"]).output
+        )
+        assert (
+            "Error: "
+            in app.test_cli_runner()
+            .invoke(args=["openapi", "print", "--config-prefix=not_exist"])
+            .output
+        )
+
+        r1 = app.test_cli_runner().invoke(
+            args=["openapi", "print", "--config-prefix=v1"]
+        )
+        assert "V1" in r1.output
+        assert "V2" not in r1.output
+        r2 = app.test_cli_runner().invoke(
+            args=["openapi", "print", "--config-prefix=v2"]
+        )
+        assert "V1" not in r2.output
+        assert "V2" in r2.output
+
+    def test_apispec_command_write_with_multiple_apis(self, app, tmp_path):
+        temp_file1 = tmp_path / "output1"
+        temp_file2 = tmp_path / "output2"
+
+        spec_kwargs = {
+            "version": "1",
+            "openapi_version": "3.0.2",
+        }
+        Api(app, config_prefix="V1", spec_kwargs={**spec_kwargs, "title": "V1"})
+        Api(app, config_prefix="V2", spec_kwargs={**spec_kwargs, "title": "V2"})
+
+        assert (
+            "Error: " in app.test_cli_runner().invoke(args=["openapi", "write"]).output
+        )
+        assert (
+            "Error: "
+            in app.test_cli_runner()
+            .invoke(args=["openapi", "write", "--config-prefix=not_exist"])
+            .output
+        )
+
+        app.test_cli_runner().invoke(
+            args=["openapi", "write", "--config-prefix=v1", str(temp_file1)]
+        )
+        with open(temp_file1, encoding="utf-8") as spec_file1:
+            content1 = spec_file1.read()
+            assert "V1" in content1
+            assert "V2" not in content1
+
+        app.test_cli_runner().invoke(
+            args=["openapi", "write", "--config-prefix=v2", str(temp_file2)]
+        )
+        with open(temp_file2, encoding="utf-8") as spec_file2:
+            content2 = spec_file2.read()
+            assert "V1" not in content2
+            assert "V2" in content2
+
+    def test_apispec_command_list_config_prefixes(self, app):
+        spec_kwargs = {
+            "version": "1",
+            "openapi_version": "3.0.2",
+        }
+        Api(app, config_prefix="V1", spec_kwargs={**spec_kwargs, "title": "V1"})
+        Api(app, config_prefix="V2", spec_kwargs={**spec_kwargs, "title": "V2"})
+        result = app.test_cli_runner().invoke(args=["openapi", "list-config-prefixes"])
+        assert set(result.output.strip().splitlines()) == {"V1_", "V2_"}

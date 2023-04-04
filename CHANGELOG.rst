@@ -4,6 +4,11 @@ Changelog
 0.42.0 (unreleased)
 *******************
 
+Features:
+
+- Support multiple APIs in a single application via ``Api.__init__`` param
+  ``config_prefix``.
+
 Other changes:
 
 - Drop support for Python 3.7 (:pr:`497`).
