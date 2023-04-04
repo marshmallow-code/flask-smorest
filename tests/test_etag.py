@@ -2,12 +2,10 @@
 
 import json
 import hashlib
-from contextlib import contextmanager
 
 import pytest
 
 from flask import jsonify, Response, request as f_request
-from flask.app import Rule
 from flask.views import MethodView
 
 from flask_smorest import Api, Blueprint, abort
@@ -21,7 +19,7 @@ from flask_smorest.exceptions import (
 import marshmallow as ma
 from flask_smorest.utils import get_appcontext
 
-from .utils import build_ref
+from .utils import build_ref, request_ctx_with_current_api
 
 from .mocks import ItemNotFound
 
@@ -128,19 +126,6 @@ def app_with_etag(request, collection, schemas, app):
     api.register_blueprint(blp)
 
     return app
-
-
-@contextmanager
-def request_ctx_with_current_api(app, blp, *args, **kwargs):
-    with app.test_request_context(*args, **kwargs):
-        backup = f_request.url_rule
-        # It tricks globals.py::_find_current_api into thinking that
-        # request comes from this particular blueprint.
-        f_request.url_rule = Rule("/", endpoint=f"{blp.name}.view")
-        try:
-            yield
-        finally:
-            f_request.url_rule = backup
 
 
 class TestEtag:
