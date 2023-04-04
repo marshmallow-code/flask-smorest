@@ -16,7 +16,6 @@ from flask_smorest.exceptions import (
     PreconditionFailed,
     CurrentApiNotAvailableError,
 )
-import marshmallow as ma
 from flask_smorest.utils import get_appcontext
 
 from .utils import build_ref, request_ctx_with_current_api
@@ -668,14 +667,11 @@ class TestEtag:
             )
             blp = Blueprint(f"test{i}", f"test{i}", url_prefix=f"/test-{i}")
 
-            class HomeSchema(ma.Schema):
-                field = ma.fields.String()
-
             @blp.route("/")
             @blp.etag
-            @blp.response(200, HomeSchema)
-            def home():
-                return {"field": "value"}
+            @blp.response(200)
+            def test():
+                return {}
 
             api.register_blueprint(blp)
 
