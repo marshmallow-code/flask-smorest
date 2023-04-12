@@ -28,10 +28,13 @@ jobs:
       - uses: actions/setup-python@v4.3.0
         with:
           python-version: ${{ matrix.python }}
-      - run: python -m pip install --upgrade pip wheel
-      - run: pip install tox codecov
-      - run: tox -e${{ matrix.tox }}
-      - run: codecov
+      - name: Run test
+        run: |
+          python -m pip install --upgrade pip wheel
+          pip install tox
+          tox -e${{ matrix.tox }}
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
   release:
     needs: [lint, tests]
     name: PyPI release
