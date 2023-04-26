@@ -7,7 +7,7 @@ EXTRAS_REQUIRE = {
         "pytest==7.3.1",
         "pytest-cov==4.0.0",
         "coverage==7.2.3",
-        "werkzeug==2.2.3",
+        "werkzeug==2.3.0",
         "flask==2.2.3",
         "marshmallow==3.19.0",
         "webargs==8.2.0",
