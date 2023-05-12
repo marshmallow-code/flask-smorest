@@ -149,7 +149,7 @@ class EtagMixin:
                 raise PreconditionFailed
 
     def _is_etag_enabled(self):
-        """Return True if ETag feature enabled api-wise"""
+        """Return True if ETag feature is enabled api-wise"""
         return not current_api.config.get("ETAG_DISABLED", False)
 
     def _verify_check_etag(self):

@@ -6,12 +6,14 @@ Changelog
 
 Features:
 
-- Support multiple APIs in a single application via ``Api.__init__`` param
-  ``config_prefix``.
+- Support multiple APIs in a single application via ``Api`` param
+  ``config_prefix`` (:pr:`485`).
+  Thanks :user:`petraszd` for the contribution.
 
 Other changes:
 
 - Drop support for Python 3.7 (:pr:`497`).
+- Require Werkzeug>=2.0.1 (:pr:`485`).
 
 0.41.0 (2023-03-30)
 *******************

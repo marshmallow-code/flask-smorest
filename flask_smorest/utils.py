@@ -139,11 +139,14 @@ def prepare_response(response, spec, content_type):
                 ) = response.pop(field)
 
 
-def normalize_config_prefix(config_prefix: str):
-    """Normalize custom API config prefix
+def normalize_config_prefix(config_prefix):
+    """Normalize API config prefix
 
-    :param str config_prefix: raw prefix
-    :return: normalized prefix. Underscore is automatically added if prefix misses one.
+    Sets upper case and appends underscore if missing.
+
+    :param str config_prefix: Raw prefix
+
+    :return: Normalized prefix
     """
     result = config_prefix.strip().upper()
     if result and not result.endswith("_"):
@@ -173,4 +176,4 @@ class PrefixedMappingProxy(abc.Mapping):
         return iter(x for x in self._dict if x.startswith(self.prefix))
 
     def __len__(self):
-        return sum(1 for _x in iter(self))
+        return sum(1 for _ in iter(self))

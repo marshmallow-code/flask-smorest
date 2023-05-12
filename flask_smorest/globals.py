@@ -1,3 +1,4 @@
+"""Globals"""
 from flask import current_app, request
 from werkzeug.local import LocalProxy
 
@@ -13,9 +14,6 @@ def _find_current_api():
     raise CurrentApiNotAvailableError("Current Blueprint not registered in any Api.")
 
 
+# Proxy for the current Api. Only available within a request context and only
+# if current Blueprint is registered in a flask-smorest Api.
 current_api = LocalProxy(_find_current_api)
-"""A proxy for the current Api
-
-Only available within a request context and only
-if current Blueprint is registered in a flask-smorest Api.
-"""
