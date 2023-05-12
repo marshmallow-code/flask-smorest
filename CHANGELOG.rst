@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+0.42.0 (unreleased)
+*******************
+
+Other changes:
+
+- Drop support for Python 3.7 (:pr:`497`).
+
 0.41.0 (2023-03-30)
 *******************
 
