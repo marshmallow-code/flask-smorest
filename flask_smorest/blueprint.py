@@ -71,6 +71,9 @@ class Blueprint(
     def __init__(self, *args, **kwargs):
         self.description = kwargs.pop("description", "")
 
+        # This is where smore plugins are stored
+        self._smore_plugins = kwargs.pop("smore_plugins", [])
+
         super().__init__(*args, **kwargs)
 
         # _docs stores information used at init time to produce documentation.
@@ -96,6 +99,7 @@ class Blueprint(
             self._prepare_response_doc,
             self._prepare_pagination_doc,
             self._prepare_etag_doc,
+            *[plugin.register_method_docs for plugin in self._smore_plugins],
         ]
 
     def add_url_rule(
