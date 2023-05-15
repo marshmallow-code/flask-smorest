@@ -30,3 +30,7 @@ class PreconditionRequired(wexc.PreconditionRequired, FlaskSmorestError):
 
 class PreconditionFailed(wexc.PreconditionFailed, FlaskSmorestError):
     """Etag required and wrong ETag provided"""
+
+
+class CurrentApiNotAvailableError(FlaskSmorestError):
+    """`current_api` not available"""

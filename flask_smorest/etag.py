@@ -8,10 +8,11 @@ import warnings
 
 import hashlib
 
-from flask import request, current_app
+from flask import request
 
 from .exceptions import PreconditionRequired, PreconditionFailed, NotModified
 from .utils import deepupdate, resolve_schema_instance, get_appcontext
+from .globals import current_api
 
 
 IF_NONE_MATCH_HEADER = {
@@ -33,11 +34,6 @@ ETAG_HEADER = {
     "description": "Tag for the returned entry",
     "schema": {"type": "string"},
 }
-
-
-def _is_etag_enabled():
-    """Return True if ETag feature enabled application-wise"""
-    return not current_app.config.get("ETAG_DISABLED", False)
 
 
 def _get_etag_ctx():
@@ -72,7 +68,7 @@ class EtagMixin:
         def decorator(func):
             @wraps(func)
             def wrapper(*args, **kwargs):
-                etag_enabled = _is_etag_enabled()
+                etag_enabled = self._is_etag_enabled()
 
                 if etag_enabled:
                     # Check etag precondition
@@ -144,13 +140,17 @@ class EtagMixin:
                 f"ETag cannot be checked on {request.method} request.",
                 stacklevel=2,
             )
-        if _is_etag_enabled():
+        if self._is_etag_enabled():
             if etag_schema is not None:
                 etag_data = resolve_schema_instance(etag_schema).dump(etag_data)
             new_etag = self._generate_etag(etag_data)
             _get_etag_ctx()["etag_checked"] = True
             if new_etag not in request.if_match:
                 raise PreconditionFailed
+
+    def _is_etag_enabled(self):
+        """Return True if ETag feature is enabled api-wise"""
+        return not current_api.config.get("ETAG_DISABLED", False)
 
     def _verify_check_etag(self):
         """Verify check_etag was called in resource code
@@ -197,7 +197,7 @@ class EtagMixin:
                 f"ETag cannot be set on {request.method} request.",
                 stacklevel=2,
             )
-        if _is_etag_enabled():
+        if self._is_etag_enabled():
             if etag_schema is not None:
                 etag_data = resolve_schema_instance(etag_schema).dump(etag_data)
             new_etag = self._generate_etag(etag_data)
@@ -227,8 +227,8 @@ class EtagMixin:
                 self._check_not_modified(new_etag)
             response.set_etag(new_etag)
 
-    def _prepare_etag_doc(self, doc, doc_info, *, app, spec, method, **kwargs):
-        if doc_info.get("etag", False) and not app.config.get("ETAG_DISABLED", False):
+    def _prepare_etag_doc(self, doc, doc_info, *, api, spec, method, **kwargs):
+        if doc_info.get("etag", False) and not api.config.get("ETAG_DISABLED", False):
             responses = {}
             method_u = method.upper()
             if method_u in self.METHODS_CHECKING_NOT_MODIFIED:

@@ -32,6 +32,7 @@ Guide
     pagination
     etag
     openapi
+    advanced
 
 
 API Reference

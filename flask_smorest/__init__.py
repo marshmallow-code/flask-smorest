@@ -6,6 +6,8 @@ from .spec import APISpecMixin
 from .blueprint import Blueprint  # noqa
 from .pagination import Page  # noqa
 from .error_handler import ErrorHandlerMixin
+from .globals import current_api  # noqa
+from .utils import PrefixedMappingProxy, normalize_config_prefix
 
 __version__ = "0.41.0"
 
@@ -17,6 +19,7 @@ class Api(APISpecMixin, ErrorHandlerMixin):
 
     :param Flask app: Flask application
     :param spec_kwargs: kwargs to pass to internal APISpec instance
+    :param str config_prefix: Prefix to Api parameters in application config
 
     The ``spec_kwargs`` dictionary is passed as kwargs to the internal APISpec
     instance. **flask-smorest** adds a few parameters to the original
@@ -39,9 +42,11 @@ class Api(APISpecMixin, ErrorHandlerMixin):
     parameter `API_SPEC_OPTIONS`.
     """
 
-    def __init__(self, app=None, *, spec_kwargs=None):
+    def __init__(self, app=None, *, spec_kwargs=None, config_prefix=""):
         self._app = app
         self._spec_kwargs = spec_kwargs or {}
+        self.config_prefix = normalize_config_prefix(config_prefix)
+        self.config = None
         self.spec = None
         # Use lists to enforce order
         self._fields = []
@@ -56,11 +61,20 @@ class Api(APISpecMixin, ErrorHandlerMixin):
             Updates ``spec_kwargs`` passed in ``Api`` init.
         """
         self._app = app
+        self.config = PrefixedMappingProxy(app.config, self.config_prefix)
 
         # Register flask-smorest in app extensions
         app.extensions = getattr(app, "extensions", {})
-        ext = app.extensions.setdefault("flask-smorest", {})
-        ext["ext_obj"] = self
+        ext = app.extensions.setdefault(
+            "flask-smorest",
+            {
+                # Config prefix -> {"ext_obj": Api instance}
+                "apis": {},
+                # Blueprint name -> Api instance
+                "blp_name_to_api": {},
+            },
+        )
+        ext["apis"][self.config_prefix] = {"ext_obj": self}
 
         # Initialize spec
         self._init_spec(**{**self._spec_kwargs, **(spec_kwargs or {})})
@@ -85,6 +99,8 @@ class Api(APISpecMixin, ErrorHandlerMixin):
         Must be called after app is initialized.
         """
         blp_name = options.get("name", blp.name)
+
+        self._app.extensions["flask-smorest"]["blp_name_to_api"][blp_name] = self
 
         self._app.register_blueprint(blp, **options)
 
