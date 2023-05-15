@@ -1,13 +1,15 @@
 Changelog
 ---------
 
-0.42.0 (unreleased)
+0.42.0 (2023-05-15)
 *******************
 
 Features:
 
-- Support multiple APIs in a single application via ``Api`` param
-  ``config_prefix`` (:pr:`485`).
+- *Backwards-incompatible*: Support multiple APIs in a single application via
+  ``Api`` param ``config_prefix``. The ``Api`` object is now accessible at
+  ``app.extensions["flask-smorest"]["apis"][config_prefix]["ext_obj"]``
+  rather than ``app.extensions["flask-smorest"]["ext_obj"]``. (:pr:`485`)
   Thanks :user:`petraszd` for the contribution.
 
 Other changes:
