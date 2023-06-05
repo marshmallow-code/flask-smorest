@@ -1,8 +1,10 @@
 """Test Api class"""
+import json
 
 import pytest
 from flask import jsonify
 from flask.views import MethodView
+from flask.json.provider import DefaultJSONProvider
 from werkzeug.routing import BaseConverter
 import marshmallow as ma
 import apispec
@@ -522,3 +524,45 @@ class TestApi:
             "API_V2_OPENAPI_VERSION",
         }
         assert len(api_v2.config) == 3
+
+    @pytest.mark.parametrize("openapi_version", ["2.0", "3.0.2"])
+    def test_api_serializes_doc_with_flask_json(self, app, openapi_version):
+        """Check that app.json, not standard json, is used to serialize API doc"""
+
+        class CustomType:
+            """Custom type"""
+
+        class CustomJSONEncoder(json.JSONEncoder):
+            def default(self, object):
+                if isinstance(object, CustomType):
+                    return 42
+                return super().default(object)
+
+        class CustomJsonProvider(DefaultJSONProvider):
+            def dumps(self, obj, **kwargs):
+                return json.dumps(obj, **kwargs, cls=CustomJSONEncoder)
+
+        class CustomSchema(ma.Schema):
+            custom_field = ma.fields.Field(load_default=CustomType())
+
+        app.config["OPENAPI_VERSION"] = openapi_version
+        app.json = CustomJsonProvider(app)
+        api = Api(app)
+        blp = Blueprint("test", "test", url_prefix="/test")
+
+        @blp.route("/")
+        @blp.arguments(CustomSchema)
+        def test(args):
+            pass
+
+        api.register_blueprint(blp)
+
+        with app.app_context():
+            spec_dict = api._openapi_json().json
+
+        if openapi_version == "2.0":
+            schema = spec_dict["definitions"]["Custom"]
+        else:
+            schema = spec_dict["components"]["schemas"]["Custom"]
+
+        assert schema["properties"]["custom_field"]["default"] == 42
