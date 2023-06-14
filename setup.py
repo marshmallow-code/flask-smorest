@@ -17,7 +17,7 @@ EXTRAS_REQUIRE = {
     "lint": [
         "flake8==6.0.0",
         "flake8-bugbear==23.6.5",
-        "pre-commit==3.3.2",
+        "pre-commit==3.3.3",
     ],
 }
 EXTRAS_REQUIRE["dev"] = EXTRAS_REQUIRE["tests"] + EXTRAS_REQUIRE["lint"]
