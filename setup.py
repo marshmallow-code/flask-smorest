@@ -10,7 +10,7 @@ EXTRAS_REQUIRE = {
         "werkzeug==2.3.6",
         "flask==2.3.2",
         "marshmallow==3.19.0",
-        "webargs==8.2.0",
+        "webargs==8.3.0",
         "apispec==6.3.0",
         "PyYAML==6.0",
     ],
