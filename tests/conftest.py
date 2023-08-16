@@ -79,6 +79,11 @@ def schemas():
         error_id = ma.fields.Str()
         text = ma.fields.Str()
 
-    return namedtuple("Model", ("DocSchema", "QueryArgsSchema", "ClientErrorSchema"))(
-        DocSchema, QueryArgsSchema, ClientErrorSchema
+    client_error_dict_schema = {
+        "error_id": ma.fields.Str(),
+        "text": ma.fields.Str(),
+    }
+
+    return namedtuple("Model", ("DocSchema", "QueryArgsSchema", "ClientErrorSchema", "client_error_dict_schema"))(
+        DocSchema, QueryArgsSchema, ClientErrorSchema, client_error_dict_schema
     )

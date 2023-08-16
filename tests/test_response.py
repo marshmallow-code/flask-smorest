@@ -177,7 +177,7 @@ class TestResponse:
             }
 
     @pytest.mark.parametrize("openapi_version", ["2.0", "3.0.2"])
-    @pytest.mark.parametrize("schema_type", ["object", "ref"])
+    @pytest.mark.parametrize("schema_type", ["object", "dict", "ref"])
     def test_alt_response(self, app, openapi_version, schemas, schema_type):
         """Check alternate response is correctly documented"""
         app.config["OPENAPI_VERSION"] = openapi_version
@@ -198,6 +198,8 @@ class TestResponse:
 
         if schema_type == "object":
             schema = schemas.ClientErrorSchema
+        elif schema_type == "dict":
+            schema = schemas.client_error_dict_schema
         else:
             schema = "ClientError"
 

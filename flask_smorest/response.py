@@ -7,6 +7,7 @@ import http
 
 from werkzeug import Response
 from flask import jsonify
+import marshmallow as ma
 
 from .utils import (
     deepupdate,
@@ -38,7 +39,7 @@ class ResponseMixin:
         :param int|str|HTTPStatus status_code: HTTP status code.
             Used if none is returned from the view function.
         :param schema schema|str|dict: :class:`Schema <marshmallow.Schema>`
-            class or instance or reference or dict.
+            class or instance or reference or :class:`Field <marshmallow.Field>` dict.
             If not None, will be used to serialize response data.
         :param str content_type: Content type of the response.
         :param str description: Description of the response (default: None).
@@ -64,6 +65,8 @@ class ResponseMixin:
 
         See :doc:`Response <response>`.
         """
+        if isinstance(schema, dict):
+            schema = ma.Schema.from_dict(schema)
         schema = resolve_schema_instance(schema)
 
         # Document response (schema, description,...) in the API doc
@@ -150,7 +153,7 @@ class ResponseMixin:
         :param int|str|HTTPStatus status_code: HTTP status code.
         :param str response: Response reference.
         :param schema schema|str|dict: :class:`Schema <marshmallow.Schema>`
-            class or instance or reference or dict.
+            class or instance or reference or :class:`Field <marshmallow.Field>` dict.
         :param str description: Description of the response (default: None).
         :param dict example: Example of response message.
         :param dict examples: Examples of response message.
@@ -174,6 +177,8 @@ class ResponseMixin:
             resp_doc = response
         # Otherwise, build response description
         else:
+            if isinstance(schema, dict):
+                schema = ma.Schema.from_dict(schema)
             schema = resolve_schema_instance(schema)
 
             # Document response (schema, description,...) in the API doc

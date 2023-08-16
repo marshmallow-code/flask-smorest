@@ -4,6 +4,7 @@ from copy import deepcopy
 from functools import wraps
 import http
 
+import marshmallow as ma
 from webargs.flaskparser import FlaskParser
 
 from .utils import deepupdate
@@ -28,8 +29,9 @@ class ArgumentsMixin:
     ):
         """Decorator specifying the schema used to deserialize parameters
 
-        :param type|Schema schema: Marshmallow ``Schema`` class or instance
-            used to deserialize and validate the argument.
+        :param type|Schema|dict schema: Marshmallow ``Schema`` class or instance
+            or :class:`Field <marshmallow.Field>` dict, used to deserialize
+            and validate the argument.
         :param str location: Location of the argument.
         :param str content_type: Content type of the argument.
             Should only be used in conjunction with ``json``, ``form`` or
@@ -56,7 +58,10 @@ class ArgumentsMixin:
 
         See :doc:`Arguments <arguments>`.
         """
-        # At this stage, put schema instance in doc dictionary. Il will be
+        if isinstance(schema, dict):
+            schema = ma.Schema.from_dict(schema)
+
+        # At this stage, put schema in doc dictionary. Il will be
         # replaced later on by $ref or json.
         parameters = {
             "in": location,
