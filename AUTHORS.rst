@@ -26,3 +26,4 @@ Contributors (chronological)
 - Dmitry Erlikh `@derlikh-smart <https://github.com/derlikh-smart>`_
 - 0x78f1935 `@0x78f1935 <https://github.com/0x78f1935>`_
 - One Codex, Inc. `@onecodex <https://github.com/onecodex>`_
+- Dorian Hoxha `@ddorian <https://github.com/ddorian>`_
