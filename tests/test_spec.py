@@ -36,6 +36,27 @@ class TestAPISpec:
             assert "consumes" not in spec
 
     @pytest.mark.parametrize("openapi_version", ["2.0", "3.0.2"])
+    def test_apispec_correct_path_parameters_ordering(self, app, openapi_version):
+        """Test path parameters are sorted from left to right.
+
+        If this test is flaky it's considered a failure.
+        """
+        app.config["OPENAPI_VERSION"] = openapi_version
+        api = Api(app)
+
+        blp = Blueprint("pets", "pets", url_prefix="/pets")
+
+        @blp.route("/project/<project_id>/upload/<part_id>/complete")
+        def do_nothing():
+            return
+
+        api.register_blueprint(blp)
+
+        sorted_params = list(api.spec.to_dict()["paths"].values())[0]["parameters"]
+        assert sorted_params[0]["name"] == "project_id"
+        assert sorted_params[1]["name"] == "part_id"
+
+    @pytest.mark.parametrize("openapi_version", ["2.0", "3.0.2"])
     def test_apispec_lazy_registers_error_responses(self, app, openapi_version):
         """Test error responses are registered"""
         app.config["OPENAPI_VERSION"] = openapi_version
