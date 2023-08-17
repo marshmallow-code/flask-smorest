@@ -1,6 +1,18 @@
 Changelog
 ---------
 
+0.42.1 (2023-08-17)
+*******************
+
+Bug fixes:
+
+- Fix order of path parameters extracted from Flask route (:issue:`541`).
+  Thanks :user:`ddorian` for the report and the PR.
+
+Other changes:
+
+- Fix setup.py to require Flask>=2.0.1, needed since 0.42.0.
+
 0.42.0 (2023-05-15)
 *******************
 
