@@ -9,7 +9,7 @@ import pytest
 import marshmallow as ma
 
 from flask_smorest import Api, Blueprint
-from flask_smorest.fields import Upload
+from flask_smorest.fields import Upload, BigInteger
 
 from .utils import build_ref, get_responses
 
@@ -302,6 +302,28 @@ class TestArguments:
                     "file_2": {"type": "string", "format": "binary"},
                 },
             }
+
+    @pytest.mark.parametrize(
+        ("number", "status"), (((2**63 - 0), 422), (50, 200), ((-(2**63) + 0), 422))
+    )
+    def test_bigint(self, app, schemas, number, status):
+        """Test for bigint range on BigInteger."""
+        api = Api(app)
+        blp = Blueprint("test", __name__, url_prefix="/test")
+        client = app.test_client()
+
+        class MySchema(ma.Schema):
+            bigint = BigInteger()
+
+        @blp.route("/<bigint>/", methods=["POST"])
+        @blp.arguments(MySchema, location="path")
+        def func(*args, **kwargs):
+            return {}
+
+        api.register_blueprint(blp)
+
+        response = client.post(f"/test/{number}/")
+        assert response.status_code == status
 
     # This is only relevant to OAS3.
     @pytest.mark.parametrize("openapi_version", ("3.0.2",))
