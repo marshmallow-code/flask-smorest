@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 EXTRAS_REQUIRE = {
     "tests": [
         "pytest==7.4.2",
         "pytest-cov==4.1.0",
         "coverage==7.3.2",
-        "werkzeug==2.3.7",
-        "flask==2.3.3",
+        "werkzeug==3.0.1",
+        "flask==3.0.0",
         "marshmallow==3.20.1",
         "webargs==8.3.0",
         "apispec==6.3.0",
@@ -66,8 +66,8 @@ setup(
     },
     python_requires=">=3.8",
     install_requires=[
-        "werkzeug>=2.0.1,<3",
-        "flask>=2.0.1,<3",
+        "werkzeug>=2.0.1,<3.1",
+        "flask>=2.0.1,<3.1",
         "marshmallow>=3.18.0,<4",
         "webargs>=8.0.0,<9",
         "apispec[marshmallow]>=6.0.0,<7",
