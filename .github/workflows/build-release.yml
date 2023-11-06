@@ -21,6 +21,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          - {name: '3.8-mindeps', python: '3.8', tox: py38-mindeps}
           - {name: '3.8', python: '3.8', tox: py38}
           - {name: '3.11', python: '3.11', tox: py311}
     steps:
