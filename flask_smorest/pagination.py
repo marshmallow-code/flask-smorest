@@ -276,11 +276,13 @@ class PaginationMixin:
 
         Override this to document custom pagination metadata
         """
-        resp_doc["headers"] = {
-            self.PAGINATION_HEADER_NAME: "PAGINATION"
-            if spec.openapi_version.major >= 3
-            else PAGINATION_HEADER
-        }
+        resp_doc.setdefault("headers", {}).update(
+            {
+                self.PAGINATION_HEADER_NAME: "PAGINATION"
+                if spec.openapi_version.major >= 3
+                else PAGINATION_HEADER
+            }
+        )
 
     def _prepare_pagination_doc(self, doc, doc_info, *, spec, **kwargs):
         operation = doc_info.get("pagination")
