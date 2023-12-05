@@ -1,6 +1,14 @@
 Changelog
 ---------
 
+0.42.3 (2023-12-05)
+*******************
+
+Bug fixes:
+
+- Fix OpenAPI docs to include response headers when pagination is used (:issue:`578`).
+  Thanks :user:`drcpu-github` for the report and the PR.
+
 0.42.2 (2023-11-09)
 *******************
 
