@@ -479,6 +479,39 @@ class TestPagination:
             assert parameters[3]["schema"]["minimum"] == 1
             assert parameters[3]["schema"]["maximum"] == 100
 
+    # Non-regression test for https://github.com/marshmallow-code/flask-smorest/issues/578 # noqa: E501
+    @pytest.mark.parametrize("openapi_version", ("2.0", "3.0.2"))
+    def test_pagination_doc_preserves_other_headers_doc(self, app, openapi_version):
+        app.config["OPENAPI_VERSION"] = openapi_version
+        api = Api(app)
+        blp = Blueprint("test", __name__, url_prefix="/test")
+
+        @blp.route("/")
+        @blp.response(
+            200, headers={"X-Version": {"description": "Version of this API endpoint."}}
+        )
+        @blp.paginate()
+        def func():
+            """Dummy view func"""
+
+        api.register_blueprint(blp)
+        spec = api.spec.to_dict()
+
+        # Check both headers are properly documented
+        headers = spec["paths"]["/test/"]["get"]["responses"]["200"]["headers"]
+        assert "X-Version" in headers
+        assert headers["X-Version"] == {"description": "Version of this API endpoint."}
+        assert "X-Pagination" in headers
+        if openapi_version == "2.0":
+            assert headers["X-Pagination"] == {
+                "description": "Pagination metadata",
+                "schema": {"$ref": "#/definitions/PaginationMetadata"},
+            }
+        else:
+            assert headers["X-Pagination"] == {
+                "$ref": "#/components/headers/PAGINATION"
+            }
+
     @pytest.mark.parametrize("error_code", (400, 422))
     @pytest.mark.parametrize("openapi_version", ("2.0", "3.0.2"))
     def test_pagination_documents_error_response(
