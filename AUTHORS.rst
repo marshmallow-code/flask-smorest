@@ -28,3 +28,4 @@ Contributors (chronological)
 - One Codex, Inc. `@onecodex <https://github.com/onecodex>`_
 - Dorian Hoxha `@ddorian <https://github.com/ddorian>`_
 - drcpu `@drcpu-github <https://github.com/drcpu-github>`_
+- JAEGYUN JUNG `@tgoddessana <https://github.com/TGoddessana>`_
