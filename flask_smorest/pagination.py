@@ -152,7 +152,7 @@ class PaginationMixin:
     def paginate(self, pager=None, *, page=None, page_size=None, max_page_size=None):
         """Decorator adding pagination to the endpoint
 
-        :param Page pager: Page class used to paginate response data
+        :param type[Page] pager: Page class used to paginate response data
         :param int page: Default requested page number (default: 1)
         :param int page_size: Default requested page size (default: 10)
         :param int max_page_size: Maximum page size (default: 100)
