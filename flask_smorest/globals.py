@@ -1,4 +1,5 @@
 """Globals"""
+
 from flask import current_app, request
 from werkzeug.local import LocalProxy
 

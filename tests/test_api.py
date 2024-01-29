@@ -1,4 +1,5 @@
 """Test Api class"""
+
 import pytest
 from flask import jsonify
 from flask.views import MethodView

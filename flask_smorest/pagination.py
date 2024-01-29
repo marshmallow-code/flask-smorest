@@ -8,6 +8,7 @@ Two pagination modes are supported:
 - Post-pagination: the resource returns an iterator (typically a DB cursor) and
   a pager is provided to paginate the data and get the total number of items.
 """
+
 from copy import deepcopy
 from functools import wraps
 import http
@@ -278,9 +279,11 @@ class PaginationMixin:
         """
         resp_doc.setdefault("headers", {}).update(
             {
-                self.PAGINATION_HEADER_NAME: "PAGINATION"
-                if spec.openapi_version.major >= 3
-                else PAGINATION_HEADER
+                self.PAGINATION_HEADER_NAME: (
+                    "PAGINATION"
+                    if spec.openapi_version.major >= 3
+                    else PAGINATION_HEADER
+                )
             }
         )
 
