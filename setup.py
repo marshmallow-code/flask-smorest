@@ -15,7 +15,7 @@ EXTRAS_REQUIRE = {
         "PyYAML==6.0.1",
     ],
     "lint": [
-        "pre-commit==3.6.0",
+        "pre-commit==3.6.1",
     ],
 }
 EXTRAS_REQUIRE["dev"] = EXTRAS_REQUIRE["tests"] + EXTRAS_REQUIRE["lint"]
