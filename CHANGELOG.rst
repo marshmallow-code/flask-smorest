@@ -1,6 +1,20 @@
 Changelog
 ---------
 
+0.43.0 (2024-02-12)
+*******************
+
+Bug fixes:
+
+- Fix type-hint in paginate method (:pr:`593`).
+  Thanks :user:`jtait` for the PR.
+
+Other changes:
+
+- Official Python 3.12 support (:pr:`591`).
+  Thanks :user:`goddessana` for the PR.
+- Require Flask>=3.0.2 and Werkzeug>=3.0.01 (:pr:`604`).
+
 0.42.3 (2023-12-05)
 *******************
 
