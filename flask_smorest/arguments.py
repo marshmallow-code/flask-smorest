@@ -1,4 +1,5 @@
 """Arguments parsing"""
+
 from collections import abc
 from copy import deepcopy
 from functools import wraps

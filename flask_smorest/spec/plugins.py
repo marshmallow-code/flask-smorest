@@ -1,4 +1,5 @@
 """apispec plugins"""
+
 from collections.abc import Mapping
 import re
 

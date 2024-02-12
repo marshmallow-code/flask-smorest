@@ -1,4 +1,5 @@
 """Custom field properties functions"""
+
 from flask_smorest.fields import Upload
 
 
