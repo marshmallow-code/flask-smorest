@@ -1,4 +1,5 @@
 """Api extension initialization"""
+from collections import OrderedDict
 
 from webargs.flaskparser import abort  # noqa
 
@@ -7,7 +8,11 @@ from .blueprint import Blueprint  # noqa
 from .pagination import Page  # noqa
 from .error_handler import ErrorHandlerMixin
 from .globals import current_api  # noqa
-from .utils import PrefixedMappingProxy, normalize_config_prefix
+from .utils import (
+    PrefixedMappingProxy,
+    normalize_config_prefix,
+    resolve_schema_instance,
+)
 
 __version__ = "0.44.0"
 
@@ -115,3 +120,34 @@ class Api(APISpecMixin, ErrorHandlerMixin):
 
         # Add tag relative to this resource to the global tag list
         self.spec.tag({"name": blp_name, "description": blp.description})
+
+    def add_webhook_doc(
+        self,
+        endpoint: str,
+        schema,
+        request_description: str,
+        response_description: str,
+        response_status_code: int = 200,
+    ):
+        """Register a webhook along with a schema."""
+        instance = resolve_schema_instance(schema)
+        schema_title = instance.__class__.__name__.split("Schema")[0]
+
+        self.spec.components.schema(schema_title, schema=schema)
+
+        webhooks = self.spec.options.setdefault("webhooks", OrderedDict())
+        webhooks[endpoint] = {
+            "post": {
+                "requestBody": {
+                    "description": request_description,
+                    "content": {
+                        "application/json": {
+                            "schema": {"$ref": f"#/components/schemas/{schema_title}"}
+                        }
+                    },
+                },
+                "responses": {
+                    f"{response_status_code}": {"description": response_description}
+                },
+            }
+        }
