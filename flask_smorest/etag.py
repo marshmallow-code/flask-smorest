@@ -2,13 +2,12 @@
 
 from functools import wraps
 from copy import deepcopy
-import json
 import http
 import warnings
 
 import hashlib
 
-from flask import request
+from flask import request, json
 
 from .exceptions import PreconditionRequired, PreconditionFailed, NotModified
 from .utils import deepupdate, resolve_schema_instance, get_appcontext
@@ -98,11 +97,13 @@ class EtagMixin:
     def _generate_etag(etag_data, extra_data=None):
         """Generate an ETag from data
 
-        etag_data: Data to use to compute ETag (must be json serializable)
+        etag_data: Data to use to compute ETag
         extra_data: Extra data to add before hashing
 
         Typically, extra_data is used to add pagination metadata to the hash.
         It is not dumped through the Schema.
+
+        Data is JSON serialized before hashing using the Flask app JSON serializer.
         """
         if extra_data:
             etag_data = (etag_data, extra_data)

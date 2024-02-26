@@ -1,6 +1,5 @@
 """API specification using OpenAPI"""
 
-import json
 import http
 
 import flask
@@ -126,10 +125,9 @@ class DocBlueprintMixin:
 
     def _openapi_json(self):
         """Serve JSON spec file"""
-        # We don't use Flask.jsonify here as it would sort the keys
-        # alphabetically while we want to preserve the order.
         return current_app.response_class(
-            json.dumps(self.spec.to_dict(), indent=2), mimetype="application/json"
+            flask.json.dumps(self.spec.to_dict(), indent=2, sort_keys=False),
+            mimetype="application/json",
         )
 
     def _openapi_redoc(self):
@@ -396,7 +394,9 @@ def print_openapi_doc(format, config_prefix):
     """Print OpenAPI JSON document."""
     config_prefix = normalize_config_prefix(config_prefix)
     if format == "json":
-        click.echo(json.dumps(_get_spec_dict(config_prefix), indent=2))
+        click.echo(
+            flask.json.dumps(_get_spec_dict(config_prefix), indent=2, sort_keys=False)
+        )
     else:  # format == "yaml"
         if HAS_PYYAML:
             click.echo(yaml.dump(_get_spec_dict(config_prefix)))
@@ -415,7 +415,7 @@ def write_openapi_doc(format, output_file, config_prefix):
     config_prefix = normalize_config_prefix(config_prefix)
     if format == "json":
         click.echo(
-            json.dumps(_get_spec_dict(config_prefix), indent=2),
+            flask.json.dumps(_get_spec_dict(config_prefix), indent=2, sort_keys=False),
             file=output_file,
         )
     else:  # format == "yaml"
