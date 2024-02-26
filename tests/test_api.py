@@ -1,4 +1,5 @@
 """Test Api class"""
+
 import json
 
 import pytest

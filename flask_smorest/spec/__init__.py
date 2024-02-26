@@ -1,4 +1,5 @@
 """API specification using OpenAPI"""
+
 import http
 
 import flask
