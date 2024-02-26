@@ -1,6 +1,14 @@
 Changelog
 ---------
 
+0.44.0 (2024-02-26)
+*******************
+
+Features:
+
+- Always use ``flask.json`` to serialize data (API output, ETag, API docs).
+  Ensures a user-defined custom JSON serializer is used everywhere. (:pr:`561`)
+
 0.43.0 (2024-02-12)
 *******************
 
