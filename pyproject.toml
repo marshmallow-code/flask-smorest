@@ -1,0 +1,97 @@
+[project]
+name = "flask-smorest"
+version = "0.44.0"
+description = "Flask/Marshmallow-based REST API framework"
+readme = "README.rst"
+license = { file = "LICENSE" }
+authors = [{ name = "Jérôme Lafréchoux", email = "jerome@jolimont.fr" }]
+maintainers = [
+  { name = "Jérôme Lafréchoux", email = "jerome@jolimont.fr" },
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "Topic :: Internet :: WWW/HTTP",
+  "Environment :: Web Environment",
+  "Framework :: Flask",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+]
+requires-python = ">=3.8"
+dependencies = [
+  "werkzeug>=3.0.1,<4",
+  "flask>=3.0.2,<4",
+  "marshmallow>=3.18.0,<4",
+  "webargs>=8.0.0,<9",
+  "apispec[marshmallow]>=6.0.0,<7",
+]
+
+[project.urls]
+Changelog = "https://flask-smorest.readthedocs.io/en/latest/changelog.html"
+Funding = "https://opencollective.com/marshmallow"
+Issues = "https://github.com/marshmallow-code/flask-smorest/issues"
+Source = "https://github.com/marshmallow-code/flask-smorest"
+Tidelift = "https://tidelift.com/subscription/pkg/pypi-marshmallow?utm_source=pypi-marshmallow&utm_medium=pypi"
+
+[project.optional-dependencies]
+docs = [
+  "sphinx==7.2.6",
+  "sphinx-issues==4.0.0",
+  "alabaster==0.7.16",
+]
+tests = [
+  "pytest==8.0.2",
+  "pytest-cov==4.1.0",
+  "coverage==7.4.3",
+  "werkzeug==3.0.1",
+  "flask==3.0.2",
+  "marshmallow==3.20.2",
+  "webargs==8.4.0",
+  "apispec==6.4.0",
+  "PyYAML==6.0.1",
+]
+dev = [
+  "flask-smorest[tests]",
+  "tox",
+  "pre-commit~=3.6",
+]
+
+[build-system]
+requires = ["flit_core<4"]
+build-backend = "flit_core.buildapi"
+
+[tool.flit.sdist]
+include = [
+  "docs/",
+  "tests/",
+  "CHANGELOG.rst",
+  "CONTRIBUTING.rst",
+  "tox.ini",
+]
+exclude = ["docs/_build/"]
+
+[tool.ruff]
+src = ["src"]
+fix = true
+show-fixes = true
+output-format = "full"
+
+[tool.ruff.lint]
+ignore = ["I001", "E203", "E266", "E501", "E731"]
+select = [
+  "B",  # flake8-bugbear
+  "E",  # pycodestyle error
+  "F",  # pyflakes
+  "I",  # isort
+  "UP", # pyupgrade
+  "W",  # pycodestyle warning
+]
+
+[tool.pytest.ini_options]
+norecursedirs = ".git .ropeproject .tox docs env venv"
+addopts = "-v --tb=short"

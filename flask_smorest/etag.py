@@ -244,7 +244,7 @@ class EtagMixin:
                 for success_status_code in success_status_codes:
                     doc["responses"][success_status_code].setdefault("headers", {})[
                         "ETag"
-                    ] = (ETAG_HEADER if spec.openapi_version.major < 3 else "ETAG")
+                    ] = ETAG_HEADER if spec.openapi_version.major < 3 else "ETAG"
 
             if responses:
                 doc = deepupdate(doc, {"responses": responses})

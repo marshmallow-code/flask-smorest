@@ -25,7 +25,7 @@ class ArgumentsMixin:
         description=None,
         example=None,
         examples=None,
-        **kwargs
+        **kwargs,
     ):
         """Decorator specifying the schema used to deserialize parameters
 

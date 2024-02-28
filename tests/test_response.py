@@ -172,8 +172,9 @@ class TestResponse:
         else:
             assert "produces" not in get
             assert get["responses"]["200"]["content"] == {
-                content_type
-                or "application/json": {"schema": build_ref(api.spec, "schema", "Doc")}
+                content_type or "application/json": {
+                    "schema": build_ref(api.spec, "schema", "Doc")
+                }
             }
 
     @pytest.mark.parametrize("openapi_version", ["2.0", "3.0.2"])

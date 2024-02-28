@@ -214,6 +214,7 @@ The :meth:`Api.register_converter` allows to register a converter in the
    # Register MongoDB's ObjectId converter in Flask application
    app.url_map.converters["objectid"] = ObjectIdConverter
 
+
    # Define custom converter to schema function
    def objectidconverter2paramschema(converter):
        return {"type": "string", "format": "ObjectID"}
