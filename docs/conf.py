@@ -21,7 +21,7 @@ import importlib.metadata
 
 
 project = "flask-smorest"
-copyright = "2022, Nobatek/INEF4 and contributors"
+copyright = "Nobatek/INEF4 and contributors"
 
 version = release = importlib.metadata.version("flask_smorest")
 
