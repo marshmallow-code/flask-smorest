@@ -96,7 +96,7 @@ html_theme_options = {
     "opencollective": "marshmallow",
     "code_font_size": "0.8em",
     "extra_nav_links": {
-        "flask-smorest@PyPI": "http://pypi.python.org/pypi/flask-smorest",
+        "flask-smorest@PyPI": "http://pypi.org/pypi/flask-smorest",
         "flask-smorest@GitHub": "http://github.com/marshmallow-code/flask-smorest",
     },
 }
