@@ -9,8 +9,6 @@ from .error_handler import ErrorHandlerMixin
 from .globals import current_api  # noqa
 from .utils import PrefixedMappingProxy, normalize_config_prefix
 
-__version__ = "0.44.0"
-
 
 class Api(APISpecMixin, ErrorHandlerMixin):
     """Main class

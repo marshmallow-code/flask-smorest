@@ -17,12 +17,13 @@
 
 # -- Project information -----------------------------------------------------
 
-import flask_smorest
+import importlib.metadata
+
 
 project = "flask-smorest"
 copyright = "2022, Nobatek/INEF4 and contributors"
 
-version = release = flask_smorest.__version__
+version = release = importlib.metadata.version("flask_smorest")
 
 
 # -- General configuration ---------------------------------------------------
