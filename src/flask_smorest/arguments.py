@@ -1,9 +1,9 @@
 """Arguments parsing"""
 
+import http
 from collections import abc
 from copy import deepcopy
 from functools import wraps
-import http
 
 from webargs.flaskparser import FlaskParser
 
@@ -25,7 +25,7 @@ class ArgumentsMixin:
         description=None,
         example=None,
         examples=None,
-        **kwargs
+        **kwargs,
     ):
         """Decorator specifying the schema used to deserialize parameters
 

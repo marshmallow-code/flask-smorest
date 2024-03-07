@@ -5,7 +5,6 @@ from flask.app import Rule
 
 from apispec.utils import build_reference
 
-
 # Getter functions are copied from apispec tests
 
 

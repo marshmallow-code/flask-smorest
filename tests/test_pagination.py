@@ -1,10 +1,9 @@
 """Test PaginationMixin"""
 
 import http
-
-from itertools import product
-from collections import namedtuple
 import json
+from collections import namedtuple
+from itertools import product
 
 import pytest
 
@@ -13,7 +12,7 @@ from flask.views import MethodView
 from flask_smorest import Api, Blueprint, Page
 from flask_smorest.pagination import PaginationParameters
 
-from .utils import get_schemas, build_ref
+from .utils import build_ref, get_schemas
 
 CUSTOM_PAGINATION_PARAMS = (2, 5, 10)
 

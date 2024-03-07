@@ -17,12 +17,12 @@
 
 # -- Project information -----------------------------------------------------
 
-import flask_smorest
+import importlib.metadata
 
 project = "flask-smorest"
-copyright = "2022, Nobatek/INEF4 and contributors"
+copyright = "Nobatek/INEF4 and contributors"
 
-version = release = flask_smorest.__version__
+version = release = importlib.metadata.version("flask_smorest")
 
 
 # -- General configuration ---------------------------------------------------
@@ -95,7 +95,7 @@ html_theme_options = {
     "opencollective": "marshmallow",
     "code_font_size": "0.8em",
     "extra_nav_links": {
-        "flask-smorest@PyPI": "http://pypi.python.org/pypi/flask-smorest",
+        "flask-smorest@PyPI": "http://pypi.org/pypi/flask-smorest",
         "flask-smorest@GitHub": "http://github.com/marshmallow-code/flask-smorest",
     },
 }

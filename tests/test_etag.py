@@ -1,27 +1,26 @@
 """Test EtagMixin"""
 
-import json
 import hashlib
+import json
 
 import pytest
 
-from flask import jsonify, Response, request as f_request
+from flask import Response, jsonify
+from flask import request as f_request
 from flask.views import MethodView
 
 from flask_smorest import Api, Blueprint, abort
 from flask_smorest.etag import _get_etag_ctx
 from flask_smorest.exceptions import (
-    NotModified,
-    PreconditionRequired,
-    PreconditionFailed,
     CurrentApiNotAvailableError,
+    NotModified,
+    PreconditionFailed,
+    PreconditionRequired,
 )
 from flask_smorest.utils import get_appcontext
 
-from .utils import build_ref, request_ctx_with_current_api
-
 from .mocks import ItemNotFound
-
+from .utils import build_ref, request_ctx_with_current_api
 
 HTTP_METHODS = ["OPTIONS", "HEAD", "GET", "POST", "PUT", "PATCH", "DELETE"]
 HTTP_METHODS_ALLOWING_SET_ETAG = ["GET", "HEAD", "POST", "PUT", "PATCH"]

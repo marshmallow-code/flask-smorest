@@ -3,17 +3,19 @@
 import json
 
 import pytest
+
 from flask import jsonify
-from flask.views import MethodView
 from flask.json.provider import DefaultJSONProvider
+from flask.views import MethodView
 from werkzeug.routing import BaseConverter
-import marshmallow as ma
+
 import apispec
+import marshmallow as ma
 
 from flask_smorest import Api, Blueprint, current_api
 from flask_smorest.exceptions import MissingAPIParameterError
 
-from .utils import get_schemas, get_responses
+from .utils import get_responses, get_schemas
 
 
 class TestApi:

@@ -5,12 +5,14 @@ from contextlib import contextmanager
 
 import pytest
 
-import marshmallow as ma
 from flask.views import MethodView
 
-from flask_smorest import Api, Blueprint, abort, Page
+import marshmallow as ma
+
+from flask_smorest import Api, Blueprint, Page, abort
 from flask_smorest.pagination import PaginationMetadataSchema
 from flask_smorest.utils import get_appcontext
+
 from .mocks import ItemNotFound
 from .utils import build_ref, get_schemas
 

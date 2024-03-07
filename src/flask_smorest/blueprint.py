@@ -39,17 +39,17 @@ Documentation process works in several steps:
   - Endpoints documentation is registered in the APISpec object.
 """
 
-from functools import wraps
 from copy import deepcopy
+from functools import wraps
 
 from flask import Blueprint as FlaskBlueprint
 from flask.views import MethodView
 
-from .utils import deepupdate, load_info_from_docstring
 from .arguments import ArgumentsMixin
-from .response import ResponseMixin
-from .pagination import PaginationMixin
 from .etag import EtagMixin
+from .pagination import PaginationMixin
+from .response import ResponseMixin
+from .utils import deepupdate, load_info_from_docstring
 
 
 class Blueprint(

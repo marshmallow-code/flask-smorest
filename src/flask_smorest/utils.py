@@ -2,9 +2,10 @@
 
 from collections import abc
 
-from werkzeug.datastructures import Headers
 from flask import g
-from apispec.utils import trim_docstring, dedent
+from werkzeug.datastructures import Headers
+
+from apispec.utils import dedent, trim_docstring
 
 
 # https://stackoverflow.com/questions/3232943/

@@ -1,6 +1,7 @@
 """Exception handler"""
 
 from werkzeug.exceptions import HTTPException
+
 import marshmallow as ma
 
 
