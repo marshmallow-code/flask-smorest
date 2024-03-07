@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+0.45.0 (unreleased)
+*******************
+
+Features:
+
+- *Backwards-incompatible*: Remove ``flask_smorest.__version__`` (:pr:`616`).
+
 0.44.0 (2024-02-26)
 *******************
 
