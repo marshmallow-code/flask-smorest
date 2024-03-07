@@ -82,7 +82,7 @@ show-fixes = true
 output-format = "full"
 
 [tool.ruff.lint]
-ignore = ["I001", "E203", "E266", "E501", "E731"]
+ignore = ["E203", "E266", "E501", "E731"]
 select = [
   "B",  # flake8-bugbear
   "E",  # pycodestyle error
@@ -91,6 +91,14 @@ select = [
   "UP", # pyupgrade
   "W",  # pycodestyle warning
 ]
+
+[tool.ruff.lint.isort]
+section-order = ["future", "standard-library", "testing", "pallets", "marshmallow", "third-party", "first-party", "local-folder"]
+
+[tool.ruff.lint.isort.sections]
+testing = ["pytest"]
+pallets = ["werkzeug", "flask", "click"]
+marshmallow = ["marshmallow", "webargs", "apispec"]
 
 [tool.pytest.ini_options]
 norecursedirs = ".git .ropeproject .tox docs env venv"

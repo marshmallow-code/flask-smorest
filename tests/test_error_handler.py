@@ -1,6 +1,7 @@
 import pytest
 
-from werkzeug.exceptions import default_exceptions, InternalServerError
+from werkzeug.exceptions import InternalServerError, default_exceptions
+
 from flask_smorest import Api, abort
 
 

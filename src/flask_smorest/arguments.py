@@ -1,9 +1,9 @@
 """Arguments parsing"""
 
+import http
 from collections import abc
 from copy import deepcopy
 from functools import wraps
-import http
 
 from webargs.flaskparser import FlaskParser
 

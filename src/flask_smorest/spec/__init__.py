@@ -2,9 +2,9 @@
 
 import http
 
-import flask
-from flask import current_app
 import click
+import flask
+
 import apispec
 from apispec.ext.marshmallow import MarshmallowPlugin
 from webargs.fields import DelimitedList
@@ -16,12 +16,13 @@ try:  # pragma: no cover
 except ImportError:  # pragma: no cover
     HAS_PYYAML = False
 
-from flask_smorest.exceptions import MissingAPIParameterError
-from flask_smorest.utils import prepare_response, normalize_config_prefix
 from flask_smorest import etag as fs_etag
 from flask_smorest import pagination as fs_pagination
-from .plugins import FlaskPlugin
+from flask_smorest.exceptions import MissingAPIParameterError
+from flask_smorest.utils import normalize_config_prefix, prepare_response
+
 from .field_converters import uploadfield2properties
+from .plugins import FlaskPlugin
 
 
 def _add_leading_slash(string):
@@ -125,7 +126,7 @@ class DocBlueprintMixin:
 
     def _openapi_json(self):
         """Serve JSON spec file"""
-        return current_app.response_class(
+        return flask.current_app.response_class(
             flask.json.dumps(self.spec.to_dict(), indent=2, sort_keys=False),
             mimetype="application/json",
         )
@@ -373,7 +374,7 @@ openapi_cli = flask.cli.AppGroup("openapi", help="OpenAPI commands.")
 
 
 def _get_spec_dict(config_prefix):
-    apis = current_app.extensions["flask-smorest"]["apis"]
+    apis = flask.current_app.extensions["flask-smorest"]["apis"]
     try:
         api = apis[config_prefix]["ext_obj"]
     except KeyError:
@@ -430,5 +431,5 @@ def write_openapi_doc(format, output_file, config_prefix):
 @openapi_cli.command("list-config-prefixes")
 def list_config_prefixes():
     """List available API config prefixes."""
-    for prefix in current_app.extensions["flask-smorest"]["apis"].keys():
+    for prefix in flask.current_app.extensions["flask-smorest"]["apis"].keys():
         click.echo(f'"{prefix}"')

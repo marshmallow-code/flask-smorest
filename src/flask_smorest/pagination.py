@@ -9,11 +9,11 @@ Two pagination modes are supported:
   a pager is provided to paginate the data and get the total number of items.
 """
 
-from copy import deepcopy
-from functools import wraps
 import http
 import json
 import warnings
+from copy import deepcopy
+from functools import wraps
 
 from flask import request
 

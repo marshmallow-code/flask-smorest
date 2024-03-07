@@ -1,18 +1,16 @@
 """ETag feature"""
 
-from functools import wraps
-from copy import deepcopy
+import hashlib
 import http
 import warnings
+from copy import deepcopy
+from functools import wraps
 
-import hashlib
+from flask import json, request
 
-from flask import request, json
-
-from .exceptions import PreconditionRequired, PreconditionFailed, NotModified
-from .utils import deepupdate, resolve_schema_instance, get_appcontext
+from .exceptions import NotModified, PreconditionFailed, PreconditionRequired
 from .globals import current_api
-
+from .utils import deepupdate, get_appcontext, resolve_schema_instance
 
 IF_NONE_MATCH_HEADER = {
     "name": "If-None-Match",

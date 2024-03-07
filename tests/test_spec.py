@@ -1,19 +1,21 @@
 """Test Api class"""
 
-import json
 import http
+import json
 from unittest import mock
 
 import pytest
-import yaml
-from webargs.fields import DelimitedList
+
 import marshmallow as ma
+from webargs.fields import DelimitedList
+
+import yaml
 
 from flask_smorest import Api, Blueprint
 from flask_smorest import etag as fs_etag
 
 from .conftest import AppConfig
-from .utils import get_responses, get_headers, get_parameters, build_ref
+from .utils import build_ref, get_headers, get_parameters, get_responses
 
 
 class TestAPISpec:

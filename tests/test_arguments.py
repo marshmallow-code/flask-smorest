@@ -1,8 +1,8 @@
 """Test ArgumentsMixin"""
 
+import http
 import io
 import json
-import http
 
 import pytest
 
@@ -12,7 +12,6 @@ from flask_smorest import Api, Blueprint
 from flask_smorest.fields import Upload
 
 from .utils import build_ref, get_responses
-
 
 LOCATIONS_MAPPING = {
     "querystring": "query",

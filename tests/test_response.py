@@ -4,10 +4,10 @@ import http
 
 import pytest
 
-import marshmallow as ma
-
 import flask
 from flask.views import MethodView
+
+import marshmallow as ma
 
 from flask_smorest import Api, Blueprint
 

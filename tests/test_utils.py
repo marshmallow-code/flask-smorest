@@ -1,4 +1,4 @@
-from flask_smorest.utils import deepupdate, remove_none, load_info_from_docstring
+from flask_smorest.utils import deepupdate, load_info_from_docstring, remove_none
 
 
 class TestUtils:

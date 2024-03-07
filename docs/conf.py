@@ -19,7 +19,6 @@
 
 import importlib.metadata
 
-
 project = "flask-smorest"
 copyright = "Nobatek/INEF4 and contributors"
 

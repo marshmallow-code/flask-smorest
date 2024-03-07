@@ -2,9 +2,9 @@ from collections import namedtuple
 
 import pytest
 
-import marshmallow as ma
-
 from flask import Flask
+
+import marshmallow as ma
 
 from .mocks import DatabaseMock
 
