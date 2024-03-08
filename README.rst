@@ -30,8 +30,8 @@ flask-smorest
     :target: https://codecov.io/gh/marshmallow-code/flask-smorest
     :alt: Code coverage
 
-.. image:: https://results.pre-commit.ci/badge/github/marshmallow-code/flask-smorest/dev.svg
-   :target: https://results.pre-commit.ci/latest/github/marshmallow-code/flask-smorest/dev
+.. image:: https://results.pre-commit.ci/badge/github/marshmallow-code/flask-smorest/main.svg
+   :target: https://results.pre-commit.ci/latest/github/marshmallow-code/flask-smorest/main
    :alt: pre-commit.ci status
 
 .. image:: https://readthedocs.org/projects/flask-smorest/badge/
