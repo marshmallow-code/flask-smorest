@@ -45,7 +45,7 @@ docs = [
   "alabaster==0.7.16",
 ]
 tests = [
-  "pytest==8.1.0",
+  "pytest==8.1.1",
   "pytest-cov==4.1.0",
   "coverage==7.4.3",
   "werkzeug==3.0.1",
