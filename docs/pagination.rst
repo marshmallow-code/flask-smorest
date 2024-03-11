@@ -65,9 +65,8 @@ for `list`-like objects: :class:`Page <Page>`. For other types, a custom pager
 may have to be defined.
 
 For instance, the following custom pager works with cursor classes that support
-slicing and provide a ``count`` method returning the total number of element.
-This include SQLAlchemy's :class:`Query <sqlalchemy.orm.query.Query>`,
-Mongoengine's :class:`QuerySet <mongoengine.queryset.QuerySet>`,...
+slicing and provide a ``count`` method returning the total number of elements,
+such as SQLAlchemy's :class:`Query <sqlalchemy.orm.query.Query>`.
 
 
 .. code-block:: python
@@ -87,7 +86,7 @@ Mongoengine's :class:`QuerySet <mongoengine.queryset.QuerySet>`,...
         @blp.response(200, PetSchema(many=True))
         @blp.paginate(CursorPage)
         def get(self):
-            return Pet.get()
+            return db.session.query(Pet)
 
 Pagination Parameters
 ---------------------

@@ -48,7 +48,6 @@ intersphinx_mapping = {
     "werkzeug": ("https://werkzeug.palletsprojects.com/", None),
     "flask": ("https://flask.palletsprojects.com/", None),
     "sqlalchemy": ("https://docs.sqlalchemy.org/en/latest/", None),
-    "mongoengine": ("https://docs.mongoengine.org/", None),
 }
 
 issues_github_path = "marshmallow-code/flask-smorest"
