@@ -81,6 +81,9 @@ fix = true
 show-fixes = true
 output-format = "full"
 
+[tool.ruff.format]
+docstring-code-format = true
+
 [tool.ruff.lint]
 ignore = ["E203", "E266", "E501", "E731"]
 select = [

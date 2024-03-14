@@ -228,9 +228,9 @@ class ResponseMixin:
                 def _make_doc_response_schema(schema):
                     if schema:
                         return type(
-                            'Wrap' + schema.__class__.__name__,
-                            (ma.Schema, ),
-                            {'data': ma.fields.Nested(schema)},
+                            "Wrap" + schema.__class__.__name__,
+                            (ma.Schema,),
+                            {"data": ma.fields.Nested(schema)},
                         )
                     return None
         """
@@ -247,7 +247,7 @@ class ResponseMixin:
                 @staticmethod
                 def _prepare_response_content(data):
                     if data is not None:
-                        return {'data': data}
+                        return {"data": data}
                     return None
         """
         return data

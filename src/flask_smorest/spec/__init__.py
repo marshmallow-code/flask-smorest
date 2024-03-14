@@ -314,10 +314,10 @@ class APISpecMixin(DocBlueprintMixin):
         Examples: ::
 
             # Map to ('string', 'ObjectId') passing type and format
-            api.register_field(ObjectId, 'string', 'ObjectId')
+            api.register_field(ObjectId, "string", "ObjectId")
 
             # Map to ('string', ) passing type
-            api.register_field(CustomString, 'string', None)
+            api.register_field(CustomString, "string", None)
 
             # Map to ('string, 'date-time') passing a marshmallow Field
             api.register_field(CustomDateTime, ma.fields.DateTime)
