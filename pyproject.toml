@@ -49,7 +49,7 @@ tests = [
   "pytest-cov==4.1.0",
   "coverage==7.4.4",
   "werkzeug==3.0.1",
-  "flask==3.0.2",
+  "flask==3.0.3",
   "marshmallow==3.21.1",
   "webargs==8.4.0",
   "apispec==6.5.0",
