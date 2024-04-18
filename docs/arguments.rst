@@ -38,6 +38,7 @@ The following locations are allowed:
     - ``"headers"``
     - ``"cookies"``
     - ``"files"``
+    - ``"json_or_form"``
 
 The location defaults to ``"json"``, which means `body` parameter.
 
