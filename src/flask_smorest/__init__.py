@@ -1,12 +1,11 @@
 """Api extension initialization"""
 
-from webargs.flaskparser import abort  # noqa
-
-from .spec import APISpecMixin
 from .blueprint import Blueprint  # noqa
-from .pagination import Page  # noqa
 from .error_handler import ErrorHandlerMixin
+from .exceptions import abort  # noqa
 from .globals import current_api  # noqa
+from .pagination import Page  # noqa
+from .spec import APISpecMixin
 from .utils import PrefixedMappingProxy, normalize_config_prefix
 
 
