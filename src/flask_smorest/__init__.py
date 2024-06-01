@@ -1,5 +1,7 @@
 """Api extension initialization"""
 
+from typing import Union
+from werkzeug.utils import import_string
 from webargs.flaskparser import abort  # noqa
 
 from .spec import APISpecMixin
@@ -41,6 +43,7 @@ class Api(APISpecMixin, ErrorHandlerMixin):
     """
 
     def __init__(self, app=None, *, spec_kwargs=None, config_prefix=""):
+        self._routes = []
         self._app = app
         self._spec_kwargs = spec_kwargs or {}
         self.config_prefix = normalize_config_prefix(config_prefix)
@@ -83,7 +86,11 @@ class Api(APISpecMixin, ErrorHandlerMixin):
         # Register error handlers
         self._register_error_handlers()
 
-    def register_blueprint(self, blp, *, parameters=None, **options):
+        for blp, parameters, options in self._routes:
+            self.register_blueprint(blp, parameters=parameters, **options)
+        
+
+    def register_blueprint(self, blp: Union[Blueprint, str], *, parameters=None, **options):
         """Register a blueprint in the application
 
         Also registers documentation for the blueprint/resource
@@ -96,20 +103,26 @@ class Api(APISpecMixin, ErrorHandlerMixin):
 
         Must be called after app is initialized.
         """
-        blp_name = options.get("name", blp.name)
+        if isinstance(blp, str):
+            blp = import_string(blp)
 
-        self._app.extensions["flask-smorest"]["blp_name_to_api"][blp_name] = self
-
-        self._app.register_blueprint(blp, **options)
-
-        # Register views in API documentation for this resource
-        blp.register_views_in_doc(
-            self,
-            self._app,
-            self.spec,
-            name=blp_name,
-            parameters=parameters,
-        )
-
-        # Add tag relative to this resource to the global tag list
-        self.spec.tag({"name": blp_name, "description": blp.description})
+        if self._app:        
+            blp_name = options.get("name", blp.name)
+    
+            self._app.extensions["flask-smorest"]["blp_name_to_api"][blp_name] = self
+    
+            self._app.register_blueprint(blp, **options)
+    
+            # Register views in API documentation for this resource
+            blp.register_views_in_doc(
+                self,
+                self._app,
+                self.spec,
+                name=blp_name,
+                parameters=parameters,
+            )
+    
+            # Add tag relative to this resource to the global tag list
+            self.spec.tag({"name": blp_name, "description": blp.description})
+        else:
+            self._routes.append((blp, parameters, options))
