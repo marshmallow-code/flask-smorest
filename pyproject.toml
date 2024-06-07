@@ -50,7 +50,7 @@ tests = [
   "coverage==7.5.3",
   "werkzeug==3.0.3",
   "flask==3.0.3",
-  "marshmallow==3.21.2",
+  "marshmallow==3.21.3",
   "webargs==8.4.0",
   "apispec==6.6.1",
   "PyYAML==6.0.1",
