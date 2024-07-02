@@ -219,7 +219,7 @@ class TestPagination:
             assert not recwarn
         else:
             assert len(recwarn) == 1
-            assert recwarn[0].category == UserWarning
+            assert recwarn[0].category is UserWarning
             assert str(recwarn[0].message) == (
                 "item_count not set in endpoint test.func."
             )

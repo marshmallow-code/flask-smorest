@@ -227,7 +227,7 @@ class TestEtag:
             assert not recwarn
         else:
             assert len(recwarn) == 1
-            assert recwarn[0].category == UserWarning
+            assert recwarn[0].category is UserWarning
             assert str(recwarn[0].message) == (
                 f"ETag cannot be checked on {method} request."
             )
@@ -250,7 +250,7 @@ class TestEtag:
             blp._verify_check_etag()
             if method in ["PUT", "PATCH", "DELETE"]:
                 assert len(recwarn) == 1
-                assert recwarn[0].category == UserWarning
+                assert recwarn[0].category is UserWarning
                 assert str(recwarn[0].message) == (
                     f"ETag not checked in endpoint {f_request.endpoint} "
                     f"on {method} request."
@@ -345,7 +345,7 @@ class TestEtag:
             assert not recwarn
         else:
             assert len(recwarn) == 1
-            assert recwarn[0].category == UserWarning
+            assert recwarn[0].category is UserWarning
             assert str(recwarn[0].message) == (
                 f"ETag cannot be set on {method} request."
             )
