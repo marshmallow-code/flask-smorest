@@ -1,0 +1,13 @@
+- id: generate-openapi-docs-json
+  name: generate openapi docs (JSON)
+  description: generate openapi documentation in JSON format using flask-smorest
+  entry: flask openapi write --format=json openapi.json
+  language: system
+  types: [python]
+
+- id: generate-openapi-docs-yaml
+  name: generate openapi docs (YAML)
+  description: generate openapi documentation in YAML format using flask-smorest
+  entry: flask openapi write --format=yaml openapi.yaml
+  language: system
+  types: [python]
