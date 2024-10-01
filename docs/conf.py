@@ -83,7 +83,6 @@ pygments_style = "sphinx"
 # -- Options for HTML output -------------------------------------------------
 
 html_theme = "alabaster"
-
 html_theme_options = {
     "description": "Build a REST API on Flask using Marshmallow",
     "description_font_style": "italic",
@@ -98,7 +97,8 @@ html_theme_options = {
         "flask-smorest@GitHub": "http://github.com/marshmallow-code/flask-smorest",
     },
 }
-
+html_static_path = ["_static"]
+html_css_files = ["css/sponsor-message.css"]
 html_sidebars = {
     "**": ["about.html", "donate.html", "navigation.html", "searchbox.html"],
 }
