@@ -58,7 +58,7 @@ tests = [
 dev = [
   "flask-smorest[tests]",
   "tox",
-  "pre-commit~=3.6",
+  "pre-commit>=3.6,<5.0",
 ]
 
 [build-system]
