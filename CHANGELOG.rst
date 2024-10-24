@@ -1,12 +1,17 @@
 Changelog
 ---------
 
-0.45.0 (unreleased)
+0.45.0 (2024-10-25)
 *******************
 
 Features:
 
 - *Backwards-incompatible*: Remove ``flask_smorest.__version__`` (:pr:`616`).
+
+Other changes:
+
+- Officially support Python 3.13 (:pr:`702`).
+- Drop support for Python 3.8 (:pr:`701`).
 
 0.44.0 (2024-02-26)
 *******************
@@ -26,7 +31,7 @@ Bug fixes:
 
 Other changes:
 
-- Official Python 3.12 support (:pr:`591`).
+- Officially support Python 3.12 (:pr:`591`).
   Thanks :user:`goddessana` for the PR.
 - Require Flask>=3.0.2 and Werkzeug>=3.0.01 (:pr:`604`).
 
@@ -84,7 +89,7 @@ Features:
 
 Other changes:
 
-- Official Python 3.11 support (:pr:`416`).
+- Officially support Python 3.11 (:pr:`416`).
 
 0.40.0 (2022-10-16)
 +++++++++++++++++++
@@ -163,7 +168,7 @@ Bug fixes:
 
 Other changes:
 
-- Official Python 3.10 support (:pr:`308`).
+- Officially support Python 3.10 (:pr:`308`).
 - Drop support for Python 3.6 (:pr:`306`).
 - Drop PyPy from CI tests (:pr:`307`).
 
@@ -345,7 +350,7 @@ Other changes:
 
 Features:
 
-- Official Python 3.9 support (:pr:`195`).
+- Officially support Python 3.9 (:pr:`195`).
 
 Other changes:
 
@@ -551,7 +556,7 @@ Features:
 
 Features:
 
-- Official Python 3.8 support (:pr:`108`).
+- Officially support Python 3.8 (:pr:`108`).
 
 0.18.1 (2019-10-07)
 +++++++++++++++++++
@@ -668,7 +673,7 @@ Other changes:
 
 Features:
 
-- Official Python 3.7 support (:pr:`45`).
+- Officially support Python 3.7 (:pr:`45`).
 - Rename ``Api.definition`` to ``Api.schema``. Keep ``Api.definition`` as an
   alias to ``Api.schema`` for backward compatibility (:pr:`53`).
 
