@@ -52,7 +52,7 @@ tests = [
   "flask==3.0.3",
   "marshmallow==3.22.0",
   "webargs==8.6.0",
-  "apispec==6.6.1",
+  "apispec==6.7.0",
   "PyYAML==6.0.2",
 ]
 dev = [
