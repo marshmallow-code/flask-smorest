@@ -97,8 +97,6 @@ html_theme_options = {
         "flask-smorest@GitHub": "http://github.com/marshmallow-code/flask-smorest",
     },
 }
-html_static_path = ["_static"]
-html_css_files = ["css/sponsor-message.css"]
 html_sidebars = {
     "**": ["about.html", "donate.html", "navigation.html", "searchbox.html"],
 }
