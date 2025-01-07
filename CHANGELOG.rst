@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+0.46.0 (unreleased)
+*******************
+
+Other changes:
+
+- *Backwards-incompatible*: Drop marshmallow < 3.24.1 (:pr:`742`).
+
 0.45.0 (2024-10-25)
 *******************
 
