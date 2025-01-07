@@ -69,7 +69,6 @@ def schemas():
 
     class QueryArgsSchema(ma.Schema):
         class Meta:
-            ordered = True
             unknown = ma.EXCLUDE
 
         arg1 = ma.fields.String()

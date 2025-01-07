@@ -59,7 +59,6 @@ def _pagination_parameters_schema_factory(def_page, def_page_size, def_max_page_
         """Deserializes pagination params into PaginationParameters"""
 
         class Meta:
-            ordered = True
             unknown = ma.EXCLUDE
 
         page = ma.fields.Integer(
@@ -126,9 +125,6 @@ class PaginationMetadataSchema(ma.Schema):
     page = ma.fields.Int()
     previous_page = ma.fields.Int()
     next_page = ma.fields.Int()
-
-    class Meta:
-        ordered = True
 
 
 PAGINATION_HEADER = {

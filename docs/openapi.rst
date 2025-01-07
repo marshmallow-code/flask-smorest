@@ -242,23 +242,9 @@ schema `properties`. Although objects are not ordered in JSON, OpenAPI
 graphical interfaces tend to respect the order in which the `properties` are
 defined in the ``properties`` object in the specification file.
 
-When using an ordererd ``Schema``, the fields definition order is preserved
-when generating the specification file and the `properties` are displayed in
-that order.
+``Schema`` classes keep fields in declaration order, and this order is preserved when
+generating the specification file: the `properties` are displayed in that order.
 
-This is typically done in a base class:
-
-.. code-block:: python
-    :emphasize-lines: 2,3
-
-    class MyBaseSchema(ma.Schema):
-        class Meta:
-            ordered = True
-
-
-    class User(MyBaseSchema):
-        name = ma.fields.String()
-        surname = ma.fields.String()
 
 Serve the OpenAPI Documentation
 -------------------------------
