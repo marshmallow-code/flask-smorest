@@ -546,7 +546,7 @@ class TestApi:
                 return json.dumps(obj, **kwargs, cls=CustomJSONEncoder)
 
         class CustomSchema(ma.Schema):
-            custom_field = ma.fields.Field(load_default=CustomType())
+            custom_field = ma.fields.Raw(load_default=CustomType())
 
         app.config["OPENAPI_VERSION"] = openapi_version
         app.json = CustomJsonProvider(app)
