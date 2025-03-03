@@ -1,3 +1,4 @@
+import importlib.metadata
 from collections import namedtuple
 
 import pytest
@@ -6,7 +7,11 @@ from flask import Flask
 
 import marshmallow as ma
 
+from packaging.version import Version
+
 from .mocks import DatabaseMock
+
+MA_VERSION = Version(importlib.metadata.version("marshmallow"))
 
 
 class AppConfig:
@@ -36,6 +41,12 @@ def app(request):
     return _app
 
 
+if MA_VERSION.major >= 4:
+    pass_collection_true_kwargs = {"pass_collection": True}
+else:
+    pass_collection_true_kwargs = {"pass_many": True}
+
+
 class CounterSchema(ma.Schema):
     """Base Schema with load/dump counters"""
 
@@ -50,12 +61,12 @@ class CounterSchema(ma.Schema):
     def reset_dump_count(cls):
         cls.dump_count = 0
 
-    @ma.post_load(pass_many=True)
+    @ma.post_load(**pass_collection_true_kwargs)
     def increment_load_count(self, data, **kwargs):
         self.__class__.load_count += 1
         return data
 
-    @ma.post_dump(pass_many=True)
+    @ma.post_dump(**pass_collection_true_kwargs)
     def increment_dump_count(self, data, **kwargs):
         self.__class__.dump_count += 1
         return data
