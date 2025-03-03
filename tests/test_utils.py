@@ -66,7 +66,7 @@ class TestUtils:
             == {
                 "summary": "Summary\nTwo-line summary is possible.",
                 "description": (
-                    "Long description\nReally long description\n---\n" "Ignore this."
+                    "Long description\nReally long description\n---\nIgnore this."
                 ),
             }
         )
