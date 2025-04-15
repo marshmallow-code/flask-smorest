@@ -1,8 +1,12 @@
 Changelog
 ---------
 
-0.46.0 (unreleased)
+0.46.0 (2025-04-15)
 *******************
+
+Features:
+
+- Rely on marshmallow (>= 3.24) for schema ordering (:pr:`742`).
 
 Other changes:
 
