@@ -1,6 +1,6 @@
 [project]
 name = "flask-smorest"
-version = "0.46.0"
+version = "0.46.1"
 description = "Flask/Marshmallow-based REST API framework"
 readme = "README.rst"
 license = { file = "LICENSE" }
