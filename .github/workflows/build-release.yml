@@ -12,8 +12,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { name: '3.9', python: '3.9', tox: py39 }
-          - { name: '3.13', python: '3.13', tox: py313 }
+          - { name: '3.9-ma3', python: '3.9', tox: py39-marshmallow3 }
+          - { name: '3.9-ma4', python: '3.9', tox: py39-marshmallow4 }
+          - { name: '3.13-ma4', python: '3.13', tox: py313-marshmallow4 }
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
