@@ -1,39 +1,73 @@
 import pytest
 
+from flask import abort as flask_abort
 from werkzeug.exceptions import InternalServerError, default_exceptions
 
-from flask_smorest import Api, abort
+from flask_smorest import Api
+from flask_smorest import abort as api_abort
+from flask_smorest.exceptions import ApiException
 
 
 class TestErrorHandler:
     @pytest.mark.parametrize("code", default_exceptions)
-    def test_error_handler_on_abort(self, app, code):
+    def test_error_handler_on_api_abort(self, app, code):
         client = app.test_client()
 
-        @app.route("/abort")
+        @app.route("/api-abort")
         def test_abort():
-            abort(code)
+            api_abort(code)
 
         Api(app)
 
-        response = client.get("/abort")
+        response = client.get("/api-abort")
         assert response.status_code == code
+        assert response.content_type == "application/json"
         assert response.json["code"] == code
         assert response.json["status"] == default_exceptions[code]().name
 
-    def test_error_handler_on_unhandled_error(self, app):
+    @pytest.mark.parametrize("code", default_exceptions)
+    def test_error_handler_on_default_abort(self, app, code):
+        client = app.test_client()
+
+        @app.route("/html-abort")
+        def test_abort():
+            flask_abort(code)
+
+        Api(app)
+
+        response = client.get("/html-abort")
+        assert response.status_code == code
+        assert response.content_type == "text/html; charset=utf-8"
+
+    def test_flask_error_handler_on_unhandled_error(self, app):
         # Unset TESTING to let Flask return 500 on unhandled exception
         app.config["TESTING"] = False
         client = app.test_client()
 
-        @app.route("/uncaught")
+        @app.route("/html-uncaught")
         def test_uncaught():
             raise Exception("Oops, something really bad happened.")
 
         Api(app)
 
-        response = client.get("/uncaught")
+        response = client.get("/html-uncaught")
         assert response.status_code == 500
+        assert response.content_type == "text/html; charset=utf-8"
+        assert "<h1>Internal Server Error</h1>" in response.text
+
+    def test_api_error_handler_on_unhandled_error(self, app):
+        # Unset TESTING to let Flask return 500 on unhandled exception
+        app.config["TESTING"] = False
+        client = app.test_client()
+
+        @app.route("/api-uncaught")
+        def test_uncaught():
+            raise ApiException("Oops, something really bad happened.")
+
+        Api(app)
+
+        response = client.get("/api-uncaught")
+        assert response.content_type == "application/json"
         assert response.json["code"] == 500
         assert response.json["status"] == InternalServerError().name
 
@@ -45,19 +79,19 @@ class TestErrorHandler:
 
         @app.route("/message")
         def test_message():
-            abort(404, message="Resource not found")
+            api_abort(404, message="Resource not found")
 
         @app.route("/messages")
         def test_messages():
-            abort(422, messages=messages, message="Validation issue")
+            api_abort(422, messages=messages, message="Validation issue")
 
         @app.route("/errors")
         def test_errors():
-            abort(422, errors=errors, messages=messages, message="Wrong!")
+            api_abort(422, errors=errors, messages=messages, message="Wrong!")
 
         @app.route("/headers")
         def test_headers():
-            abort(
+            api_abort(
                 401,
                 message="Access denied",
                 headers={"WWW-Authenticate": 'Basic realm="My Server"'},
