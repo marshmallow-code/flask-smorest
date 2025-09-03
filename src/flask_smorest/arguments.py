@@ -5,6 +5,8 @@ from collections import abc
 from copy import deepcopy
 from functools import wraps
 
+from flask import current_app
+
 from webargs.flaskparser import FlaskParser
 
 from .utils import deepupdate
@@ -80,7 +82,7 @@ class ArgumentsMixin:
         def decorator(func):
             @wraps(func)
             def wrapper(*f_args, **f_kwargs):
-                return func(*f_args, **f_kwargs)
+                return current_app.ensure_sync(func)(*f_args, **f_kwargs)
 
             # Add parameter to parameters list in doc info in function object
             # The deepcopy avoids modifying the wrapped function doc
