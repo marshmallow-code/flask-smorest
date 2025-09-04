@@ -642,3 +642,21 @@ class TestBlueprint:
             == ["parent"]
         )
         assert spec["tags"] == [{"name": "parent", "description": "Parent decription"}]
+
+    def test_blueprint_async_view(self, app):
+        api = Api(app)
+        blp = Blueprint("test", "test", url_prefix="/test")
+
+        @blp.route("/")
+        async def test_func():
+            return {"response": "OK"}
+
+        api.register_blueprint(blp)
+
+        spec = api.spec.to_dict()
+        assert "/test/" in spec["paths"]
+
+        client = app.test_client()
+        response = client.get("/test/")
+        assert response.status_code == 200
+        assert response.json == {"response": "OK"}

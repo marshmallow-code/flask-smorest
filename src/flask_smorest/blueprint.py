@@ -43,6 +43,7 @@ from copy import deepcopy
 from functools import wraps
 
 from flask import Blueprint as FlaskBlueprint
+from flask import current_app
 from flask.views import MethodView
 
 from .arguments import ArgumentsMixin
@@ -294,7 +295,7 @@ class Blueprint(
         def decorator(func):
             @wraps(func)
             def wrapper(*f_args, **f_kwargs):
-                return func(*f_args, **f_kwargs)
+                return current_app.ensure_sync(func)(*f_args, **f_kwargs)
 
             # The deepcopy avoids modifying the wrapped function doc
             wrapper._apidoc = deepcopy(getattr(wrapper, "_apidoc", {}))

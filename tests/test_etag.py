@@ -696,3 +696,21 @@ class TestEtag:
         with app.test_request_context(f"/test/{item['item_id']}"):
             with pytest.raises(CurrentApiNotAvailableError):
                 blp.set_etag(item)
+
+    def test_etag_async_view(self, app):
+        api = Api(app)
+        blp = Blueprint("test", __name__, url_prefix="/test")
+        client = app.test_client()
+
+        @blp.route("/")
+        @blp.etag
+        @blp.response(200)
+        async def func_response_etag():
+            blp.set_etag("waow")
+            return jsonify({}), 200
+
+        api.register_blueprint(blp)
+
+        response = client.get("/test/")
+        assert response.json == {}
+        assert response.get_etag() == (blp._generate_etag("waow"), False)

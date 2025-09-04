@@ -6,7 +6,7 @@ import warnings
 from copy import deepcopy
 from functools import wraps
 
-from flask import json, request
+from flask import current_app, json, request
 
 from .exceptions import NotModified, PreconditionFailed, PreconditionRequired
 from .globals import current_api
@@ -72,7 +72,7 @@ class EtagMixin:
                     self._check_precondition()
 
                 # Execute decorated function
-                resp = func(*args, **kwargs)
+                resp = current_app.ensure_sync(func)(*args, **kwargs)
 
                 if etag_enabled:
                     # Verify check_etag was called in resource code if needed

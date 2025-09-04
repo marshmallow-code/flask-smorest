@@ -5,7 +5,7 @@ from collections import abc
 from copy import deepcopy
 from functools import wraps
 
-from flask import jsonify
+from flask import current_app, jsonify
 from werkzeug import Response
 
 from .utils import (
@@ -86,7 +86,7 @@ class ResponseMixin:
             def wrapper(*args, **kwargs):
                 # Execute decorated function
                 result_raw, r_status_code, r_headers = unpack_tuple_response(
-                    func(*args, **kwargs)
+                    current_app.ensure_sync(func)(*args, **kwargs)
                 )
 
                 # If return value is a werkzeug Response, return it
@@ -194,7 +194,7 @@ class ResponseMixin:
         def decorator(func):
             @wraps(func)
             def wrapper(*args, **kwargs):
-                return func(*args, **kwargs)
+                return current_app.ensure_sync(func)(*args, **kwargs)
 
             # Store doc in wrapper function
             # The deepcopy avoids modifying the wrapped function doc

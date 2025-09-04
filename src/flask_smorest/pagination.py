@@ -15,7 +15,7 @@ import warnings
 from copy import deepcopy
 from functools import wraps
 
-from flask import request
+from flask import current_app, request
 
 import marshmallow as ma
 from webargs.flaskparser import FlaskParser
@@ -194,7 +194,9 @@ class PaginationMixin:
                     kwargs["pagination_parameters"] = page_params
 
                 # Execute decorated function
-                result, status, headers = unpack_tuple_response(func(*args, **kwargs))
+                result, status, headers = unpack_tuple_response(
+                    current_app.ensure_sync(func)(*args, **kwargs)
+                )
 
                 # Post pagination: use pager class to paginate the result
                 if pager is not None:
