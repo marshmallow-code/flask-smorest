@@ -7,6 +7,7 @@ import werkzeug.routing
 
 from apispec import BasePlugin
 
+# from flask-restplus
 RE_URL = re.compile(r"<(?:[^:<>]+:)?([^<>]+)>")
 
 

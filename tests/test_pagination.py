@@ -599,3 +599,23 @@ class TestPagination:
         response = client.get("/test/response_tuple_subclass")
         assert response.status_code == 200
         assert response.json == [1, 2]
+
+    def test_pagination_async_view(self, app):
+        api = Api(app)
+
+        blp = Blueprint("test", __name__, url_prefix="/test")
+
+        @blp.route("/")
+        @blp.response(200)
+        @blp.paginate()
+        async def get(pagination_parameters):
+            pagination_parameters.item_count = 2
+            return [1, 2]
+
+        api.register_blueprint(blp)
+        client = app.test_client()
+        response = client.get("/test/")
+        assert response.status_code == 200
+        assert response.headers["X-Pagination"] == (
+            '{"total": 2, "total_pages": 1, "first_page": 1, "last_page": 1, "page": 1}'
+        )
