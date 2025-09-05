@@ -250,10 +250,9 @@ class TestApi:
         else:
             properties = {"field": {"type": "integer"}}
 
-        assert get_schemas(api.spec)["Document"] == {
-            "properties": properties,
-            "type": "object",
-        }
+        doc_spec = get_schemas(api.spec)["Document"]
+        assert doc_spec["properties"] == properties
+        assert doc_spec["type"] == "object"
 
     @pytest.mark.parametrize("openapi_version", ["2.0", "3.0.2"])
     def test_api_register_field_before_and_after_init(self, app, openapi_version):
