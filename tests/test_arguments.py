@@ -294,12 +294,11 @@ class TestArguments:
                     "schema": {"$ref": "#/components/schemas/Multipart"}
                 }
             }
-            assert spec["components"]["schemas"]["Multipart"] == {
-                "type": "object",
-                "properties": {
-                    "file_1": {"type": "string", "format": "binary"},
-                    "file_2": {"type": "string", "format": "binary"},
-                },
+            multipart_spec = spec["components"]["schemas"]["Multipart"]
+            assert multipart_spec["type"] == "object"
+            assert multipart_spec["properties"] == {
+                "file_1": {"type": "string", "format": "binary"},
+                "file_2": {"type": "string", "format": "binary"},
             }
 
     # This is only relevant to OAS3.

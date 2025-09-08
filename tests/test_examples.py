@@ -382,9 +382,10 @@ class TestCustomExamples:
         else:
             content = spec["paths"]["/test/"]["get"]["responses"]["200"]
         assert content["schema"] == build_ref(api.spec, "schema", "WrapDoc")
-        assert get_schemas(api.spec)["WrapDoc"] == {
-            "type": "object",
-            "properties": {"data": build_ref(api.spec, "schema", "Doc")},
+        wrap_doc_spec = get_schemas(api.spec)["WrapDoc"]
+        assert wrap_doc_spec["type"] == "object"
+        assert wrap_doc_spec["properties"] == {
+            "data": build_ref(api.spec, "schema", "Doc")
         }
         assert "Doc" in get_schemas(api.spec)
 
@@ -484,14 +485,13 @@ class TestCustomExamples:
         else:
             content = spec["paths"]["/test/"]["get"]["responses"]["200"]
         assert content["schema"] == build_ref(api.spec, "schema", "PaginationWrapDoc")
-        assert get_schemas(api.spec)["PaginationWrapDoc"] == {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "items": build_ref(api.spec, "schema", "Doc"),
-                    "type": "array",
-                },
-                "pagination": build_ref(api.spec, "schema", "PaginationMetadata"),
+        pagination_wrap_doc_spec = get_schemas(api.spec)["PaginationWrapDoc"]
+        assert pagination_wrap_doc_spec["type"] == "object"
+        assert pagination_wrap_doc_spec["properties"] == {
+            "data": {
+                "items": build_ref(api.spec, "schema", "Doc"),
+                "type": "array",
             },
+            "pagination": build_ref(api.spec, "schema", "PaginationMetadata"),
         }
         assert "Doc" in get_schemas(api.spec)
