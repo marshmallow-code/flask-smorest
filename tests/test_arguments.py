@@ -355,3 +355,18 @@ class TestArguments:
             str(error_code)
         ] == build_ref(api.spec, "response", http.HTTPStatus(error_code).name)
         assert http.HTTPStatus(error_code).name in get_responses(api.spec)
+
+    def test_arguments_async_view(self, app, schemas):
+        api = Api(app)
+        blp = Blueprint("test", __name__, url_prefix="/test")
+
+        @blp.route("/")
+        @blp.arguments(schemas.DocSchema, location="query")
+        async def func(arg):
+            return arg, 200
+
+        api.register_blueprint(blp)
+        client = app.test_client()
+        response = client.get("/test/?field=1337")
+        assert response.status_code == 200
+        assert response.json["db_field"] == 1337
