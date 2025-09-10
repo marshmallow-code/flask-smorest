@@ -548,3 +548,21 @@ class TestResponse:
         assert response.status == "201 CREATED"
         assert response.json == {"test": "test"}
         assert response.headers["X-header"] == "test"
+
+    def test_response_async_view(self, app):
+        api = Api(app)
+        blp = Blueprint("test", "test", url_prefix="/test")
+        client = app.test_client()
+
+        @blp.route("/<code>")
+        @blp.response(200)
+        @blp.alt_response(201)
+        async def func(code):
+            return {"item_id": 12}, code
+
+        api.register_blueprint(blp)
+
+        resp = client.get("test/200")
+        assert resp.json == {"item_id": 12}
+        resp = client.get("test/201")
+        assert resp.json == {"item_id": 12}
