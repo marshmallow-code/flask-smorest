@@ -1,6 +1,14 @@
 Changelog
 ---------
 
+0.46.2 (2025-09-10)
+*******************
+
+Features:
+
+- Support Flask async (:pr:`799`).
+  Thanks :user:`awoimbee` for the PR.
+
 0.46.1 (2025-04-26)
 *******************
 
