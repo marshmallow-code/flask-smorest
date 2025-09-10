@@ -29,3 +29,5 @@ Contributors (chronological)
 - Dorian Hoxha `@ddorian <https://github.com/ddorian>`_
 - drcpu `@drcpu-github <https://github.com/drcpu-github>`_
 - JAEGYUN JUNG `@tgoddessana <https://github.com/TGoddessana>`_
+- Jason Tait `@jtait <https://github.com/jtait>`_
+- Arthur Woimbée `@awoimbee <https://github.com/awoimbee>`_
