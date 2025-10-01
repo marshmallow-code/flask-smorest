@@ -53,7 +53,7 @@ tests = [
   "flask[async]==3.1.2",
   "marshmallow",
   "webargs==8.7.0",
-  "apispec==6.8.3",
+  "apispec==6.8.4",
   "PyYAML==6.0.3",
 ]
 dev = [
