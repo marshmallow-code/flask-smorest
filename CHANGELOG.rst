@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+0.47.0 (unreleased)
+*******************
+
+Other changes:
+
+- Drop support for Python 3.8 (:pr:`811`).
+
 0.46.2 (2025-09-10)
 *******************
 
