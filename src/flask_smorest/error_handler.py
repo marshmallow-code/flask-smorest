@@ -1,8 +1,8 @@
 """Exception handler"""
 
-from werkzeug.exceptions import HTTPException
-
 import marshmallow as ma
+
+from flask_smorest.exceptions import ApiException
 
 
 class ErrorSchema(ma.Schema):
@@ -28,23 +28,18 @@ class ErrorHandlerMixin:
 
         This method registers a default error handler for ``HTTPException``.
         """
-        self._app.register_error_handler(HTTPException, self.handle_http_exception)
+        self._app.register_error_handler(ApiException, self.handle_http_exception)
 
     def handle_http_exception(self, error):
         """Return a JSON response containing a description of the error
 
-        This method is registered at app init to handle ``HTTPException``.
+        This method is registered at app init to handle ``ApiException``.
 
-        - When ``abort`` is called in the code, an ``HTTPException`` is
+        - When ``abort`` is called in the code, an ``ApiException`` is
           triggered and Flask calls this handler.
 
         - When an exception is not caught in a view, Flask makes it an
           ``InternalServerError`` and calls this handler.
-
-        flask-smorest republishes webargs's
-        :func:`abort <webargs.flaskparser.abort>`. This ``abort`` allows the
-        caller to pass kwargs and stores them in ``exception.data`` so that the
-        error handler can use them to populate the response payload.
 
         Extra information expected by this handler:
 
