@@ -47,7 +47,7 @@ tests = [
   "packaging>=24.2",
   "pytest==9.0.2",
   "pytest-cov==7.0.0",
-  "coverage==7.13.1",
+  "coverage==7.13.3",
   "werkzeug==3.1.5",
   "flask[async]==3.1.2",
   "marshmallow",
