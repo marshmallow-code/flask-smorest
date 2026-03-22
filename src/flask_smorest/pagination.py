@@ -118,13 +118,13 @@ class PaginationMetadataSchema(ma.Schema):
     Its main purpose is to document the pagination metadata.
     """
 
-    total = ma.fields.Int()
-    total_pages = ma.fields.Int()
-    first_page = ma.fields.Int()
-    last_page = ma.fields.Int()
-    page = ma.fields.Int()
-    previous_page = ma.fields.Int()
-    next_page = ma.fields.Int()
+    total = ma.fields.Int(metadata={"description": "Total number of items."})
+    total_pages = ma.fields.Int(metadata={"description": "Total number of pages."})
+    first_page = ma.fields.Int(metadata={"description": "First available page number."})
+    last_page = ma.fields.Int(metadata={"description": "Last available page number."})
+    page = ma.fields.Int(metadata={"description": "Current page number."})
+    previous_page = ma.fields.Int(metadata={"description": "Previous page number."})
+    next_page = ma.fields.Int(metadata={"description": "Next page number."})
 
 
 PAGINATION_HEADER = {

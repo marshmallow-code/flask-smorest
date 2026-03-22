@@ -193,6 +193,53 @@ class TestPagination:
                 }
             }
 
+    @pytest.mark.parametrize("openapi_version", ("2.0", "3.0.2"))
+    def test_pagination_metadata_documentation(self, app, openapi_version):
+        """Test pagination metadata fields are documented"""
+        app.config["OPENAPI_VERSION"] = openapi_version
+        api = Api(app)
+        blp = Blueprint("test", __name__, url_prefix="/test")
+
+        @blp.route("/")
+        @blp.response(200)
+        @blp.paginate()
+        def func(pagination_parameters):
+            """Dummy view func"""
+
+        api.register_blueprint(blp)
+        pagination_metadata = get_schemas(api.spec)["PaginationMetadata"]
+
+        assert pagination_metadata["properties"] == {
+            "total": {
+                "type": "integer",
+                "description": "Total number of items.",
+            },
+            "total_pages": {
+                "type": "integer",
+                "description": "Total number of pages.",
+            },
+            "first_page": {
+                "type": "integer",
+                "description": "First available page number.",
+            },
+            "last_page": {
+                "type": "integer",
+                "description": "Last available page number.",
+            },
+            "page": {
+                "type": "integer",
+                "description": "Current page number.",
+            },
+            "previous_page": {
+                "type": "integer",
+                "description": "Previous page number.",
+            },
+            "next_page": {
+                "type": "integer",
+                "description": "Next page number.",
+            },
+        }
+
     @pytest.mark.parametrize("header_name", ("X-Pagination", None))
     def test_pagination_item_count_missing(self, app, header_name, recwarn):
         """If item_count was not set, pass and warn"""
