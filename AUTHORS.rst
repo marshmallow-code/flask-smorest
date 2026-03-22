@@ -31,3 +31,4 @@ Contributors (chronological)
 - JAEGYUN JUNG `@tgoddessana <https://github.com/TGoddessana>`_
 - Jason Tait `@jtait <https://github.com/jtait>`_
 - Arthur Woimbée `@awoimbee <https://github.com/awoimbee>`_
+- Kamil Gałuszka `@galuszkak <https://github.com/galuszkak>`_
