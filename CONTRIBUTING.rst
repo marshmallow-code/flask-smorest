@@ -46,7 +46,7 @@ Pull Requests
 ::
 
     # For a new feature or bugfix
-    $ git checkout -b name-of-feature-or-bugfix dev
+    $ git checkout -b name-of-feature-or-bugfix main
 
 2. Commit your changes.
 
@@ -62,7 +62,7 @@ Write `good commit messages <https://tbaggery.com/2008/04/19/a-note-about-git-co
 - If the pull request adds functionality, it is tested and the docs are updated.
 - You've added yourself to ``AUTHORS.rst``.
 
-4. Submit a pull request to ``marshmallow-code:master``.
+4. Submit a pull request to ``flask-smorest:main``.
 
 The CI build must be passing before your pull request is merged.
 
