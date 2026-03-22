@@ -26,7 +26,7 @@ flask-smorest
     :target: https://github.com/marshmallow-code/flask-smorest/actions?query=workflow%3Abuild
     :alt: Build status
 
-.. image:: https://codecov.io/gh/marshmallow-code/flask-smorest/branch/master/graph/badge.svg?token=F676tOSaLF
+.. image:: https://codecov.io/gh/marshmallow-code/flask-smorest/branch/main/graph/badge.svg?token=F676tOSaLF
     :target: https://codecov.io/gh/marshmallow-code/flask-smorest
     :alt: Code coverage
 
@@ -84,4 +84,4 @@ contributing to marshmallow's Open Collective:
 License
 =======
 
-MIT licensed. See the `LICENSE <https://github.com/marshmallow-code/flask-smorest/blob/master/LICENSE>`_ file for more details.
+MIT licensed. See the `LICENSE <https://github.com/marshmallow-code/flask-smorest/blob/main/LICENSE>`_ file for more details.
