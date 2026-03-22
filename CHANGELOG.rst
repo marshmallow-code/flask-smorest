@@ -1,12 +1,17 @@
 Changelog
 ---------
 
-0.47.0 (unreleased)
+0.47.0 (2026-03-22)
 *******************
+
+Features:
+
+- Add pagination metadata field descriptions to OpenAPI schema (:pr:`846`).
+  Thanks :user:`galuszkak` for the PR.
 
 Other changes:
 
-- Drop support for Python 3.8 (:pr:`811`).
+- Drop support for Python 3.9 (:pr:`811`).
 
 0.46.2 (2025-09-10)
 *******************
