@@ -26,7 +26,7 @@ jobs:
           python -m pip install tox
           python -m tox -e ${{ matrix.tox }}
       - name: Upload coverage
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v6
   build:
     name: Build package
     runs-on: ubuntu-latest
