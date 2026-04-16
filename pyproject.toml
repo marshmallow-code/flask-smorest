@@ -3,7 +3,7 @@ name = "flask-smorest"
 version = "0.47.0"
 description = "Flask/Marshmallow-based REST API framework"
 readme = "README.rst"
-license = { file = "LICENSE" }
+license = "MIT"
 authors = [{ name = "Jérôme Lafréchoux", email = "jerome@jolimont.fr" }]
 maintainers = [
   { name = "Jérôme Lafréchoux", email = "jerome@jolimont.fr" },
@@ -14,7 +14,6 @@ classifiers = [
   "Topic :: Internet :: WWW/HTTP",
   "Environment :: Web Environment",
   "Framework :: Flask",
-  "License :: OSI Approved :: MIT License",
   "Programming Language :: Python :: 3 :: Only",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
@@ -25,7 +24,7 @@ requires-python = ">=3.10"
 dependencies = [
   "werkzeug>=3.0.1,<4",
   "flask>=3.0.2,<4",
-  "marshmallow>=3.24.1,<5",
+  "marshmallow>=4.0.0,<5",
   "webargs>=8.0.0,<9",
   "apispec[marshmallow]>=6.0.0,<7",
 ]
