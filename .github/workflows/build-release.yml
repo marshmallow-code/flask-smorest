@@ -12,9 +12,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { name: '3.10-ma3', python: '3.10', tox: py310-marshmallow3 }
-          - { name: '3.10-ma4', python: '3.10', tox: py310-marshmallow4 }
-          - { name: '3.13-ma4', python: '3.13', tox: py313-marshmallow4 }
+          - { name: '3.10', python: '3.10', tox: py310 }
+          - { name: '3.13', python: '3.13', tox: py313 }
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-python@v6

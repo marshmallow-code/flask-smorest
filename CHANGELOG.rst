@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+0.48.0 (unreleased)
+*******************
+
+Other changes:
+
+- Drop support for marshmallow 3, which is EOL.
+
 0.47.0 (2026-03-22)
 *******************
 
