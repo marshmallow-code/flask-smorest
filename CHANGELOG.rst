@@ -6,7 +6,8 @@ Changelog
 
 Other changes:
 
-- Drop support for marshmallow 3, which is EOL.
+- Officially support Python 3.14 (:pr:`857`).
+- Drop support for marshmallow 3, which is EOL (:pr:`854`).
 
 0.47.0 (2026-03-22)
 *******************
