@@ -1,7 +1,7 @@
 name: build
 on:
   push:
-    branches: ["main", "*.x-line"]
+    branches: ["dev", "*.x-line"]
     tags: ["*"]
   pull_request:
 
@@ -16,20 +16,16 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { name: '3.10', python: '3.10', tox: py310 }
-          - { name: '3.14', python: '3.14', tox: py314 }
+          - { name: "3.10", tox: py310 }
+          - { name: "3.14", tox: py314 }
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           persist-credentials: false
-      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
-        with:
-          python-version: ${{ matrix.python }}
-          allow-prereleases: true
-      - name: Run test
-        run: |
-          python -m pip install tox
-          python -m tox -e ${{ matrix.tox }}
+      - uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with: # zizmor: ignore[cache-poisoning] cache key is lockfile-derived
+          enable-cache: true
+      - run: uv run tox -e ${{ matrix.tox }}
       - name: Upload coverage
         uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # v6
   build:
@@ -39,17 +35,11 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           persist-credentials: false
-      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
-        with:
-          python-version: "3.14"
-      - name: Install pypa/build
-        run: python -m pip install build
-      - name: Build a binary wheel and a source tarball
-        run: python -m build
-      - name: Install twine
-        run: python -m pip install twine
-      - name: Check build
-        run: python -m twine check --strict dist/*
+      - uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with: # zizmor: ignore[cache-poisoning] cache key is lockfile-derived
+          enable-cache: true
+      - run: uv build
+      - run: uvx twine check --strict dist/*
       - name: Store the distribution packages
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
@@ -64,11 +54,10 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           persist-credentials: false
-      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
-        with:
-          python-version: "3.14"
-      - run: python -m pip install tox
-      - run: python -m tox -e lint
+      - uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with: # zizmor: ignore[cache-poisoning] cache key is lockfile-derived
+          enable-cache: true
+      - run: uv run tox -e lint
   publish-to-pypi:
     name: PyPI release
     if: startsWith(github.ref, 'refs/tags/')

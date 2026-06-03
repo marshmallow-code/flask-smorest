@@ -14,22 +14,20 @@ Setting Up for Local Development
     $ git clone https://github.com/marshmallow-code/flask-smorest.git
     $ cd flask-smorest
 
-2. Install development requirements.
-   **It is highly recommended that you use a virtualenv.**
-   Use the following command to install an editable version of
-   flask-smorest along with its development requirements.
+2. Install `uv <https://docs.astral.sh/uv/getting-started/installation/>`_.
+
+3. Install development requirements.
 
 ::
 
-    # After activating your virtualenv
-    $ pip install -e '.[dev]'
+    $ uv sync
 
-3. Install the pre-commit hooks, which will format and lint your git staged files.
+4. (Optional but recommended) Install the pre-commit hooks, which will format and lint your git staged files.
 
 ::
 
-    # The pre-commit CLI was installed above
-    $ pre-commit install
+    $ uv run pre-commit install --allow-missing-config
+
 
 Git Branch Structure
 ++++++++++++++++++++
@@ -71,7 +69,7 @@ Running tests
 
 To run all tests: ::
 
-    $ pytest
+    $ uv run pytest
 
 To run formatting and syntax checks: ::
 

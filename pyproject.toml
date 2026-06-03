@@ -37,29 +37,33 @@ Issues = "https://github.com/marshmallow-code/flask-smorest/issues"
 Source = "https://github.com/marshmallow-code/flask-smorest"
 Tidelift = "https://tidelift.com/subscription/pkg/pypi-marshmallow?utm_source=pypi-marshmallow&utm_medium=pypi"
 
-[project.optional-dependencies]
+[dependency-groups]
 docs = [
-  "sphinx==9.1.0",
-  "sphinx-issues==6.0.0",
-  "alabaster==1.0.0",
+  "sphinx",
+  "sphinx-issues",
+  "alabaster",
 ]
 tests = [
-  "packaging>=24.2",
-  "pytest==9.0.3",
-  "pytest-cov==7.1.0",
-  "coverage==7.13.5",
-  "werkzeug==3.1.8",
-  "flask[async]==3.1.3",
+  "packaging",
+  "pytest",
+  "pytest-cov",
+  "coverage",
+  "werkzeug",
+  "flask[async]",
   "marshmallow",
-  "webargs==8.7.1",
-  "apispec==6.10.0",
-  "PyYAML==6.0.3",
+  "webargs",
+  "apispec",
+  "PyYAML",
 ]
 dev = [
-  "flask-smorest[tests]",
+  { include-group = "tests" },
   "tox",
+  "tox-uv",
   "pre-commit>=3.6,<5.0",
 ]
+
+[tool.uv]
+default-groups = ["dev"]
 
 [build-system]
 requires = ["flit_core<4"]
