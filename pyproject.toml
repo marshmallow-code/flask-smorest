@@ -55,11 +55,12 @@ tests = [
   "apispec",
   "PyYAML",
 ]
+lint = ["pre-commit>=3.6,<5.0"]
 dev = [
   { include-group = "tests" },
+  { include-group = "lint" },
   "tox",
   "tox-uv",
-  "pre-commit>=3.6,<5.0",
 ]
 
 [tool.uv]

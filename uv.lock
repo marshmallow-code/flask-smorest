@@ -8,7 +8,7 @@ resolution-markers = [
 ]
 
 [options]
-exclude-newer = "0001-01-01T00:00:00Z" # This has no effect and is included for backwards compatibility when using relative exclude-newer values.
+exclude-newer = "2026-06-12T15:16:14.25256521Z"
 exclude-newer-span = "P1W"
 
 [[package]]
@@ -484,6 +484,9 @@ docs = [
     { name = "sphinx", version = "9.1.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
     { name = "sphinx-issues" },
 ]
+lint = [
+    { name = "pre-commit" },
+]
 tests = [
     { name = "apispec" },
     { name = "coverage" },
@@ -527,6 +530,7 @@ docs = [
     { name = "sphinx" },
     { name = "sphinx-issues" },
 ]
+lint = [{ name = "pre-commit", specifier = ">=3.6,<5.0" }]
 tests = [
     { name = "apispec" },
     { name = "coverage" },
