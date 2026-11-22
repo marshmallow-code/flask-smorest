@@ -6,6 +6,9 @@ import json
 
 import pytest
 
+from flask import request
+from werkzeug.datastructures import MultiDict
+
 import marshmallow as ma
 
 from flask_smorest import Api, Blueprint
@@ -20,12 +23,14 @@ LOCATIONS_MAPPING = {
     "form": "formData",
     "headers": "header",
     "files": "formData",
+    "form_and_files": "formData",
 }
 
 REQUEST_BODY_CONTENT_TYPE = {
     "json": "application/json",
     "form": "application/x-www-form-urlencoded",
     "files": "multipart/form-data",
+    "form_and_files": "multipart/form-data",
 }
 
 
@@ -300,6 +305,220 @@ class TestArguments:
                 "file_1": {"type": "string", "format": "binary"},
                 "file_2": {"type": "string", "format": "binary"},
             }
+
+    @pytest.mark.parametrize("openapi_version", ("2.0", "3.0.2"))
+    @pytest.mark.parametrize("as_kwargs", (False, True))
+    @pytest.mark.parametrize("async_view", (False, True))
+    def test_arguments_form_and_files(
+        self, app, openapi_version, as_kwargs, async_view
+    ):
+        app.config["OPENAPI_VERSION"] = openapi_version
+        api = Api(app)
+        blp = Blueprint("test", __name__, url_prefix="/test")
+
+        class MixedMultipartSchema(ma.Schema):
+            title = ma.fields.String(required=True)
+            count = ma.fields.Integer(required=True)
+            file = Upload(required=True)
+
+        def view(*args, **kwargs):
+            data = kwargs if as_kwargs else args[0]
+            # Parsing must leave the request's form and files intact.
+            assert request.form["title"] == data["title"]
+            assert "file" not in request.form
+            assert request.files["file"] is data["file"]
+            assert "title" not in request.files
+            return {
+                "title": data["title"],
+                "count": data["count"],
+                "file": data["file"].read().decode(),
+            }
+
+        if async_view:
+
+            async def func(*args, **kwargs):
+                return view(*args, **kwargs)
+
+        else:
+            func = view
+
+        blp.route("/", methods=["POST"])(
+            blp.arguments(
+                MixedMultipartSchema, location="form_and_files", as_kwargs=as_kwargs
+            )(func)
+        )
+        api.register_blueprint(blp)
+
+        response = app.test_client().post(
+            "/test/",
+            data={
+                "title": "A document",
+                "count": "2",
+                "file": (io.BytesIO(b"Test"), "test.txt"),
+            },
+        )
+        assert response.status_code == 200
+        assert response.json == {"title": "A document", "count": 2, "file": "Test"}
+
+        spec = api.spec.to_dict()
+        operation = spec["paths"]["/test/"]["post"]
+        if openapi_version == "2.0":
+            assert operation["consumes"] == ["multipart/form-data"]
+            assert operation["parameters"] == [
+                {"in": "formData", "name": "title", "type": "string", "required": True},
+                {
+                    "in": "formData",
+                    "name": "count",
+                    "type": "integer",
+                    "required": True,
+                },
+                {"in": "formData", "name": "file", "type": "file", "required": True},
+            ]
+        else:
+            assert "parameters" not in operation
+            assert operation["requestBody"] == {
+                "required": True,
+                "content": {
+                    "multipart/form-data": {
+                        "schema": {"$ref": "#/components/schemas/MixedMultipart"}
+                    }
+                },
+            }
+            schema = spec["components"]["schemas"]["MixedMultipart"]
+            assert schema["properties"] == {
+                "title": {"type": "string"},
+                "count": {"type": "integer"},
+                "file": {"type": "string", "format": "binary"},
+            }
+            assert schema["required"] == ["count", "file", "title"]
+
+    def test_arguments_form_and_files_lists(self, app):
+        api = Api(app)
+        blp = Blueprint("test", __name__, url_prefix="/test")
+
+        class MixedMultipartSchema(ma.Schema):
+            labels = ma.fields.List(ma.fields.String(), data_key="label")
+            files = ma.fields.List(Upload(), data_key="file")
+
+        class QuerySchema(ma.Schema):
+            page = ma.fields.Integer()
+
+        @blp.route("/", methods=["POST"])
+        @blp.arguments(MixedMultipartSchema(), location="form_and_files")
+        @blp.arguments(QuerySchema, location="query")
+        def func(data, query):
+            assert request.form.getlist("label") == data["labels"]
+            assert request.files.getlist("file") == data["files"]
+            return {
+                "labels": data["labels"],
+                "files": [file.read().decode() for file in data["files"]],
+                "page": query["page"],
+            }
+
+        api.register_blueprint(blp)
+        response = app.test_client().post(
+            "/test/?page=2",
+            data=MultiDict(
+                [
+                    ("label", "first"),
+                    ("label", "second"),
+                    ("file", (io.BytesIO(b"Test 1"), "first.txt")),
+                    ("file", (io.BytesIO(b"Test 2"), "second.txt")),
+                ]
+            ),
+        )
+        assert response.status_code == 200
+        assert response.json == {
+            "labels": ["first", "second"],
+            "files": ["Test 1", "Test 2"],
+            "page": 2,
+        }
+        operation = api.spec.to_dict()["paths"]["/test/"]["post"]
+        assert operation["parameters"] == [
+            {
+                "in": "query",
+                "name": "page",
+                "schema": {"type": "integer"},
+                "required": False,
+            }
+        ]
+        schema = api.spec.to_dict()["components"]["schemas"]["MixedMultipart"]
+        assert schema["properties"]["file"] == {
+            "type": "array",
+            "items": {"type": "string", "format": "binary"},
+        }
+
+    @pytest.mark.parametrize("error_status_code", (400, 422))
+    @pytest.mark.parametrize(
+        "invalid", ("missing_form", "missing_file", "invalid_form", "unknown")
+    )
+    def test_arguments_form_and_files_validation(self, app, invalid, error_status_code):
+        api = Api(app)
+        blp = Blueprint("test", __name__, url_prefix="/test")
+
+        class MixedMultipartSchema(ma.Schema):
+            count = ma.fields.Integer(required=True)
+            file = Upload(required=True)
+
+        @blp.route("/", methods=["POST"])
+        @blp.arguments(
+            MixedMultipartSchema,
+            location="form_and_files",
+            error_status_code=error_status_code,
+        )
+        def func(data):
+            pytest.fail("Invalid arguments must not reach the view")
+
+        api.register_blueprint(blp)
+        data = {"count": "2", "file": (io.BytesIO(b"Test"), "test.txt")}
+        if invalid == "missing_form":
+            del data["count"]
+            errors = {"count": ["Missing data for required field."]}
+        elif invalid == "missing_file":
+            del data["file"]
+            errors = {"file": ["Missing data for required field."]}
+        elif invalid == "invalid_form":
+            data["count"] = "invalid"
+            errors = {"count": ["Not a valid integer."]}
+        else:
+            data["extra"] = "unknown"
+            errors = {"extra": ["Unknown field."]}
+        response = app.test_client().post("/test/", data=data)
+        assert response.status_code == error_status_code
+        assert response.json["errors"] == {"form_and_files": errors}
+        operation = api.spec.to_dict()["paths"]["/test/"]["post"]
+        assert str(error_status_code) in operation["responses"]
+
+    @pytest.mark.parametrize("unknown", (None, ma.EXCLUDE, ma.INCLUDE))
+    def test_arguments_form_and_files_unknown(self, app, unknown):
+        api = Api(app)
+        blp = Blueprint("test", __name__, url_prefix="/test")
+
+        class MixedMultipartSchema(ma.Schema):
+            title = ma.fields.String()
+            file = Upload()
+
+            class Meta:
+                unknown = ma.EXCLUDE
+
+        kwargs = {} if unknown is None else {"unknown": unknown}
+
+        @blp.route("/", methods=["POST"])
+        @blp.arguments(MixedMultipartSchema, location="form_and_files", **kwargs)
+        def func(data):
+            return {"extra": data.get("extra")}
+
+        api.register_blueprint(blp)
+        response = app.test_client().post(
+            "/test/",
+            data={
+                "title": "Title",
+                "file": (io.BytesIO(b"Test"), "test.txt"),
+                "extra": "unknown",
+            },
+        )
+        assert response.status_code == 200
+        assert response.json == {"extra": "unknown" if unknown == ma.INCLUDE else None}
 
     # This is only relevant to OAS3.
     @pytest.mark.parametrize("openapi_version", ("3.0.2",))

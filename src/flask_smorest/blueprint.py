@@ -65,6 +65,7 @@ class Blueprint(
         "json": "application/json",
         "form": "application/x-www-form-urlencoded",
         "files": "multipart/form-data",
+        "form_and_files": "multipart/form-data",
     }
 
     DOCSTRING_INFO_DELIMITER = "---"

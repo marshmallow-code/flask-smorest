@@ -32,3 +32,4 @@ Contributors (chronological)
 - Jason Tait `@jtait <https://github.com/jtait>`_
 - Arthur Woimbée `@awoimbee <https://github.com/awoimbee>`_
 - Kamil Gałuszka `@galuszkak <https://github.com/galuszkak>`_
+- suhail023 `@suhail023 <https://github.com/suhail023>`_
