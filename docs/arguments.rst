@@ -38,6 +38,7 @@ The following locations are allowed:
     - ``"headers"``
     - ``"cookies"``
     - ``"files"``
+    - ``"form_and_files"``
     - ``"json_or_form"``
 
 The location defaults to ``"json"``, which means `body` parameter.
@@ -86,10 +87,10 @@ Marshmallow also allows to pass an ``unknown`` argument to change this on the
 fly on each load. This parameter, if not ``None``, overrides the Meta
 attribute. But it does not propagate to nested ``Schema`` s.
 
-``json``, ``form`` or ``json_or_form`` locations may contain nested schemas, so
-the only way to change behaviour about ``unknown`` (for instance to set it to
-``EXCLUDE``), is to set it in a Meta attribute. This can be done conveniently
-in a base ``Schema`` class.
+``json``, ``form``, ``form_and_files`` or ``json_or_form`` locations may contain
+nested schemas, so the only way to change behaviour about ``unknown`` (for
+instance to set it to ``EXCLUDE``), is to set it in a Meta attribute. This can
+be done conveniently in a base ``Schema`` class.
 
 For locations that typically don't use nested ``Schema`` s (``query_string``,
 ``headers``, ``cookies`` and ``files``), ``unknown=EXCLUDE`` is passed, as it
@@ -168,6 +169,7 @@ location. The location / content type mapping can be customized by modifying
         "json": "application/json",
         "form": "application/x-www-form-urlencoded",
         "files": "multipart/form-data",
+        "form_and_files": "multipart/form-data",
     }
 
 It is also possible to override those defaults in a single resource by passing
@@ -177,11 +179,10 @@ a string as ``content_type`` argument to :meth:`Blueprint.arguments
 .. note:: The content type is only used for documentation purpose and has no
    impact on request parsing.
 
-.. note:: Multipart requests with mixed types (file, form, etc.) are not
-   supported. They can be achieved but the documentation is not correctly
-   generated. ``arguments`` decorator can be called multiple times on the same
-   view function but it should not be called with more that one request body
-   location. This limitation is discussed in :issue:`46`.
+.. note:: To combine files and form fields in a multipart request, use a single
+   schema with ``location="form_and_files"`` as shown below. Stacking
+   ``arguments`` decorators with multiple request body locations is not
+   supported by the documentation generator.
 
 File Upload
 -----------
@@ -213,3 +214,39 @@ fields. The files are injected in the view function as a ``dict`` of werkzeug
         base_dir = "/path/to/storage/dir/"
         file_1 = files["file_1"]
         file_1.save(os.path.join(base_dir, secure_filename(file_1.filename)))
+
+Mixed Multipart Forms
+---------------------
+
+Use ``location="form_and_files"`` to deserialize and document a multipart
+request containing both form fields and files. Define all fields in a single
+schema, using :class:`Upload <fields.Upload>` for files and regular marshmallow
+fields for form values:
+
+.. code-block:: python
+
+    class DocumentSchema(ma.Schema):
+        title = ma.fields.String(required=True)
+        file = Upload(required=True)
+
+
+    @blp.route("/documents", methods=["POST"])
+    @blp.arguments(DocumentSchema, location="form_and_files")
+    @blp.response(201)
+    def create_document(data):
+        file = data["file"]
+        # Save the file and use data["title"] as document metadata.
+        ...
+
+The default documented content type is ``multipart/form-data``. Both OpenAPI 2
+and OpenAPI 3 document the form fields and files together. Repeated form values
+and multiple files with the same field name can be loaded using
+``ma.fields.List`` and ``ma.fields.List(Upload())``, respectively.
+
+As with ``form``, unknown fields follow the schema's ``unknown`` setting unless
+overridden by the ``unknown`` argument to ``arguments``. The original
+``request.form`` and ``request.files`` remain available to the view. If a field
+name occurs in both, form values precede file values.
+
+If you replace ``Blueprint.ARGUMENTS_PARSER`` with a custom webargs parser,
+it must also provide a loader for ``form_and_files`` to use this location.

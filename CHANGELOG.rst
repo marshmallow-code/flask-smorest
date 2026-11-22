@@ -4,6 +4,11 @@ Changelog
 0.48.0 (unreleased)
 *******************
 
+Features:
+
+- Support mixed multipart forms with ``arguments(..., location="form_and_files")``
+  and generate documentation for both form fields and files (:issue:`557`).
+
 Other changes:
 
 - Officially support Python 3.14 (:pr:`857`).

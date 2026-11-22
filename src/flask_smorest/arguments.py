@@ -6,10 +6,24 @@ from copy import deepcopy
 from functools import wraps
 
 from flask import current_app
+from werkzeug.datastructures import CombinedMultiDict
 
-from webargs.flaskparser import FlaskParser
+from webargs.flaskparser import FlaskParser as WebargsFlaskParser
+from webargs.multidictproxy import MultiDictProxy
 
 from .utils import deepupdate
+
+
+class FlaskParser(WebargsFlaskParser):
+    """Flask parser with support for mixed multipart form data."""
+
+    __location_map__ = {
+        **WebargsFlaskParser.__location_map__,
+        "form_and_files": "load_form_and_files",
+    }
+
+    def load_form_and_files(self, req, schema):
+        return MultiDictProxy(CombinedMultiDict((req.form, req.files)), schema)
 
 
 class ArgumentsMixin:
@@ -35,8 +49,8 @@ class ArgumentsMixin:
             used to deserialize and validate the argument.
         :param str location: Location of the argument.
         :param str content_type: Content type of the argument.
-            Should only be used in conjunction with ``json``, ``form`` or
-            ``files`` location.
+            Should only be used in conjunction with ``json``, ``form``,
+            ``files`` or ``form_and_files`` location.
             The default value depends on the location and is set in
             ``Blueprint.DEFAULT_LOCATION_CONTENT_TYPE_MAPPING``.
             This is only used for documentation purpose.
@@ -120,6 +134,8 @@ class ArgumentsMixin:
                             operation["consumes"] = [
                                 content_type,
                             ]
+                        if param["in"] == "form_and_files":
+                            param["in"] = "formData"
                         # body and formData are mutually exclusive
                         break
             # OAS 3
