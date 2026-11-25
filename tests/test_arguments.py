@@ -301,6 +301,32 @@ class TestArguments:
                 "file_2": {"type": "string", "format": "binary"},
             }
 
+    @pytest.mark.parametrize("location", ("form", "files"))
+    def test_arguments_form_array_encoding(self, app, location):
+        app.config["OPENAPI_VERSION"] = "3.0.2"
+        api = Api(app)
+        blp = Blueprint("test", __name__, url_prefix="/test")
+
+        class FormSchema(ma.Schema):
+            my_values = ma.fields.List(ma.fields.String())
+            delimited_values = ma.fields.List(
+                ma.fields.String(), data_key="delimitedValues"
+            )
+
+        @blp.route("/", methods=["POST"])
+        @blp.arguments(FormSchema, location=location)
+        def func(data):
+            """Dummy view func"""
+
+        api.register_blueprint(blp)
+        spec = api.spec.to_dict()
+        content = spec["paths"]["/test/"]["post"]["requestBody"]["content"]
+        content_type = REQUEST_BODY_CONTENT_TYPE[location]
+        assert content[content_type]["encoding"] == {
+            "my_values": {"explode": True},
+            "delimitedValues": {"explode": True},
+        }
+
     # This is only relevant to OAS3.
     @pytest.mark.parametrize("openapi_version", ("3.0.2",))
     def test_arguments_examples(self, app, schemas, openapi_version):
