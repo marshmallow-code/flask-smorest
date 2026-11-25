@@ -7,9 +7,11 @@ from functools import wraps
 
 from flask import current_app
 
+from marshmallow.fields import List as ListField
+from webargs.fields import DelimitedList
 from webargs.flaskparser import FlaskParser
 
-from .utils import deepupdate
+from .utils import deepupdate, resolve_schema_instance
 
 
 class ArgumentsMixin:
@@ -140,6 +142,19 @@ class ArgumentsMixin:
                             param.pop("content_type", None)
                             or self.DEFAULT_LOCATION_CONTENT_TYPE_MAPPING[param["in"]]
                         )
+                        if content_type in (
+                            "application/x-www-form-urlencoded",
+                            "multipart/form-data",
+                        ):
+                            schema = resolve_schema_instance(fields["schema"])
+                            encoding = {}
+                            for name, field in schema.fields.items():
+                                if isinstance(field, ListField) and not isinstance(
+                                    field, DelimitedList
+                                ):
+                                    encoding[field.data_key or name] = {"explode": True}
+                            if encoding:
+                                fields["encoding"] = encoding
                         request_body["content"] = {content_type: fields}
                         operation["requestBody"] = request_body
                         # There can be only one requestBody
